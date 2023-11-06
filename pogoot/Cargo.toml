@@ -6,3 +6,20 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+argon2 = "0.5.1"
+axum = {version="0.6.20", features=["ws","tokio"]}
+futures = "0.3.28"
+futures-util = "0.3.28"
+libsql-client = "0.31.11"
+rand = "0.8.5"
+serde = {version="1.0.185", features=["derive", "rc"]}
+serde_json = "1.0.105"
+tokio = {version="1.32.0", features=["full"]}
+toml = "0.7.6"
+tracing = "0.1.37"
+async-std = "1.12.0"
+tracing-subscriber = "0.3.17"
+chrono = "0.4.26"
+tower-http = {version="0.4.1", features=["cors","trace"]}
+nanoid = "0.4.0"
+axum-client-ip = "0.4.2"
