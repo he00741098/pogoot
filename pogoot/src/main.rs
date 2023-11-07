@@ -1,41 +1,23 @@
-use std::time::SystemTime;
-use axum::{Router, routing::{get, post}, http::{StatusCode, header::{SET_COOKIE, self}, HeaderMap, HeaderValue}, response::{IntoResponse, self}};
-use futures::select;
-use tracing::{info, debug};
-use axum::response::{AppendHeaders};
-use libsql_client::args;
-use libsql_client::statement::Statement;
+use std::pin::pin;
+use std::time::{SystemTime, Duration};
+use axum::{Router, routing::get, response::IntoResponse};
+use futures::poll;
+use futures_util::Future;
+use serde::{Serialize, Deserialize};
+use tokio::sync::oneshot::error::RecvError;
+use tracing::info;
 use axum::response::Response;
 use axum::extract::ws::{WebSocketUpgrade, WebSocket};
-use axum::extract::{State, ConnectInfo};
-use axum::Json;
-use serde::{Serialize, Deserialize};
+use axum::extract::State;
 use std::sync::Arc;
-use libsql_client::Value;
-use argon2::{
-    password_hash::{
-        rand_core::OsRng,
-        PasswordHash, PasswordHasher, PasswordVerifier, SaltString
-    },
-    Argon2
-};
 use axum::extract::ws::Message;
-use axum_client_ip::{InsecureClientIp, SecureClientIp, SecureClientIpSource};
-use tower_http::trace::TraceLayer;
-use chrono::prelude::*;
-use std::net::SocketAddr;
-use tower_http::cors::CorsLayer;
 
-use std::{collections::HashMap};
-use async_std::sync::Mutex;
-use rand::Rng;
+use std::collections::HashMap;
 use tokio::sync::mpsc::Sender;
 use nanoid::nanoid;
 use async_std::sync::RwLock;
-use futures_util::{sink::SinkExt, stream::{StreamExt, SplitSink, SplitStream}};
-use futures_util::poll;
+use futures_util::stream::{SplitSink, SplitStream};
 use serde_json::to_string;
-use std::pin::pin;
 
 #[tokio::main]
 async fn main() {
@@ -82,33 +64,41 @@ async fn handle_socket(mut socket: WebSocket, state:Arc<Database>) {
                         let data = request.data;
                         if let request::StartGame(x) = requestType{
                             //TODO:Spawn Game thread
-                            if let Some(b) = starter{
-
+                            if let (Some(b),Some(c)) = (starter, commander){
                                 starter = None;
-                                if let Some(c) = commander{
                                 commander=None;
+                                let commanderResult = c.send(socket);
+                                let infoThing = if let Ok(_)=commanderResult{
+                                    info!("Successfully sent websocket to game thread");
+
                                 let result = b.send(true);
+                                
                                 match result{
                                     Ok(_)=>match to_string(&responses::successResponse("Succesfully started Game".to_string())){Ok(x)=>x,_=>"Failed To Parse Success of Start Game".to_string()},
                                     _=>match to_string(&responses::errorResponse("Failed to started Game".to_string())){Ok(x)=>x,_=>"Failed To Parse Failure of Start Game".to_string()},
                                 }
-
                             }else{
-                                    let response = to_string(&responses::errorResponse("No Commander Found".to_string()));
-                                    match response{
-                                        Ok(x)=>x.to_string(),
-                                        _=>"No Commander Found".to_string()
-                                    }
-
+                                info!("failed to send websocket to game thread");
+                                let result = b.send(false);
+                                
+                                match result{
+                                    Ok(_)=>match to_string(&responses::successResponse("Succesfully deleted Game".to_string())){Ok(x)=>x,_=>"Failed To Parse Deletion of Game".to_string()},
+                                    _=>match to_string(&responses::errorResponse("Failed to delete Game".to_string())){Ok(x)=>x,_=>"Failed To Parse Failure of Deletion Game".to_string()},
                                 }
-
+                            };
+                            info!("Commander or starter not found: {}", infoThing);
+                                return;
                             }else{
+                                commander=None;
+                                starter=None;
                                 let thing = to_string(&responses::errorResponse("No game found".to_string())).ok();
-                                if thing.is_some(){
+                                let poggers = if thing.is_some(){
                                     thing.unwrap()
                                 }else{
                                     "No game found".to_string()
-                                }
+                                };
+                                info!("{}", poggers);
+                                return;
                             }
                         }else if let request::CreateGame = requestType{
                             //TODO: add Game to the hashmap, also read the question data and parse
@@ -175,7 +165,8 @@ async fn handle_socket(mut socket: WebSocket, state:Arc<Database>) {
                         }
                     }else{
                     format!("invalid string: {:?}", x).to_string()
-                    }},
+                    }
+                },
                 _=>{format!("unknown: {:?}", msg).to_string()}
             }
         }else {
@@ -211,35 +202,77 @@ async fn handleSend(sender: SplitSink<WebSocket, Message>){
 async fn gameThread(mut receiver:tokio::sync::mpsc::Receiver<(String, WebSocket)>, starter:tokio::sync::oneshot::Receiver<bool>, questions:questionList, commander:tokio::sync::oneshot::Receiver<WebSocket>){
 //first step, be able to accumulate users
     let starter = tokio::spawn(startGame(starter));
-    let mut startTime = SystemTime::now();
+    let commander = tokio::spawn(waitForCommander(commander));
+    let mut inactive_time = SystemTime::now();
     let mut totalPlayers = vec![];
+    let allowed_inactive_time = Duration::from_millis(120000);
+    let mut finalCommand = None;
+    //TODO: INCORPORATE COMMANDER
     loop{
+        tokio::time::sleep(Duration::from_millis(50)).await;
         let newPlayers = receiver.recv();
         let newPlayers =  poll!(pin!(newPlayers));
         if let futures::task::Poll::Ready(Some(player))=newPlayers{
-            info!("New Player: {:?}", player);
+            info!("New Player: {:?}, Len Of Players: {}", player, totalPlayers.len());
             totalPlayers.push(player);
+            inactive_time=SystemTime::now();
         }
-        if starter.is_finished(){
-            let starterResult = starter.await;
-            if let Ok(x)=starterResult{
-                if !x{
-                    return;
-                }else{
-                    break;
-                }
-            }else{
+        if let Ok(x) = inactive_time.elapsed(){
+            if x>allowed_inactive_time{
+                info!("Deleting Game Thread Due to Inactivity");
+                starter.abort();
+                receiver.close();
                 return;
             }
         }
+        
+        if starter.is_finished(){
+            info!("Starter finished");
+            if commander.is_finished(){
+                info!("Commander finished");
+            info!("Starter is finished");
+            let starterResult = starter.await;
+            let commanderResult = commander.await;
+            if let (Ok(x), Ok(c))=(starterResult, commanderResult){
+                if !x{
+                    info!("Starter Result was False");
+                    return;
+                }else if c.is_ok(){
+                    finalCommand = Some(c.unwrap());
+                    info!("Starter returned True");
+                    break;
+                }else{
+                    info!("Final command invalid");
+                    return;
+                }
+            }else{
+                info!("Starter or Commander Result was Error");
+                return;
+            }
+            }
+            
+        }
+        
     }
+    //begin execution of game loop
+
+
 }
 
+
+async fn waitForCommander(commander:tokio::sync::oneshot::Receiver<WebSocket>)->Result<WebSocket, RecvError>{
+    info!("Waiting for Commander");
+    let b = commander.await?;
+    Ok(b)
+}
 async fn startGame(starter:tokio::sync::oneshot::Receiver<bool>)->bool{
+    info!("Awaiting starter");
     let b=starter.await;
     if let Ok(x) = b{
+        info!("Starter returned: {:?}",b);
         x
     }else{
+        info!("Starter returned Error");
         false
     }
 }
