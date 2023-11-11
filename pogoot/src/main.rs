@@ -1,7 +1,7 @@
 use std::pin::pin;
 use std::time::{SystemTime, Duration};
 use axum::{Router, routing::get, response::IntoResponse};
-use futures::poll;
+use futures::{poll, TryStreamExt};
 use futures_util::Future;
 use serde::{Serialize, Deserialize};
 use tokio::sync::oneshot::error::RecvError;
@@ -11,12 +11,12 @@ use axum::extract::ws::{WebSocketUpgrade, WebSocket};
 use axum::extract::State;
 use std::sync::Arc;
 use axum::extract::ws::Message;
-
+use futures::future;
+use futures_util::{sink::SinkExt, stream::{StreamExt, SplitSink, SplitStream}};
 use std::collections::HashMap;
 use tokio::sync::mpsc::Sender;
 use nanoid::nanoid;
 use async_std::sync::RwLock;
-use futures_util::stream::{SplitSink, SplitStream};
 use serde_json::to_string;
 
 #[tokio::main]
@@ -108,6 +108,7 @@ async fn handle_socket(mut socket: WebSocket, state:Arc<Database>) {
 
                             let (ctx, crx) = tokio::sync::oneshot::channel();
                             starter=Some(otx);
+                            commander=Some(ctx);
                             let (tx, rx) = tokio::sync::mpsc::channel::<(String, WebSocket)>(100);
                             if let Data::QuestionUpload(questions)=data{
 
@@ -201,6 +202,8 @@ async fn handleSend(sender: SplitSink<WebSocket, Message>){
 
 async fn gameThread(mut receiver:tokio::sync::mpsc::Receiver<(String, WebSocket)>, starter:tokio::sync::oneshot::Receiver<bool>, questions:questionList, commander:tokio::sync::oneshot::Receiver<WebSocket>){
 //first step, be able to accumulate users
+    let mut censoredQuestions = questions.clone();
+    let censoredQuestions:Vec<censoredQuestion> = censoredQuestions.questions.iter().map(|x|x.clone().censored()).collect();
     let starter = tokio::spawn(startGame(starter));
     let commander = tokio::spawn(waitForCommander(commander));
     let mut inactive_time = SystemTime::now();
@@ -214,7 +217,8 @@ async fn gameThread(mut receiver:tokio::sync::mpsc::Receiver<(String, WebSocket)
         let newPlayers =  poll!(pin!(newPlayers));
         if let futures::task::Poll::Ready(Some(player))=newPlayers{
             info!("New Player: {:?}, Len Of Players: {}", player, totalPlayers.len());
-            totalPlayers.push(player);
+            // let player = (player.0, Arc::new(player.1));
+            totalPlayers.push((player, 0));
             inactive_time=SystemTime::now();
         }
         if let Ok(x) = inactive_time.elapsed(){
@@ -255,10 +259,105 @@ async fn gameThread(mut receiver:tokio::sync::mpsc::Receiver<(String, WebSocket)
         
     }
     //begin execution of game loop
+    //Game starts
 
+        let gameData = gameData{totalQuestions:questions.questions.len()};
+        let gameData = to_string(&gameData);
+
+        if gameData.is_err(){
+            info!("Game Data is error!!!!");
+        }else if let Ok(x)=gameData{
+
+        for playerSocketIndex in 0..totalPlayers.len(){
+            let resultOfGameDataSend = totalPlayers[playerSocketIndex].0.1.send(Message::Text(x.clone())).await;
+            if resultOfGameDataSend.is_err(){
+                info!("GAME DATA SEND WAS ERROR, CLIENT DISCONNECT?");
+
+            }
+        }
+    }
+    //split all websockets into a wonderful new thing
+    let mut totalPlayersNew=vec![];
+    totalPlayers.into_iter().map(|x|(x.0.0, x.0.1.split(), x.1 as i32)).for_each(|x|totalPlayersNew.push(x));
+
+    let mut curQues = 0;
+    //TODO:REMEMBER TO DEAL WITH RECONNECTIONS
+    if let Some(mut finalCommand)=finalCommand{
+    loop{
+    let gameCommand = finalCommand.recv().await; 
+        if let Some(Ok(extractedData))=gameCommand{
+                if let Message::Text(wonderFulText)=extractedData{
+                if let Ok(parse) = serde_json::from_str::<commanderCommand>(&wonderFulText){
+                match parse{
+                        commanderCommand::next=>{
+                                if curQues<censoredQuestions.len(){
+                                    //Broadcast question to the nerds
+                                    
+                                    for playerSocketIndex in 0..totalPlayersNew.len(){
+                                        let question = to_string(&censoredQuestions[curQues]);
+                                        if question.is_err(){
+                                            info!("Oh crap cakes what is happening god god oui oui");
+                                            curQues+=1;
+                                            continue;
+                                        }
+                                        //TODO: FIX THIS MESS
+                                        let resultOfQuestionBroadcast = totalPlayersNew[playerSocketIndex].0.send(Message::Text(question.unwrap())).await;
+                                        if resultOfQuestionBroadcast.is_err(){
+                                            info!("BROADCAST WAS ERROR OH CRACK NO");
+                                        }
+                                        curQues+=1;
+                                    }
+                                    
+                                    //TODO: MAKE A RECEIVER THING;
+                                    //TODO:broadcast time and answers to host
+                                    //TODO:Check answers, adjust scores
+                                    //TODO:Send user Data, leaderboard
+                                }else{
+                                    //display end screen
+                                }
+                            }
+
+
+                }
+                        //end of parse
+                    }
+                }else{
+                    info!("Could not Parse Message: {:?}", extractedData);
+                }
+                //GameCommand ends here
+            }else{
+                info!("Commander May Have Disconnected");
+            }
+
+
+
+    }
+    }
 
 }
+async fn websocketReceiverHandler(mut receiver: SplitStream<WebSocket>, forwardResponses:tokio::sync::mpsc::Sender<Result<Message, axum::Error>>){
+    loop{
+        let msg = receiver.next().await;
+        match msg{
+            Some(Ok(msg))=>{forwardResponses.send(Ok(msg)).await;
+            // info!("Websocket returned error in receiver handler, Probably disconnected");
+            },
+            Some(Err(msg))=>{
+            info!("Websocket returned error in receiver handler, Probably disconnected");
+                forwardResponses.send(Err(msg)).await;
+            },
+            None=>{
+                info!("recieved: None");
+            }
+    }
+        //TODO FIGURE OUT A GOOD SOLUTION FOR THIS THING
+        tokio::time::sleep(Duration::from_millis(250)).await;
+    }
+    
+}
+async fn websocketSendHandler(sink: SplitSink<WebSocket, Message>, sendResponses:tokio::sync::mpsc::Receiver<Message>){
 
+}
 
 async fn waitForCommander(commander:tokio::sync::oneshot::Receiver<WebSocket>)->Result<WebSocket, RecvError>{
     info!("Waiting for Commander");
@@ -321,10 +420,33 @@ pub struct Question{
     answers:Vec<(bool, String)>
 }
 
+impl Question{
+    fn censored(self)->censoredQuestion{
+        censoredQuestion { question: self.question, answers: self.answers.iter().map(|x|x.1.clone()).collect::<Vec<String>>() }
+    }
+}
+
+#[derive(Clone, Deserialize, Serialize, Debug)]
+pub struct censoredQuestion{
+    question:String,
+    answers:Vec<String>
+}
+
 #[derive(Clone, Deserialize, Serialize, Debug)]
 pub enum responses{
     errorResponse(String),
     successResponse(String),
     gameCreatedResponse(String),
     gameCreationErrorResponse(String),
+}
+
+
+#[derive(Clone, Deserialize, Serialize, Debug)]
+pub struct gameData{
+    totalQuestions:usize,
+}
+
+#[derive(Clone, Deserialize, Serialize, Debug)]
+pub enum commanderCommand{
+    next,
 }
