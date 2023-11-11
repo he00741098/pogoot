@@ -118,7 +118,7 @@ async fn handle_socket(mut socket: WebSocket, state:Arc<Database>) {
                                     newGameId = nanoid!(6, &['1', '2', '3', '4', '5', '6', '7', '8', '9', '0']);
                                 }
                                 lock.insert(newGameId.clone(), Arc::new(tx));
-                                tokio::spawn(gameThread(rx, orx, questions, crx));
+                                tokio::spawn(gameThread(rx, orx, questions, crx, state.clone(), newGameId.clone()));
 
                                 let response = serde_json::to_string(&responses::gameCreatedResponse(newGameId.clone()));
                                 match response{
@@ -200,7 +200,7 @@ async fn handleSend(sender: SplitSink<WebSocket, Message>){
     //send updates to scoreboard, time, and new questions
 }
 
-async fn gameThread(mut receiver:tokio::sync::mpsc::Receiver<(String, WebSocket)>, starter:tokio::sync::oneshot::Receiver<bool>, questions:questionList, commander:tokio::sync::oneshot::Receiver<WebSocket>){
+async fn gameThread(mut receiver:tokio::sync::mpsc::Receiver<(String, WebSocket)>, starter:tokio::sync::oneshot::Receiver<bool>, questions:questionList, commander:tokio::sync::oneshot::Receiver<WebSocket>, state:Arc<Database>, gameId:String){
 //first step, be able to accumulate users
     let mut censoredQuestions = questions.clone();
     let censoredQuestions:Vec<censoredQuestion> = censoredQuestions.questions.iter().map(|x|x.clone().censored()).collect();
@@ -223,9 +223,11 @@ async fn gameThread(mut receiver:tokio::sync::mpsc::Receiver<(String, WebSocket)
         }
         if let Ok(x) = inactive_time.elapsed(){
             if x>allowed_inactive_time{
+                //TODO: DELETE FROM HASHMAP
                 info!("Deleting Game Thread Due to Inactivity");
                 starter.abort();
                 receiver.close();
+                let lock = state.thead_addresses.write().await;
                 return;
             }
         }
@@ -300,11 +302,11 @@ async fn gameThread(mut receiver:tokio::sync::mpsc::Receiver<(String, WebSocket)
                                             curQues+=1;
                                             continue;
                                         }
-                                        //TODO: FIX THIS MESS
-                                        let resultOfQuestionBroadcast = totalPlayersNew[playerSocketIndex].0.send(Message::Text(question.unwrap())).await;
-                                        if resultOfQuestionBroadcast.is_err(){
-                                            info!("BROADCAST WAS ERROR OH CRACK NO");
-                                        }
+                                        //TODO: FIX THIS MESS, USED HANDLERS
+                                        // let resultOfQuestionBroadcast = totalPlayersNew[playerSocketIndex].0.send(Message::Text(question.unwrap())).await;
+                                        // if resultOfQuestionBroadcast.is_err(){
+                                        //     info!("BROADCAST WAS ERROR OH CRACK NO");
+                                        // }
                                         curQues+=1;
                                     }
                                     
@@ -339,15 +341,24 @@ async fn websocketReceiverHandler(mut receiver: SplitStream<WebSocket>, forwardR
     loop{
         let msg = receiver.next().await;
         match msg{
-            Some(Ok(msg))=>{forwardResponses.send(Ok(msg)).await;
+            Some(Ok(msg))=>{
+                let result = forwardResponses.send(Ok(msg)).await;
+                if result.is_err(){
+                    info!("Send error");
+                    return;
+                }
             // info!("Websocket returned error in receiver handler, Probably disconnected");
             },
             Some(Err(msg))=>{
             info!("Websocket returned error in receiver handler, Probably disconnected");
-                forwardResponses.send(Err(msg)).await;
+                let senderResult = forwardResponses.send(Err(msg)).await;
+                if senderResult.is_err(){
+                    return;
+                }
             },
             None=>{
                 info!("recieved: None");
+                return;
             }
     }
         //TODO FIGURE OUT A GOOD SOLUTION FOR THIS THING
@@ -355,8 +366,16 @@ async fn websocketReceiverHandler(mut receiver: SplitStream<WebSocket>, forwardR
     }
     
 }
-async fn websocketSendHandler(sink: SplitSink<WebSocket, Message>, sendResponses:tokio::sync::mpsc::Receiver<Message>){
-
+async fn websocketSendHandler(mut sink: SplitSink<WebSocket, Message>, mut sendResponses:tokio::sync::mpsc::Receiver<Message>){
+    // sink.send(sendResponses).await;
+    while let Some(x) = sendResponses.recv().await{
+        let result = sink.send(x).await;
+        if result.is_err(){
+            info!("Sink send error, probably disconnected");
+            return;
+        }
+    }
+    info!("Websocket Send Handler Close");
 }
 
 async fn waitForCommander(commander:tokio::sync::oneshot::Receiver<WebSocket>)->Result<WebSocket, RecvError>{
@@ -379,6 +398,17 @@ async fn startGame(starter:tokio::sync::oneshot::Receiver<bool>)->bool{
 pub struct Database{
     //Hashmap of id & (currentQuestion Index, <question, (correct, answers)>, Usernames)
 thead_addresses:RwLock<HashMap<String, Arc<tokio::sync::mpsc::Sender<(String, WebSocket)>>>>,
+
+}
+
+
+#[test]
+fn serializeTestingForDamienBecauseHeIsNotBigBrainEnoughToJustRunTheCodeInHisBrain(){
+    let testUsername = "Hi".to_string();
+    let testRequest = pogootRequest { requestType:request::CreateGame, data:Data::Username(testUsername) };
+    let magicResult = to_string(&testRequest).unwrap();
+    println!("MagicalResult: {}", magicResult);
+    info!("MagicalResult: {}", magicResult);
 
 }
 
