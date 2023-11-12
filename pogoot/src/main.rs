@@ -227,7 +227,8 @@ async fn gameThread(mut receiver:tokio::sync::mpsc::Receiver<(String, WebSocket)
                 info!("Deleting Game Thread Due to Inactivity");
                 starter.abort();
                 receiver.close();
-                let lock = state.thead_addresses.write().await;
+                let mut lock = state.thead_addresses.write().await;
+                lock.remove(&gameId);
                 return;
             }
         }
@@ -280,11 +281,20 @@ async fn gameThread(mut receiver:tokio::sync::mpsc::Receiver<(String, WebSocket)
     }
     //split all websockets into a wonderful new thing
     let mut totalPlayersNew=vec![];
-    totalPlayers.into_iter().map(|x|(x.0.0, x.0.1.split(), x.1 as i32)).for_each(|x|totalPlayersNew.push(x));
+    totalPlayers.into_iter().map(|x|(x.0.0, x.0.1.split(), x.1 as i32)).map(|x|{
+        let futures = x.1;
+        let (rx, tx) = tokio::sync::mpsc::channel(20);
+
+        let (rx2, tx2) = tokio::sync::mpsc::channel(20);
+        tokio::spawn(websocketSendHandler(futures.0, tx));
+        tokio::spawn(websocketReceiverHandler(futures.1, rx2));
+        (x.0, (rx, tx2), x.2)
+    }).for_each(|x|totalPlayersNew.push(x));
 
     let mut curQues = 0;
-    //TODO:REMEMBER TO DEAL WITH RECONNECTIONS
+    //TODO:REMEMBER TO DEAL WITH RECONNECTIONS AND NEW CONNECTIONS
     if let Some(mut finalCommand)=finalCommand{
+    
     loop{
     let gameCommand = finalCommand.recv().await; 
         if let Some(Ok(extractedData))=gameCommand{
@@ -295,18 +305,19 @@ async fn gameThread(mut receiver:tokio::sync::mpsc::Receiver<(String, WebSocket)
                                 if curQues<censoredQuestions.len(){
                                     //Broadcast question to the nerds
                                     
-                                    for playerSocketIndex in 0..totalPlayersNew.len(){
-                                        let question = to_string(&censoredQuestions[curQues]);
+                                    let question = to_string(&censoredQuestions[curQues]);
                                         if question.is_err(){
                                             info!("Oh crap cakes what is happening god god oui oui");
                                             curQues+=1;
                                             continue;
                                         }
+                                    let question = question.unwrap();
+                                    for playerSocketIndex in 0..totalPlayersNew.len(){
                                         //TODO: FIX THIS MESS, USED HANDLERS
-                                        // let resultOfQuestionBroadcast = totalPlayersNew[playerSocketIndex].0.send(Message::Text(question.unwrap())).await;
-                                        // if resultOfQuestionBroadcast.is_err(){
-                                        //     info!("BROADCAST WAS ERROR OH CRACK NO");
-                                        // }
+                                        let resultOfQuestionBroadcast = totalPlayersNew[playerSocketIndex].1.0.send(Message::Text(question.clone())).await;
+                                        if resultOfQuestionBroadcast.is_err(){
+                                            info!("BROADCAST WAS ERROR OH CRACK NO");
+                                        }
                                         curQues+=1;
                                     }
                                     
