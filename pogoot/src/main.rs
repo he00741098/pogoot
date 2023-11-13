@@ -1,23 +1,23 @@
 use std::pin::pin;
 use std::time::{SystemTime, Duration};
-use axum::{Router, routing::get, response::IntoResponse};
-use futures::{poll, TryStreamExt};
-use futures_util::Future;
-use serde::{Serialize, Deserialize};
-use tokio::sync::oneshot::error::RecvError;
+use axum::{Router, routing::get};
+use futures::{poll};
 use tracing::info;
 use axum::response::Response;
 use axum::extract::ws::{WebSocketUpgrade, WebSocket};
 use axum::extract::State;
 use std::sync::Arc;
 use axum::extract::ws::Message;
-use futures::future;
-use futures_util::{sink::SinkExt, stream::{StreamExt, SplitSink, SplitStream}};
+use futures_util::{stream::{StreamExt, SplitSink, SplitStream}};
 use std::collections::HashMap;
-use tokio::sync::mpsc::Sender;
 use nanoid::nanoid;
 use async_std::sync::RwLock;
 use serde_json::to_string;
+mod requestTypes;
+mod tests;
+mod websocketHandlers;
+use crate::requestTypes::*;
+use crate::websocketHandlers::*;
 
 #[tokio::main]
 async fn main() {
@@ -36,8 +36,6 @@ async fn main() {
         .await
         .unwrap();
 }
-
-async fn joinRoom()->impl IntoResponse{}
 
 
 pub async fn handler(ws: WebSocketUpgrade, State(state): State<Arc<Database>>) -> Response {
@@ -192,13 +190,6 @@ async fn handle_socket(mut socket: WebSocket, state:Arc<Database>) {
     }
 
 }
-async fn handleRead(receiver: SplitStream<WebSocket>){
-    //only expect ANSWER
-
-}
-async fn handleSend(sender: SplitSink<WebSocket, Message>){
-    //send updates to scoreboard, time, and new questions
-}
 
 async fn gameThread(mut receiver:tokio::sync::mpsc::Receiver<(String, WebSocket)>, starter:tokio::sync::oneshot::Receiver<bool>, questions:questionList, commander:tokio::sync::oneshot::Receiver<WebSocket>, state:Arc<Database>, gameId:String){
 //first step, be able to accumulate users
@@ -326,6 +317,10 @@ async fn gameThread(mut receiver:tokio::sync::mpsc::Receiver<(String, WebSocket)
                                     //TODO:Check answers, adjust scores
                                     //TODO:Send user Data, leaderboard
                                 }else{
+                                    let mut clonedTotalPlayers =vec![];
+                                    for playerDataTemp in 0..totalPlayersNew.len(){
+                                        clonedTotalPlayers.push((totalPlayersNew[playerDataTemp].0.clone(), totalPlayersNew[playerDataTemp].2));
+                                    }
                                     //display end screen
                                 }
                             }
@@ -348,63 +343,6 @@ async fn gameThread(mut receiver:tokio::sync::mpsc::Receiver<(String, WebSocket)
     }
 
 }
-async fn websocketReceiverHandler(mut receiver: SplitStream<WebSocket>, forwardResponses:tokio::sync::mpsc::Sender<Result<Message, axum::Error>>){
-    loop{
-        let msg = receiver.next().await;
-        match msg{
-            Some(Ok(msg))=>{
-                let result = forwardResponses.send(Ok(msg)).await;
-                if result.is_err(){
-                    info!("Send error");
-                    return;
-                }
-            // info!("Websocket returned error in receiver handler, Probably disconnected");
-            },
-            Some(Err(msg))=>{
-            info!("Websocket returned error in receiver handler, Probably disconnected");
-                let senderResult = forwardResponses.send(Err(msg)).await;
-                if senderResult.is_err(){
-                    return;
-                }
-            },
-            None=>{
-                info!("recieved: None");
-                return;
-            }
-    }
-        //TODO FIGURE OUT A GOOD SOLUTION FOR THIS THING
-        tokio::time::sleep(Duration::from_millis(250)).await;
-    }
-    
-}
-async fn websocketSendHandler(mut sink: SplitSink<WebSocket, Message>, mut sendResponses:tokio::sync::mpsc::Receiver<Message>){
-    // sink.send(sendResponses).await;
-    while let Some(x) = sendResponses.recv().await{
-        let result = sink.send(x).await;
-        if result.is_err(){
-            info!("Sink send error, probably disconnected");
-            return;
-        }
-    }
-    info!("Websocket Send Handler Close");
-}
-
-async fn waitForCommander(commander:tokio::sync::oneshot::Receiver<WebSocket>)->Result<WebSocket, RecvError>{
-    info!("Waiting for Commander");
-    let b = commander.await?;
-    Ok(b)
-}
-async fn startGame(starter:tokio::sync::oneshot::Receiver<bool>)->bool{
-    info!("Awaiting starter");
-    let b=starter.await;
-    if let Ok(x) = b{
-        info!("Starter returned: {:?}",b);
-        x
-    }else{
-        info!("Starter returned Error");
-        false
-    }
-}
 
 pub struct Database{
     //Hashmap of id & (currentQuestion Index, <question, (correct, answers)>, Usernames)
@@ -413,81 +351,4 @@ thead_addresses:RwLock<HashMap<String, Arc<tokio::sync::mpsc::Sender<(String, We
 }
 
 
-#[test]
-fn serializeTestingForDamienBecauseHeIsNotBigBrainEnoughToJustRunTheCodeInHisBrain(){
-    let testUsername = "Hi".to_string();
-    let testRequest = pogootRequest { requestType:request::CreateGame, data:Data::Username(testUsername) };
-    let magicResult = to_string(&testRequest).unwrap();
-    println!("MagicalResult: {}", magicResult);
-    info!("MagicalResult: {}", magicResult);
 
-}
-
-#[derive(Clone, Deserialize, Serialize, Debug)]
-pub enum request{
-    ///Create new Game, Data required for question upload
-    CreateGame,
-    ///Start game takes a game ID and starts the Game
-    StartGame(String),
-    ///Subscribe to game takes a game ID and subscribes to the game. Data Required for Username
-    SubscribeToGame(String),
-    ///Answer takes in a number between 0..answers.len(), no data
-    Answer(usize),
-    ///Resub if discconnected
-    ReSubscribeToGame(String),
-
-}
-#[derive(Clone, Deserialize, Serialize, Debug)]
-pub enum Data{
-    None,
-    QuestionUpload(questionList),
-    Username(String),
-    UsernameAndToken(String, String),
-}
-#[derive(Clone, Deserialize, Serialize, Debug)]
-pub struct pogootRequest{
-    requestType:request,
-    data:Data
-}
-
-
-#[derive(Clone, Deserialize, Serialize, Debug)]
-pub struct questionList{
-    questions:Vec<Question>
-}
-#[derive(Clone, Deserialize, Serialize, Debug)]
-pub struct Question{
-    question:String,
-    answers:Vec<(bool, String)>
-}
-
-impl Question{
-    fn censored(self)->censoredQuestion{
-        censoredQuestion { question: self.question, answers: self.answers.iter().map(|x|x.1.clone()).collect::<Vec<String>>() }
-    }
-}
-
-#[derive(Clone, Deserialize, Serialize, Debug)]
-pub struct censoredQuestion{
-    question:String,
-    answers:Vec<String>
-}
-
-#[derive(Clone, Deserialize, Serialize, Debug)]
-pub enum responses{
-    errorResponse(String),
-    successResponse(String),
-    gameCreatedResponse(String),
-    gameCreationErrorResponse(String),
-}
-
-
-#[derive(Clone, Deserialize, Serialize, Debug)]
-pub struct gameData{
-    totalQuestions:usize,
-}
-
-#[derive(Clone, Deserialize, Serialize, Debug)]
-pub enum commanderCommand{
-    next,
-}
