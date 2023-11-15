@@ -23,14 +23,33 @@ use crate::websocketHandlers::*;
 
 #[tokio::main]
 async fn main() {
+    let subscriber = tracing_subscriber::fmt()
+    // Use a more compact, abbreviated log format
+    .compact()
+    // Display source code file paths
+    .with_file(true)
+    // Display source code line numbers
+    .with_line_number(true)
+    // Display the thread ID an event was recorded on
+    .with_thread_ids(true)
+    // Don't display the event's target (module path)
+    .with_target(false)
+    // Build the subscriber
+    .finish();
+tracing::subscriber::set_global_default(subscriber)
+.expect("setting default subscriber failed");
+info!("Initiated subscriber");
+
     let state = Arc::new(Database{
         thead_addresses:RwLock::new(HashMap::new())    
 
     });
     let app = Router::new()
+    .route("/hello", get(|| async {"hello!"}))
     .route("/ws", get(handler))
     .with_state(state)
     ;
+info!("App initiated");
 
     // run it with hyper on localhost:3000
     axum::Server::bind(&"0.0.0.0:3000".parse().unwrap())
@@ -237,7 +256,7 @@ async fn gameThread(mut receiver:tokio::sync::mpsc::Receiver<(String, WebSocket)
         tokio::time::sleep(Duration::from_millis(50)).await;
         let newPlayers = receiver.recv();
         let newPlayers =  poll!(pin!(newPlayers));
-        if let futures::task::Poll::Ready(Some(player))=newPlayers{
+        if let futures::task::Poll::Ready(Some(mut player))=newPlayers{
 
             info!("New Player: {:?}, Len Of Players: {}", player, totalPlayers.len());
             // let player = (player.0, Arc::new(player.1));
@@ -247,7 +266,18 @@ async fn gameThread(mut receiver:tokio::sync::mpsc::Receiver<(String, WebSocket)
                 let correct_token = taken_usernames.iter().filter(|x|x.0.clone()==username).map(|x|x.1.clone()).collect::<Vec<String>>()[0].clone();
                 recons.push(tokio::spawn(verify_reconnection(player, correct_token)));
             }else{
+                let temp_id = nanoid!(10);
+                taken_usernames.push((player.0.clone(), temp_id.clone()));
+                let temp_token = responses::reconnectorToken(temp_id.clone());
+                let temp_token = to_string(&temp_token);
+                if temp_token.is_ok(){
+                let resulting_thing = player.1.send(Message::Text(temp_token.unwrap())).await;
+                if resulting_thing.is_err(){
+                    info!("Player send error, disconnection?");
+                }
+                }
                 totalPlayers.push((player, 0));
+                
             }
             inactive_time=SystemTime::now();
 
@@ -267,7 +297,9 @@ async fn gameThread(mut receiver:tokio::sync::mpsc::Receiver<(String, WebSocket)
             if x>allowed_inactive_time{
                 //TODO: DELETE FROM HASHMAP
                 info!("Deleting Game Thread Due to Inactivity");
+                recons.into_iter().for_each(|x|x.abort());
                 starter.abort();
+                commander.abort();
                 receiver.close();
                 let mut lock = state.thead_addresses.write().await;
                 lock.remove(&gameId);
@@ -428,8 +460,8 @@ async fn gameThread(mut receiver:tokio::sync::mpsc::Receiver<(String, WebSocket)
                                         }
                                     }
 
-                                    //TODO:broadcast time? and answers to host
-                                    //TODO:Check answers, adjust scores
+                                    //TODO:broadcast time? and answers to host [x]
+                                    //Check answers, adjust scores
                                     //TODO:Send user Data, leaderboard
                                     let round_result = totalPlayersNew.iter().map(|x|(x.0.clone(),x.2)).collect::<Vec<(String, i32)>>();
                                     let round_result = to_string(&commanderGamePlayResults::Leaderboard(round_result));

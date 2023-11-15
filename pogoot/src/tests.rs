@@ -10,3 +10,8 @@ fn serializeTestingForDamienBecauseHeIsNotBigBrainEnoughToJustRunTheCodeInHisBra
     info!("MagicalResult: {}", magicResult);
 
 }
+
+
+//Expected orderings of requests
+//1. pogoot request - create game, subscribe to game, etc
+//2.
