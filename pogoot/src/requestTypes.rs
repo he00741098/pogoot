@@ -56,6 +56,8 @@ pub enum responses{
     successResponse(String),
     gameCreatedResponse(String),
     gameCreationErrorResponse(String),
+    sendReconToken,
+    reconToken(String),
 }
 
 
@@ -67,4 +69,10 @@ pub struct gameData{
 #[derive(Clone, Deserialize, Serialize, Debug)]
 pub enum commanderCommand{
     next,
+}
+
+#[derive(Clone, Deserialize, Serialize, Debug)]
+pub enum commanderGamePlayResults{
+    Leaderboard(Vec<(String, i32)>),
+    GameOver(Vec<(String, i32)>)
 }

@@ -4,12 +4,13 @@ use tracing::info;
 use axum::extract::ws::WebSocket;
 use axum::extract::ws::Message;
 use futures_util::{sink::SinkExt, stream::{StreamExt, SplitSink, SplitStream}};
-pub async fn websocketReceiverHandler(mut receiver: SplitStream<WebSocket>, forwardResponses:tokio::sync::mpsc::Sender<Result<Message, axum::Error>>){
+pub async fn websocketReceiverHandler(mut receiver: SplitStream<WebSocket>, forwardResponses:tokio::sync::mpsc::Sender<Result<(String, Message), axum::Error>>, username:String){
     loop{
         let msg = receiver.next().await;
+        info!("Msg received?");
         match msg{
             Some(Ok(msg))=>{
-                let result = forwardResponses.send(Ok(msg)).await;
+                let result = forwardResponses.send(Ok((username.clone(),msg))).await;
                 if result.is_err(){
                     info!("Send error");
                     return;
@@ -19,17 +20,17 @@ pub async fn websocketReceiverHandler(mut receiver: SplitStream<WebSocket>, forw
             Some(Err(msg))=>{
             info!("Websocket returned error in receiver handler, Probably disconnected");
                 let senderResult = forwardResponses.send(Err(msg)).await;
-                if senderResult.is_err(){
+                // if senderResult.is_err(){
                     return;
-                }
+                // }
             },
             None=>{
                 info!("recieved: None");
                 return;
             }
     }
-        //TODO FIGURE OUT A GOOD SOLUTION FOR THIS THING
-        tokio::time::sleep(Duration::from_millis(250)).await;
+        //Not required right?
+        // tokio::time::sleep(Duration::from_millis(250)).await;
     }
     
 }

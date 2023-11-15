@@ -2,6 +2,8 @@ use std::pin::pin;
 use std::time::{SystemTime, Duration};
 use axum::{Router, routing::get};
 use futures::{poll};
+use futures_util::future::join_all;
+use futures_util::stream::FuturesUnordered;
 use tracing::info;
 use axum::response::Response;
 use axum::extract::ws::{WebSocketUpgrade, WebSocket};
@@ -191,8 +193,34 @@ async fn handle_socket(mut socket: WebSocket, state:Arc<Database>) {
 
 }
 
+async fn verify_reconnection(mut player:(String, WebSocket), correctToken:String)->Result<(String, WebSocket), ()>{
+    let msg = to_string(&crate::requestTypes::responses::sendReconToken);
+    if msg.is_err(){
+        return Err(())
+    }
+    let msg = msg.unwrap();
+    let request_send = player.1.send(Message::Text(msg)).await;
+    if request_send.is_err(){
+        return Err(())
+    }
+    let returnMessage = player.1.recv().await;
+    if let Some(Ok(Message::Text(msg))) = returnMessage{
+        let parsed = serde_json::from_str::<crate::requestTypes::responses>(&msg);
+        if parsed.is_ok(){
+            let parsed = parsed.unwrap();
+            if let responses::reconToken(parsed)=parsed{
+            if parsed==correctToken{
+                return Ok(player);
+            }
+        }
+        }
+    }
+    Err(())
+}
+
 async fn gameThread(mut receiver:tokio::sync::mpsc::Receiver<(String, WebSocket)>, starter:tokio::sync::oneshot::Receiver<bool>, questions:questionList, commander:tokio::sync::oneshot::Receiver<WebSocket>, state:Arc<Database>, gameId:String){
 //first step, be able to accumulate users
+//TODO: GET REJOIN/JOIN WORKING IN GAME LOOP, Make COMMANDER RECONNECT, SEND STATUS TO PLAYERS.
     let mut censoredQuestions = questions.clone();
     let censoredQuestions:Vec<censoredQuestion> = censoredQuestions.questions.iter().map(|x|x.clone().censored()).collect();
     let starter = tokio::spawn(startGame(starter));
@@ -201,17 +229,40 @@ async fn gameThread(mut receiver:tokio::sync::mpsc::Receiver<(String, WebSocket)
     let mut totalPlayers = vec![];
     let allowed_inactive_time = Duration::from_millis(120000);
     let mut finalCommand = None;
+    let mut recons = vec![];
+    //Username, Recconection Id
+    let mut taken_usernames:Vec<(String, String)> = vec![];
     //TODO: INCORPORATE COMMANDER
     loop{
         tokio::time::sleep(Duration::from_millis(50)).await;
         let newPlayers = receiver.recv();
         let newPlayers =  poll!(pin!(newPlayers));
         if let futures::task::Poll::Ready(Some(player))=newPlayers{
+
             info!("New Player: {:?}, Len Of Players: {}", player, totalPlayers.len());
             // let player = (player.0, Arc::new(player.1));
-            totalPlayers.push((player, 0));
+            if taken_usernames.iter().map(|x|x.0.clone()).collect::<Vec<String>>().contains(&player.0){
+                info!("Username taken: try recon");
+                let username = player.0.clone();
+                let correct_token = taken_usernames.iter().filter(|x|x.0.clone()==username).map(|x|x.1.clone()).collect::<Vec<String>>()[0].clone();
+                recons.push(tokio::spawn(verify_reconnection(player, correct_token)));
+            }else{
+                totalPlayers.push((player, 0));
+            }
             inactive_time=SystemTime::now();
+
         }
+        let ready_recons = join_all(recons.iter_mut().filter(|x|x.is_finished())).await;
+        ready_recons.into_iter().filter(|pog|pog.is_ok()).map(|g|g.unwrap()).filter(|e|e.is_ok()).map(|w|w.unwrap()).for_each(|x|{
+            let index = totalPlayers.iter().enumerate().filter(|b|b.1.0.0==x.0).map(|c|c.0).collect::<Vec<usize>>()[0];
+            let temp_username = x.0.clone();
+            let cloned_taken = taken_usernames.clone();
+            totalPlayers[index].0=x;
+            if cloned_taken.iter().map(|x|x.0.clone()).collect::<Vec<String>>().contains(&temp_username){
+                    taken_usernames = cloned_taken.into_iter().filter(|x|x.0!=temp_username).collect();
+
+            }
+        });
         if let Ok(x) = inactive_time.elapsed(){
             if x>allowed_inactive_time{
                 //TODO: DELETE FROM HASHMAP
@@ -261,31 +312,32 @@ async fn gameThread(mut receiver:tokio::sync::mpsc::Receiver<(String, WebSocket)
         if gameData.is_err(){
             info!("Game Data is error!!!!");
         }else if let Ok(x)=gameData{
-
-        for playerSocketIndex in 0..totalPlayers.len(){
+        let length = totalPlayers.len();
+        for playerSocketIndex in 0..length{
             let resultOfGameDataSend = totalPlayers[playerSocketIndex].0.1.send(Message::Text(x.clone())).await;
             if resultOfGameDataSend.is_err(){
                 info!("GAME DATA SEND WAS ERROR, CLIENT DISCONNECT?");
-
             }
         }
     }
     //split all websockets into a wonderful new thing
     let mut totalPlayersNew=vec![];
     totalPlayers.into_iter().map(|x|(x.0.0, x.0.1.split(), x.1 as i32)).map(|x|{
+        
         let futures = x.1;
         let (rx, tx) = tokio::sync::mpsc::channel(20);
 
         let (rx2, tx2) = tokio::sync::mpsc::channel(20);
         tokio::spawn(websocketSendHandler(futures.0, tx));
-        tokio::spawn(websocketReceiverHandler(futures.1, rx2));
+        tokio::spawn(websocketReceiverHandler(futures.1, rx2, x.0.clone()));
         (x.0, (rx, tx2), x.2)
     }).for_each(|x|totalPlayersNew.push(x));
 
     let mut curQues = 0;
     //TODO:REMEMBER TO DEAL WITH RECONNECTIONS AND NEW CONNECTIONS
     if let Some(mut finalCommand)=finalCommand{
-    
+    let mut required_completes = totalPlayersNew.len();
+    let mut ignoreList:Vec<usize> = vec![];
     loop{
     let gameCommand = finalCommand.recv().await; 
         if let Some(Ok(extractedData))=gameCommand{
@@ -295,7 +347,7 @@ async fn gameThread(mut receiver:tokio::sync::mpsc::Receiver<(String, WebSocket)
                         commanderCommand::next=>{
                                 if curQues<censoredQuestions.len(){
                                     //Broadcast question to the nerds
-                                    
+                                    let correct_answer:Vec<usize> = questions.questions[curQues].clone().answers.into_iter().enumerate().filter(|x|x.1.0).map(|x|x.0).collect();
                                     let question = to_string(&censoredQuestions[curQues]);
                                         if question.is_err(){
                                             info!("Oh crap cakes what is happening god god oui oui");
@@ -303,25 +355,105 @@ async fn gameThread(mut receiver:tokio::sync::mpsc::Receiver<(String, WebSocket)
                                             continue;
                                         }
                                     let question = question.unwrap();
-                                    for playerSocketIndex in 0..totalPlayersNew.len(){
-                                        //TODO: FIX THIS MESS, USED HANDLERS
-                                        let resultOfQuestionBroadcast = totalPlayersNew[playerSocketIndex].1.0.send(Message::Text(question.clone())).await;
-                                        if resultOfQuestionBroadcast.is_err(){
-                                            info!("BROADCAST WAS ERROR OH CRACK NO");
-                                        }
-                                        curQues+=1;
+                                    //BROADCAST QUESTION TO COMMANDER AS WELL
+                                    let commanderSendQuestion = finalCommand.send(Message::Text(question.clone())).await;
+                                    if commanderSendQuestion.is_err(){
+                                        info!("Commander is error, Will try to continue");
+                                        
                                     }
+                                    for playerSocketIndex in 0..totalPlayersNew.len(){
+                                        let resultOfQuestionBroadcast = totalPlayersNew[playerSocketIndex].1.0.send(Message::Text(question.clone())).await;
+                                        if resultOfQuestionBroadcast.is_err()&&!ignoreList.contains(&playerSocketIndex){
+                                            info!("BROADCAST WAS ERROR OH CRACK NO");
+                                            required_completes-=1;
+                                            ignoreList.push(playerSocketIndex);
+                                        }else if resultOfQuestionBroadcast.is_ok()&&ignoreList.contains(&playerSocketIndex){
+                                            required_completes+=1;
+                                            ignoreList=ignoreList.into_iter().filter(|x|*x!=playerSocketIndex).collect();
+                                        }
+                                    }
+                                    curQues+=1;
                                     
-                                    //TODO: MAKE A RECEIVER THING;
-                                    //TODO:broadcast time and answers to host
+                                    //MADE A RECEIVER THING;
+                                    let mut receiver: FuturesUnordered<_> = totalPlayersNew.iter_mut().map(|x|x.1.1.recv()).collect();
+                                    let start_time = SystemTime::now();
+                                    let max_wait_time = Duration::from_secs(30);
+                                    let mut answers:Vec<(String, usize)> = vec![];
+                                    loop{
+                                        //CHECK FOR NEXT AND CHECK FOR FINISHED AND IGNORE DEAD CONNECTIONS
+                                        if let Ok(x) = start_time.elapsed(){
+                                            if x>=max_wait_time{
+                                                break;
+                                            }
+                                            if answers.len()>=required_completes{
+                                                break;
+                                            }
+                                            let temporary_result = tokio::time::timeout(Duration::from_secs(1),receiver.next()).await;
+                                            match temporary_result{
+                                                Ok(Some(Some(Ok(choices))))=>{
+                                                    if let Message::Text(text) = choices.1{
+                                                        if let Ok(final_choice) = text.parse::<usize>(){
+                                                            answers.push((choices.0, final_choice));
+                                                        }else{
+                                                            info!("Parse error: {:?}", text);
+                                                        }
+                                                    }else{
+                                                        info!("Not Text: {:?}", choices);
+                                                    }
+                                                },
+                                                Err(_)=>{info!("Timeout"); continue;}
+                                                _=>{info!("Not Some(Some(Ok(_))): {:?}", temporary_result); continue;}
+                                            }
+                                        }
+                                    }
+                                    drop(receiver);
+                                    //check answers
+                                    let mut max_point_bonus = 1000.0;
+                                    for i in answers{
+                                        let mut correct = false;
+                                        for b in 0..correct_answer.len(){
+                                            if i.1==correct_answer[b]{
+                                                correct=true;
+                                            }
+                                        }
+                                        if correct{
+                                            for c in 0..totalPlayersNew.len(){
+                                                if i.0==totalPlayersNew[c].0{
+                                                    totalPlayersNew[c].2+=(max_point_bonus) as i32;
+                                                    let send_score_result = totalPlayersNew[c].1.0.send(Message::Text(format!("{}",max_point_bonus))).await;
+                                                    info!("Score send Result!!: {:?}, {:?}", send_score_result, totalPlayersNew[c].0);
+                                                    max_point_bonus*=0.9;
+                                                }
+                                            }
+                                        }
+                                    }
+
+                                    //TODO:broadcast time? and answers to host
                                     //TODO:Check answers, adjust scores
                                     //TODO:Send user Data, leaderboard
+                                    let round_result = totalPlayersNew.iter().map(|x|(x.0.clone(),x.2)).collect::<Vec<(String, i32)>>();
+                                    let round_result = to_string(&commanderGamePlayResults::Leaderboard(round_result));
+                                    if round_result.is_ok(){
+                                        let fun_final_result_thing = finalCommand.send(Message::Text(round_result.unwrap())).await;
+                                        match fun_final_result_thing{
+                                            Ok(_)=>info!("Leaderboard Sent Successfully"),
+                                            Err(_)=>info!("Commander may have disconnected. Attempting to continue")
+                                        }
+                                    }
                                 }else{
                                     let mut clonedTotalPlayers =vec![];
                                     for playerDataTemp in 0..totalPlayersNew.len(){
                                         clonedTotalPlayers.push((totalPlayersNew[playerDataTemp].0.clone(), totalPlayersNew[playerDataTemp].2));
                                     }
                                     //display end screen
+                                    let round_result = to_string(&commanderGamePlayResults::GameOver(clonedTotalPlayers));
+                                    if round_result.is_ok(){
+                                        let fun_final_result_thing = finalCommand.send(Message::Text(round_result.unwrap())).await;
+                                        match fun_final_result_thing{
+                                            Ok(_)=>info!("Game Over Sent Successfully"),
+                                            Err(_)=>info!("Commander may have disconnected. Attempting to continue")
+                                        }
+                                    }
                                 }
                             }
 
