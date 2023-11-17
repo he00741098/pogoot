@@ -58,6 +58,7 @@ pub enum responses{
     gameCreationErrorResponse(String),
     sendReconToken,
     reconToken(String),
+    reconnectorToken(String),
 }
 
 

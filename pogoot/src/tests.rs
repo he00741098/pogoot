@@ -12,3 +12,8 @@ fn test_pogoot_request_serialization(){
     println!("MagicalResult2: {}", magic_result2);
     // info!("MagicalResult: {}", magic_result);
 }
+
+
+//Expected orderings of requests
+//1. pogoot request - create game, subscribe to game, etc
+//2.
