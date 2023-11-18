@@ -130,7 +130,7 @@ async fn handle_socket(mut socket: WebSocket, state:Arc<Database>) {
                             commander=Some(ctx);
                             let (tx, rx) = tokio::sync::mpsc::channel::<(String, WebSocket)>(100);
                             if let Data::QuestionUpload(questions)=data{
-
+                                //TODO: QUESTION LIST VERIFICATION? MAKE SURE THERE IS AT LEAST ONE CORRECT ANSWER
                                 let mut lock = state.thead_addresses.write().await;
                                 let mut newGameId = nanoid!(6, &['1', '2', '3', '4', '5', '6', '7', '8', '9', '0']);
                                 while lock.contains_key(&newGameId){
@@ -157,7 +157,14 @@ async fn handle_socket(mut socket: WebSocket, state:Arc<Database>) {
                             // let mut username = "";
                             if let Data::Username(username)=data{
                             let lock = state.thead_addresses.read().await;
-                            let destination = lock[&gameId].clone();
+                            let destination = lock.get(&gameId).clone();
+                            if destination.is_err(){
+                                info!("Game Id Not found");
+                                let response_msg = responses::gameNotFoundError;
+                                let response_msg = to_string(&response_msg);
+                                let response_msg = 
+                                let socketSend = socket.send();
+                            }
                             let resultOfSend = destination.send((username, socket)).await;
                             if resultOfSend.is_ok(){
                                     info!("Send Success");
