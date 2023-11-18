@@ -158,14 +158,25 @@ async fn handle_socket(mut socket: WebSocket, state:Arc<Database>) {
                             if let Data::Username(username)=data{
                             let lock = state.thead_addresses.read().await;
                             let destination = lock.get(&gameId).clone();
-                            if destination.is_err(){
+                            if destination.is_some(){
+                                let destination = destination.unwrap();
                                 info!("Game Id Not found");
                                 let response_msg = responses::gameNotFoundError;
                                 let response_msg = to_string(&response_msg);
-                                let response_msg = 
-                                let socketSend = socket.send();
-                            }
+                                let response_msg = if let Ok(response_msg) = response_msg{
+                                    response_msg
+                                }else{
+                                    info!("Parse error for response_msg: 168");
+                                    return;
+                                };
+                                let socketSend = socket.send(Message::Text(response_msg)).await;
+                                match socketSend{
+                                    Ok(_)=>info!("Socket send success"),
+                                    _=>{info!("Socket send failed");return},
+                                }
+                            
                             let resultOfSend = destination.send((username, socket)).await;
+                            drop(destination);
                             if resultOfSend.is_ok(){
                                     info!("Send Success");
                                     return;
@@ -173,6 +184,10 @@ async fn handle_socket(mut socket: WebSocket, state:Arc<Database>) {
                                     info!("Send Failed");
                                     return;
                                 }
+                            }
+                            info!("Destination is not Some");
+
+                            return;
                             }else{
                                 let response = to_string(&responses::errorResponse("Could Not Join Game".to_string()));
                                 match response{
@@ -180,6 +195,7 @@ async fn handle_socket(mut socket: WebSocket, state:Arc<Database>) {
                                     _=>"Could Not Join Game".to_string(),
                                 }
                         }
+                        // "end".to_string();
                         }else if let request::Answer(_) = requestType{
                             let response = serde_json::to_string(&responses::errorResponse("Not Taking Answers".to_string()));
                             match response{
