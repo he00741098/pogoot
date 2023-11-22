@@ -5,16 +5,22 @@ pub mod config;
 pub mod state_storage;
 #[derive(Clone, Deserialize, Serialize, Debug)]
 pub struct pogootRequest{
-    request:requestType,
-    data:Data
+    pub request:requestType,
+    pub data:Data
 
 }
 
 #[derive(Clone, Deserialize, Serialize, Debug)]
 pub struct pogootResponse{
-    response:responseType,
-    data:Data
+    pub response:responseType,
+    pub data:Data
 }
+impl pogootResponse{
+    pub fn standard_error_message(message:&str)->Self{
+        pogootResponse { response: responseType::errorResponse, data: Data::StandardErrorData(format!("{}", message)) }
+    }
+}
+
 #[derive(Clone, Deserialize, Serialize, Debug)]
 pub enum Data{
     ///Data for create game, requires a valid list of questions
@@ -39,6 +45,9 @@ pub enum Data{
     GameCreationErrorData(String),
     ///Contains error message
     GameNotFoundErrorData(String),
+    ///Data for temporary logins
+    TempData(String),
+    AnonData(String)
 }
 #[derive(Clone, Deserialize, Serialize, Debug)]
 pub enum requestType{
@@ -56,6 +65,10 @@ pub enum requestType{
     Login,
     ///Register
     Register,
+    ///Temporary Login for no Login Games
+    Temp,
+    ///Anonomous login for anon games
+    Anon,
 }
 #[derive(Clone, Deserialize, Serialize, Debug)]
 pub enum responseType{

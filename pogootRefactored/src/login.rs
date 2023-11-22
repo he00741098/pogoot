@@ -1,12 +1,13 @@
 use std::{time::Duration, collections::{HashMap, HashSet}};
-
+use axum::{extract::{State, Json}, response::IntoResponse};
 use nanoid::nanoid;
 use tokio::sync::mpsc::{Receiver, Sender};
 use chrono::{Utc, DateTime, serde::ts_milliseconds};
 use serde::{Serialize, Deserialize};
 use tracing::info;
-
-use crate::dataTypes::database::Database;
+use std::sync::Arc;
+use crate::{dataTypes::{database::Database, state_storage::state_storage, pogootRequest, requestType, pogootResponse}, util::*};
+use axum_client_ip::SecureClientIp;
 //login system involves a main thread with a channel that takes login requests and redirects them to
 //more private threads that will proccess the request
 
@@ -15,6 +16,19 @@ pub struct Login{
     database:Database,
     ///Token storage - Purely for not generating matching tokens
     tokens:TokenStorage,
+    ///Usermap - keeps track of all logged in users
+    user_map:HashMap<String,UserData>,
+    ///Tokenmap - keeps track of all the tokens (Token, Username)
+    token_map:HashMap<String, String>
+}
+pub struct LoggedInUserData{
+    login_time:DateTime<Utc>,
+    token:String,
+    rejoinable:Vec<LoginGameData>
+}
+pub enum LoginGameData{
+    ///Holds the Id and reconnector token to a pogoot game
+    PogootGame(String, String)
 }
 
 struct TokenStorage{
@@ -107,37 +121,143 @@ impl TokenStorage{
 }
 
 pub struct loginRequest{
-    ///true for login, false for register
-    request_type:bool,
-    ///username
-    username:String,
-    ///password
-    password:String,
-    ///callback, success or not
-    callback:tokio::sync::oneshot::Sender<bool>
+    request_type:loginRequestTypes,
+    data:loginData
+}
+impl loginRequest{
+
+}
+pub enum loginRequestTypes{
+    Register,
+    Login,
+    TokenVerify,
+    Temp,
+    Anon
+}
+pub enum loginData{
+    ///login request data (Username, Password, Ip, Callback)
+    Login(String, String, String, tokio::sync::oneshot::Sender<Result<String, pogootResponse>>),
+    ///Register request data (Username, Password, Ip, Callback)
+    Register(String, String, String, tokio::sync::oneshot::Sender<Result<String, pogootResponse>>),
+    ///Token, Ip
+    TokenVerify(String, String),
+    ///Username
+    Temp(String, tokio::sync::oneshot::Sender<Result<String, pogootResponse>>),
+    None
+}
+impl loginData{
+    pub fn standard_login(username:String, password:String, ip:String)->(loginData, tokio::sync::oneshot::Receiver<Result<String, pogootResponse>>){
+        let (tx, rx) = tokio::sync::oneshot::channel();
+        (loginData::Login(username, password, ip, tx), rx)
+    }
+    pub fn standard_register(username:String, password:String, ip:String)->(loginData, tokio::sync::oneshot::Receiver<Result<String, pogootResponse>>){
+        let (tx, rx) = tokio::sync::oneshot::channel();
+        (loginData::Register(username, password, ip, tx), rx)
+    }
+    pub fn standard_temp(username:String)->(loginData, tokio::sync::oneshot::Receiver<Result<String, pogootResponse>>){
+        let (tx, rx) = tokio::sync::oneshot::channel();
+        (loginData::Temp(username, tx),rx)
+    }
 }
 
 impl Login{
     ///private function to login users
-    fn login(&mut self, login:loginRequest)->bool{
+    fn login(&mut self, login:loginData)->Result<String, ()>{
         todo!();
     }
     ///private function to register users - generate user data
-    fn register(&mut self, login:loginRequest)->bool{
+    fn register(&mut self, login:loginData)->Result<String, ()>{
         //check date, put date in database, check IP, etc
         todo!();
     }
+    ///private function to add a anonymous user
+    fn anon(&mut self)->Result<String, ()>{
+        todo!()
+    }
     ///public function to start the login thread
     pub fn start_thread(database:Database)->Sender<loginRequest>{
-        let login_thread = Login{database, tokens:TokenStorage::new()};
+        let login_thread = Login{database, tokens:TokenStorage::new(), token_map:HashMap::new(), user_map:HashMap::new()};
         let (tx, rx) = tokio::sync::mpsc::channel::<loginRequest>(100);
         tokio::spawn(login_thread.login_thread(rx));
         tx
     }
-    ///private function to start thread
+    ///private function to start thread, Thread acts as "load balancer"
     async fn login_thread(self, rx:Receiver<loginRequest>){
         //login, generate token, deal with stuff, send bool over callback
         todo!()
+    }
+    ///Public function for auxum to use, post request required
+    pub async fn login_handler(State(state): State<Arc<state_storage>>, SecureClientIp(ip): SecureClientIp, Json(json):Json<pogootRequest>) -> impl IntoResponse{
+        let request = json.request;
+        let mut data = json.data;
+        let response = match request{
+            requestType::Login=>{
+                if util::verify_data_is_login(&data){
+                    let data = util::unpack_login_data(data);
+                    if data.is_err(){return util::standard_error("Data unpack failed").into_response();}
+                    let data = data.unwrap();
+                    let data = loginData::standard_login(data.0, data.1, ip.to_string());
+                    let login_request_result = state.login_channel.clone().send(loginRequest{request_type:loginRequestTypes::Login, data:data.0}).await;
+                    if login_request_result.is_err(){
+                        util::to_string_or_default(pogootResponse::standard_error_message("Login channel died"), "Login channel died")
+                    }else{
+                        if let Ok(callback_message)=data.1.await{
+                            if callback_message.is_err(){return util::standard_error("Callback receive failed").into_response();}
+                            callback_message.unwrap()
+                        }else{
+                            util::to_string_or_default(pogootResponse::standard_error_message("Login failed"), "Login failed")
+                        }
+                    }
+                }else{
+                    util::to_string_or_default(pogootResponse::standard_error_message("Data not correct for login"), "Data not correct for login")
+                }
+            },
+            requestType::Register=>{
+                if util::verify_data_is_login(&data){
+                    let data = util::unpack_login_data(data);
+                    if data.is_err(){return util::standard_error("Data unpack failed").into_response();}
+                    let data = data.unwrap();
+                    let data = loginData::standard_register(data.0, data.1, ip.to_string());
+                    let login_request_result = state.login_channel.clone().send(loginRequest{request_type:loginRequestTypes::Register, data:data.0}).await;
+                    if login_request_result.is_err(){
+                        util::to_string_or_default(pogootResponse::standard_error_message("Register channel died"), "Register channel died")
+                    }else{
+                        if let Ok(callback_message)=data.1.await{
+                            if callback_message.is_err(){return util::standard_error("Callback receive failed").into_response();}
+                            callback_message.unwrap()
+                        }else{
+                            util::to_string_or_default(pogootResponse::standard_error_message("Register failed"), "Register failed")
+                        }
+                    }
+                }else{
+                    util::to_string_or_default(pogootResponse::standard_error_message("Data not correct for register"), "Data not correct for register")
+                }
+            },
+            requestType::Temp=>{
+                if util::verify_data_is_temp(&data){
+                    let data = util::unpack_login_data(data);
+                    if data.is_err(){return util::standard_error("Data unpack failed").into_response()}
+                    let data = data.unwrap().0;
+                    let data = loginData::standard_temp(data);
+                    let login_request_result = state.login_channel.clone().send(loginRequest { request_type: loginRequestTypes::Temp, data: data.0 }).await;
+                    if login_request_result.is_err(){util::standard_error("Login request failed")}else{
+                        if let Ok(callback_message) = data.1.await{
+                            if callback_message.is_err(){return util::standard_error("Callback message failed").into_response()}
+                            callback_message.unwrap()
+                        }else{
+                            util::standard_error("Callback message not OK")
+                        }
+                    }
+                }else{
+                    util::standard_error("Data not correct for Temp login")
+                }
+            }
+            _=>{
+                util::to_string_or_default(pogootResponse::standard_error_message("Not login request"), "Not login request")
+            }
+
+        };
+        response.into_response()
     }
 
 }
