@@ -1,5 +1,6 @@
+use axum::extract::ws::WebSocket;
 use serde::{Deserialize, Serialize};
-
+use tokio::sync::mpsc::Sender;
 pub mod database;
 pub mod config;
 pub mod state_storage;
@@ -29,8 +30,10 @@ pub enum Data{
     StartGameData(String),
     ///Subscribe Game Data, requires GID
     SubscribeToGameData(String),
-    ///Answer Data, should be pushed through websocket, contains a number in 0..answers.len()
-    AnswerData(usize),
+    ///Answer Data, should be pushed through websocket, contains a number in 0..answers.len(),
+    ///question Id, answer Id
+    ///Username, Token
+    AnswerData(String, String, usize, usize),
     ///ReSub Data, contains a Token and a GID
     ReSubscribeData(String, String),
     ///Login Request Data - Username, Password
@@ -47,7 +50,14 @@ pub enum Data{
     GameNotFoundErrorData(String),
     ///Data for temporary logins
     TempData(String),
-    AnonData(String)
+    AnonData(String),
+    ///Post the token to the server for initial verification
+    VerifyToken(String),
+    ///For use with the log in phase of the websocket
+    SocketVerified,
+    ///New point count, Person in front, Point count difference
+    gameUpdateData(usize, String, usize),
+    QuestionData(censoredQuestion)
 }
 #[derive(Clone, Deserialize, Serialize, Debug)]
 pub enum requestType{
@@ -69,6 +79,8 @@ pub enum requestType{
     Temp,
     ///Anonomous login for anon games
     Anon,
+    ///Token verify request
+    VerifyToken,
 }
 #[derive(Clone, Deserialize, Serialize, Debug)]
 pub enum responseType{
@@ -85,7 +97,10 @@ pub enum responseType{
     ///Login response, data contains boolean
     loginResponse,
     ///Register response, data contains boolean
-    registerResponse
+    registerResponse,
+    ///Update the player on their current score and stuff
+    gameUpdateResponse,
+    questionResponse,
 }
 
 #[derive(Clone, Deserialize, Serialize, Debug)]
@@ -121,4 +136,54 @@ impl Question{
 pub struct censoredQuestion{
     pub question:String,
     pub answers:Vec<String>
+}
+
+#[derive(Clone, Debug)]
+pub struct GameUpdate{
+    update_version:usize,
+    data:gameUpdateHelper
+}
+
+#[derive(Clone, Debug)]
+pub enum gameUpdateHelper{
+    newQuestion(censoredQuestion),
+    ///username, token, score
+    playerListUpdate(Vec<(String, String, usize)>)
+}
+impl GameUpdate{
+    ///Takes a number and tells you if the game update is recent
+    pub fn is_new(&self, last_req_ver:usize)->bool{
+        if last_req_ver>=self.update_version{
+            return false;
+        }
+        true
+    }
+    pub fn is_player_list(&self)->bool{
+        match self.data{
+            gameUpdateHelper::playerListUpdate(_)=>true,
+            _=>false
+        }
+    }
+    pub fn get_player_list(self)->Result<Vec<(String, String, usize)>, pogootResponse>{
+        if self.is_player_list(){
+            if let gameUpdateHelper::playerListUpdate(list) = self.data{
+                return Ok(list);
+            }else{
+                return Err(pogootResponse::standard_error_message("Data is not a list"));
+            }
+        }else{
+            return Err(pogootResponse::standard_error_message("Not a player list update"));
+        }
+    }
+    pub fn get_question(self)->Result<censoredQuestion, pogootResponse>{
+        if !self.is_player_list(){
+            if let gameUpdateHelper::newQuestion(question) = self.data{
+                return Ok(question);
+            }else{
+                return Err(pogootResponse::standard_error_message("Not question"));
+            }
+        }else{
+            return Err(pogootResponse::standard_error_message("Is not question"));
+        }
+    }
 }

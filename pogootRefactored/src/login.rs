@@ -121,8 +121,8 @@ impl TokenStorage{
 }
 
 pub struct loginRequest{
-    request_type:loginRequestTypes,
-    data:loginData
+    pub request_type:loginRequestTypes,
+    pub data:loginData
 }
 impl loginRequest{
 
@@ -135,12 +135,13 @@ pub enum loginRequestTypes{
     Anon
 }
 pub enum loginData{
-    ///login request data (Username, Password, Ip, Callback)
+    ///login request data (Username, Password, Ip, Callback) - Callback responds with token or
+    ///error response
     Login(String, String, String, tokio::sync::oneshot::Sender<Result<String, pogootResponse>>),
     ///Register request data (Username, Password, Ip, Callback)
     Register(String, String, String, tokio::sync::oneshot::Sender<Result<String, pogootResponse>>),
-    ///Token, Ip
-    TokenVerify(String, String),
+    ///Token, call back responds with username
+    TokenVerify(String, tokio::sync::oneshot::Sender<Result<String, pogootResponse>>),
     ///Username
     Temp(String, tokio::sync::oneshot::Sender<Result<String, pogootResponse>>),
     None
