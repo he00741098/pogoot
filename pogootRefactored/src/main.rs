@@ -11,6 +11,7 @@ use nanoid::nanoid;
 use tokio::sync::RwLock;
 use tower_http::cors::CorsLayer;
 use tower_http::trace::TraceLayer;
+use std::net::SocketAddr;
 use axum_client_ip::SecureClientIpSource;
 mod pogoot;
 mod dataTypes;
@@ -65,7 +66,7 @@ info!("App initiated");
 
     // run it with hyper on localhost:3000
     axum::Server::bind(&"0.0.0.0:3000".parse().unwrap())
-        .serve(app.into_make_service())
+        .serve(app.into_make_service_with_connect_info::<SocketAddr>())
         .await
         .unwrap();
 }
