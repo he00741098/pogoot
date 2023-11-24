@@ -36,7 +36,7 @@ impl pogootGame{
         let login_result = state.login_channel.send(loginRequest{request_type:loginRequestTypes::TokenVerify, data:loginData::TokenVerify(token, tx)}).await;
         if login_result.is_err(){info!("Login Channel Error: Potential Catastrophic failure! TODO: Implement reset system in case of failure");return;}
         let callback_response = rx.await;
-        if callback_response.is_err(){info!("Callback was error!"); socket.send(util::websocket_message_wrap(pogootResponse::standard_error_message("Callback failed, unknow issues have arisen"))).await; return;}
+        if callback_response.is_err(){info!("Callback was error!"); let callback_result_send_result = socket.send(util::websocket_message_wrap(pogootResponse::standard_error_message("Callback failed, unknow issues have arisen"))).await; if callback_result_send_result.is_err(){return;} return;}
         let callback_response=callback_response.unwrap();
         if callback_response.is_err(){let result = socket.send(util::websocket_message_wrap(callback_response.err().unwrap())).await; if result.is_err(){return} return;}
         let username=callback_response.unwrap();
@@ -430,7 +430,11 @@ impl pogootGame{
                 game_command = crx.recv()=>{
                         if game_command.is_some(){
                             match game_command.unwrap(){
-                                GameCommand::Next=>{break;},
+                                GameCommand::Next=>{
+                                    update_handle.abort();
+                                    currQuestion+=1;
+                                    break;
+                                },
                                 _=>{}
                             }
                         }
@@ -439,6 +443,7 @@ impl pogootGame{
             }
             update_handle.abort();
             update_version+=1;
+            currQuestion+=1;
         }
         
         //grade questions

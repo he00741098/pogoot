@@ -80,6 +80,7 @@ pub enum Data{
     QuestionData(censoredQuestion),
     LeaderBoardUpdate(Vec<(String, String, usize)>),
     GamePlayerTimeUpdate(usize, Duration),
+    NextGameData,
 }
 #[derive(Clone, Deserialize, Serialize, Debug)]
 pub enum requestType{
@@ -211,4 +212,38 @@ impl GameUpdate{
             return Err(pogootResponse::standard_error_message("Is not question"));
         }
     }
+}
+
+
+#[test]
+fn pogoot_request_json(){
+    println!("Create Game Json");
+    let mut questions = vec![];
+    for i in 0..10{
+        let temp_question = Question{question:format!("What is this question: {}", i), answers:vec![(false, "Pog".to_string()),(false, "JFK".to_string()), (false, "Plog".to_string()), (true, i.to_string())]};
+        questions.push(temp_question);
+    }
+    let create_request = pogootRequest{
+        request:requestType::CreateGame,
+        data:Data::CreateGameData(questionList { questions })
+    };
+    let create_request = serde_json::to_string(&create_request).unwrap();
+    println!("Create request: {:?}", create_request);
+    
+    println!("Start game request");
+    let start_request = pogootRequest{request:requestType::StartGame, data:Data::StartGameData};
+    let start_request = serde_json::to_string(&start_request).unwrap();
+    println!("Start game request: {:?}", start_request);
+    
+    println!("Next game request");
+    let next_request = pogootRequest{request:requestType::NextQuestion, data:Data::NextGameData};
+    let next_request = serde_json::to_string(&next_request).unwrap();
+    println!("Next request: {:?}", next_request);
+
+
+    println!("Verify Token request");
+    let verify_request = pogootRequest{request:requestType::VerifyToken, data:Data::VerifyToken("token".to_string())};
+    let verify_request = serde_json::to_string(&verify_request).unwrap();
+    println!("Verify token request: {:?}", verify_request);
+
 }
