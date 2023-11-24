@@ -9,6 +9,7 @@ use axum::extract::ws::Message;
 use std::collections::HashMap;
 use nanoid::nanoid;
 use tokio::sync::RwLock;
+use tower_http::cors::CorsLayer;
 mod pogoot;
 mod dataTypes;
 mod util;
@@ -47,12 +48,15 @@ info!("Initiated subscriber");
 
     // });
     let app = Router::new()
-    .route("/hello", get(|| async {"hello!"}))
-    .route("/ws", get(player_handler))
-    .route("/cws", get(commander_handler))
-    .route("/login", post(Login::login_handler))
-    .with_state(Arc::new(state))
-    ;
+        .route("/hello", get(|| async {"hello!"}))
+        .route("/ws", get(player_handler))
+        .route("/cws", get(commander_handler))
+        .route("/login", post(Login::login_handler))
+        .with_state(Arc::new(state))
+        .layer(CorsLayer::permissive())
+        // .layer(TraceLayer::new_for_http())
+        // .layer(SecureClientIpSource::ConnectInfo.into_extension())
+        ;
 info!("App initiated");
 
     // run it with hyper on localhost:3000
