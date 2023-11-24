@@ -97,4 +97,10 @@ impl util{
         }
         pogootResponse::standard_error_message("Player Not Found In Player List")
     }
+    pub fn map_answer_to_internal(request:pogootRequest, username:&str, token:&str)->Result<pogootRequest, pogootResponse>{
+        if let Data::AnswerData(id, answer) = request.data{
+            return Ok(pogootRequest{request:requestType::InternalAnswer, data:Data::InternalAnswerData(username.to_string(), token.to_string(), id, answer)});
+        }
+        Err(pogootResponse::standard_error_message("Could not parse to internal answer"))
+    }
 }

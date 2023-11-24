@@ -16,10 +16,12 @@ pub struct Login{
     database:Database,
     ///Token storage - Purely for not generating matching tokens
     tokens:TokenStorage,
-    ///Usermap - keeps track of all logged in users
+    ///Usermap - keeps track of all logged in users - USERNAMES MUST BE UNIQUE RIGHT NOW
     user_map:HashMap<String,UserData>,
     ///Tokenmap - keeps track of all the tokens (Token, Username)
-    token_map:HashMap<String, String>
+    token_map:HashMap<String, String>,
+    ///temp map-token - username
+    temp_map:HashMap<String, String>
 }
 pub struct LoggedInUserData{
     login_time:DateTime<Utc>,
@@ -177,14 +179,58 @@ impl Login{
     }
     ///public function to start the login thread
     pub fn start_thread(database:Database)->Sender<loginRequest>{
-        let login_thread = Login{database, tokens:TokenStorage::new(), token_map:HashMap::new(), user_map:HashMap::new()};
+        let login_thread = Login{database, tokens:TokenStorage::new(), token_map:HashMap::new(), user_map:HashMap::new(), temp_map:HashMap::new()};
         let (tx, rx) = tokio::sync::mpsc::channel::<loginRequest>(100);
         tokio::spawn(login_thread.login_thread(rx));
         tx
     }
     ///private function to start thread, Thread acts as "load balancer"
-    async fn login_thread(self, rx:Receiver<loginRequest>){
+    async fn login_thread(mut self, mut rx:Receiver<loginRequest>){
         //login, generate token, deal with stuff, send bool over callback
+        while let Some(request) = rx.recv().await{
+            match request.request_type{
+                loginRequestTypes::Temp=>{
+                    match request.data{
+                        loginData::Temp(username, callback)=>{
+                            let token = self.tokens.add_and_get_new_token();
+                            let callback_result = callback.send(Ok(token.clone()));
+                            self.temp_map.insert(token, username);
+                            if callback_result.is_err(){
+                                info!("Callback failed");
+                            }
+                        },
+                            _=>{}
+                    }
+                },
+                loginRequestTypes::Register=>{},
+                loginRequestTypes::Anon=>{},
+                loginRequestTypes::Login=>{},
+                loginRequestTypes::TokenVerify=>{
+                    //check temp map and user_map
+                    match request.data{
+                        loginData::TokenVerify(token, callback)=>{
+                            if let Some(username) = self.token_map.get(&token){
+                                let callback_result = callback.send(Ok(username.clone()));
+                                if callback_result.is_err(){
+                                    info!("Callback failed");
+                                }
+                            }else if let Some(username) = self.temp_map.get(&token){
+                                let callback_result = callback.send(Ok(username.clone()));
+                                if callback_result.is_err(){
+                                    info!("Callback failed");
+                                }
+                            }else{
+                                let callback_result=callback.send(Err(pogootResponse { response: crate::dataTypes::responseType::loginResponse, data: crate::dataTypes::Data::StandardErrorData("Login Failed".to_string()) }));
+                                if callback_result.is_err(){
+                                    info!("Callback failed");
+                                }
+                            }
+                        },
+                        _=>{}
+                    }
+                }
+            }
+        }
         todo!()
     }
     ///Public function for auxum to use, post request required

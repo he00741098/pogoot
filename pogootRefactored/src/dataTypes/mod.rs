@@ -1,3 +1,5 @@
+use std::time::Duration;
+
 use axum::extract::ws::WebSocket;
 use serde::{Deserialize, Serialize};
 use tokio::sync::mpsc::Sender;
@@ -9,6 +11,22 @@ pub struct pogootRequest{
     pub request:requestType,
     pub data:Data
 
+}
+
+impl pogootRequest{
+    pub fn is_answer(&self)->bool{
+        match self.request{
+            requestType::Answer=>{
+                match self.data{
+                    Data::AnswerData(_, _)=>{true},
+                    _=>false,
+                }
+            },
+            _=>{
+                false
+            }
+        }
+    }
 }
 
 #[derive(Clone, Deserialize, Serialize, Debug)]
@@ -26,14 +44,16 @@ impl pogootResponse{
 pub enum Data{
     ///Data for create game, requires a valid list of questions
     CreateGameData(questionList),
-    ///Start Game Data, requires a GID (Game Id)
-    StartGameData(String),
+    ///Start Game data, not required.
+    StartGameData,
     ///Subscribe Game Data, requires GID
     SubscribeToGameData(String),
     ///Answer Data, should be pushed through websocket, contains a number in 0..answers.len(),
     ///question Id, answer Id
     ///Username, Token
-    AnswerData(String, String, usize, usize),
+    AnswerData(usize, usize),
+    ///username, token, question id, answer id
+    InternalAnswerData(String, String, usize, usize),
     ///ReSub Data, contains a Token and a GID
     ReSubscribeData(String, String),
     ///Login Request Data - Username, Password
@@ -42,8 +62,8 @@ pub enum Data{
     RegisterData(String, String),
     ///Contains error message
     StandardErrorData(String),
-    ///Contains error message
-    GameCreationSuccessData(String),
+    ///Contains game Id and Game Password
+    GameCreationSuccessData(String, String),
     ///Contains error message
     GameCreationErrorData(String),
     ///Contains error message
@@ -57,7 +77,9 @@ pub enum Data{
     SocketVerified,
     ///New point count, Person in front, Point count difference
     gameUpdateData(usize, String, usize),
-    QuestionData(censoredQuestion)
+    QuestionData(censoredQuestion),
+    LeaderBoardUpdate(Vec<(String, String, usize)>),
+    GamePlayerTimeUpdate(usize, Duration),
 }
 #[derive(Clone, Deserialize, Serialize, Debug)]
 pub enum requestType{
@@ -69,6 +91,7 @@ pub enum requestType{
     SubscribeToGame,
     ///Answer takes in a number between 0..answers.len(), no data
     Answer,
+    InternalAnswer,
     ///Resub if discconnected
     ReSubscribeToGame,
     ///Login
@@ -81,6 +104,7 @@ pub enum requestType{
     Anon,
     ///Token verify request
     VerifyToken,
+    NextQuestion,
 }
 #[derive(Clone, Deserialize, Serialize, Debug)]
 pub enum responseType{
@@ -101,6 +125,7 @@ pub enum responseType{
     ///Update the player on their current score and stuff
     gameUpdateResponse,
     questionResponse,
+    GameTimeUpdateResponse,
 }
 
 #[derive(Clone, Deserialize, Serialize, Debug)]
@@ -140,13 +165,13 @@ pub struct censoredQuestion{
 
 #[derive(Clone, Debug)]
 pub struct GameUpdate{
-    update_version:usize,
-    data:gameUpdateHelper
+    pub update_version:usize,
+    pub data:gameUpdateHelper
 }
 
 #[derive(Clone, Debug)]
 pub enum gameUpdateHelper{
-    newQuestion(censoredQuestion),
+    newQuestion(censoredQuestion, usize),
     ///username, token, score
     playerListUpdate(Vec<(String, String, usize)>)
 }
@@ -177,7 +202,7 @@ impl GameUpdate{
     }
     pub fn get_question(self)->Result<censoredQuestion, pogootResponse>{
         if !self.is_player_list(){
-            if let gameUpdateHelper::newQuestion(question) = self.data{
+            if let gameUpdateHelper::newQuestion(question, question_id) = self.data{
                 return Ok(question);
             }else{
                 return Err(pogootResponse::standard_error_message("Not question"));
