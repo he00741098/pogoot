@@ -50,14 +50,14 @@ info!("Initiated subscriber");
 
     // });
     let app = Router::new()
+        .route("/login", post(Login::login_handler))
+        .layer(SecureClientIpSource::ConnectInfo.into_extension()) 
         .route("/hello", get(|| async {"hello!"}))
         .route("/ws", get(player_handler))
         .route("/cws", get(commander_handler))
-        .route("/login", post(Login::login_handler))
         .with_state(Arc::new(state))
         .layer(CorsLayer::permissive())
         .layer(TraceLayer::new_for_http())
-        .layer(SecureClientIpSource::ConnectInfo.into_extension()) 
         // .layer(TraceLayer::new_for_http())
         // .layer(SecureClientIpSource::ConnectInfo.into_extension())
         ;
