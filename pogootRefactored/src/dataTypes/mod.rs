@@ -81,6 +81,7 @@ pub enum Data{
     LeaderBoardUpdate(Vec<(String, String, usize)>),
     GamePlayerTimeUpdate(usize, Duration),
     NextGameData,
+    PlayerJoinUpdateData(String),
 }
 #[derive(Clone, Deserialize, Serialize, Debug)]
 pub enum requestType{
@@ -106,6 +107,8 @@ pub enum requestType{
     ///Token verify request
     VerifyToken,
     NextQuestion,
+    ///Player join update for loading screen
+    PlayerJoinUpdate,
 }
 #[derive(Clone, Deserialize, Serialize, Debug)]
 pub enum responseType{
@@ -251,4 +254,8 @@ fn pogoot_request_json(){
     let login_request = serde_json::to_string(&login_request).unwrap();
     println!("Login token request: {:?}", login_request);
 
+    println!("Join game request");
+    let game_join_request = pogootRequest{request:requestType::SubscribeToGame, data:Data::SubscribeToGameData("GameId".to_string())};
+    let game_join_request = serde_json::to_string(&game_join_request).unwrap();
+    println!("Game join request: {:?}", game_join_request);
 }
