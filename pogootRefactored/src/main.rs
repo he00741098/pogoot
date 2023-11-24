@@ -10,6 +10,8 @@ use std::collections::HashMap;
 use nanoid::nanoid;
 use tokio::sync::RwLock;
 use tower_http::cors::CorsLayer;
+use tower_http::trace::TraceLayer;
+use axum_client_ip::SecureClientIpSource;
 mod pogoot;
 mod dataTypes;
 mod util;
@@ -54,6 +56,8 @@ info!("Initiated subscriber");
         .route("/login", post(Login::login_handler))
         .with_state(Arc::new(state))
         .layer(CorsLayer::permissive())
+        .layer(TraceLayer::new_for_http())
+        .layer(SecureClientIpSource::ConnectInfo.into_extension()) 
         // .layer(TraceLayer::new_for_http())
         // .layer(SecureClientIpSource::ConnectInfo.into_extension())
         ;

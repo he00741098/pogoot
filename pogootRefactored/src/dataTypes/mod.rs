@@ -246,4 +246,9 @@ fn pogoot_request_json(){
     let verify_request = serde_json::to_string(&verify_request).unwrap();
     println!("Verify token request: {:?}", verify_request);
 
+    println!("Login request");
+    let login_request = pogootRequest{request:requestType::Temp, data:Data::TempData("Poggers".to_string())};
+    let login_request = serde_json::to_string(&login_request).unwrap();
+    println!("Login token request: {:?}", login_request);
+
 }
