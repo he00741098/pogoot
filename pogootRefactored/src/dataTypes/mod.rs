@@ -130,6 +130,7 @@ pub enum responseType{
     gameUpdateResponse,
     questionResponse,
     GameTimeUpdateResponse,
+    PlayerJoinUpdateResponse
 }
 
 #[derive(Clone, Deserialize, Serialize, Debug)]

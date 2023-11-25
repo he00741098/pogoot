@@ -103,6 +103,9 @@ impl pogootGame{
         while let Ok(gameUpdate) = broadcast.recv().await{
             if gameUpdate.is_player_list(){
                 //filter playerlist and send relevant data to player
+                if gameUpdate.update_version==0{
+                    continue;
+                }
                 let player_list = gameUpdate.get_player_list();
                 if player_list.is_err(){info!("Server malfunction"); socket.send(util::websocket_message_wrap(pogootResponse::standard_error_message("Something went very wrong"))).await.err(); return;}
                 let mut player_list = player_list.unwrap();
@@ -202,7 +205,13 @@ impl pogootGame{
     }
     async fn commander_proccessor(mut socket:WebSocket, commander:tokio::sync::mpsc::Sender<GameCommand>, mut broadcast_results:tokio::sync::broadcast::Receiver<GameUpdate>, mut player_count:tokio::sync::mpsc::Receiver<(usize, Duration)>){
         //deal with starting the game
-        while let Some(request) = socket.recv().await{
+        loop{
+        tokio::select!{
+        request = socket.recv()=>{
+            if request.is_none(){
+                    break;
+                }
+            let request = request.unwrap();
             if request.is_err(){return;}
             let request = request.unwrap();
             let request = util::parse_msg_to_pogoot(request);
@@ -231,6 +240,24 @@ impl pogootGame{
                 },
                 Err(_)=>{return;}
             }
+        },
+        player_update = broadcast_results.recv()=>{
+                if player_update.is_err(){
+                    continue;
+                }
+                let player_update = player_update.unwrap();
+                if let Ok(request) = player_update.get_player_list(){
+                    let socket_send = socket.send(util::websocket_message_wrap(pogootResponse{response:responseType::PlayerJoinUpdateResponse, data:Data::PlayerJoinUpdateData(request[0].0.clone())})).await;
+                    if socket_send.is_err(){
+                        info!("Player join update failed");
+                    }
+                }
+            }
+        }
+        }
+        //empty broadcaster
+        while !broadcast_results.is_empty(){
+            let thing = broadcast_results.recv().await;
         }
         //game loop - deals with receiving commands and receiving the broadcast_results
         loop{
@@ -376,20 +403,20 @@ impl pogootGame{
                 }
             },
             command = crx.recv()=>{
-            if command.is_none(){
+                if command.is_none(){
                     //TODO FIGURE FAILBACK
-                info!("Command receiver is NONE!");
-                return;
-            }
-            let command = command.unwrap();
-            match command{
-                GameCommand::Start | GameCommand::Next=>{
-                    break;
+                    info!("Command receiver is NONE!");
+                    return;
                 }
-                _=>{
-                    continue;
+                let command = command.unwrap();
+                match command{
+                    GameCommand::Start | GameCommand::Next=>{
+                        break;
+                    }
+                    _=>{
+                        continue;
+                    }
                 }
-            }
             }
             }
         }
