@@ -503,7 +503,7 @@ impl pogootGame{
                                                     info!("Crazy things are happening right now! More than one player with same username and TOKEN")
                                                 }
                                             }else{
-                                                info!("Wrong Question!");
+                                                info!("Wrong Question!, QuestionId: {:?}, currQuestion: {:?}, answer: {:?}, answers len: {:?}, answer bool: {:?}", questionId, currQuestion, answer, answers.len(), answers[answer].0);
                                             }
                                             if total_answers>=subscribers-1{
                                                 break;
