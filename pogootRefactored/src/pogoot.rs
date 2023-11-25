@@ -476,6 +476,8 @@ impl pogootGame{
                                             if questionId==currQuestion&&answer<answers.len()&&answers[answer].0{
                                                 correct_answers+=1;
                                                 //find the correct player
+                                                //TODO: Check that the player has not already
+                                                //answered
                                                 let player_index = self.player_list.iter().enumerate().filter(|x|&x.1.1==&username&&&x.1.0==&token).collect::<Vec<(usize, &(String, String, usize))>>();
                                                 if player_index.len()==1{
                                                     info!("Player found");
@@ -491,7 +493,7 @@ impl pogootGame{
                                             }else{
                                                 info!("Wrong Question!");
                                             }
-                                            if total_answers>=subscribers{
+                                            if total_answers>=subscribers-1{
                                                 break;
                                             }
                                         },
