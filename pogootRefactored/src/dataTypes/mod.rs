@@ -146,8 +146,8 @@ pub struct Question{
 }
 
 impl Question{
-    pub fn censored(self)->censoredQuestion{
-        censoredQuestion { question: self.question, answers: self.answers.iter().map(|x|x.1.clone()).collect::<Vec<String>>() }
+    pub fn censored(self, question_number:usize)->censoredQuestion{
+        censoredQuestion { question: self.question, answers: self.answers.iter().map(|x|x.1.clone()).collect::<Vec<String>>(), question_number }
     }
     pub fn new(question:String, answers:Vec<(bool, String)>)->Self{
         Question{question, answers}
@@ -165,7 +165,8 @@ impl Question{
 #[derive(Clone, Deserialize, Serialize, Debug)]
 pub struct censoredQuestion{
     pub question:String,
-    pub answers:Vec<String>
+    pub answers:Vec<String>,
+    pub question_number:usize
 }
 
 #[derive(Clone, Debug)]
@@ -259,4 +260,9 @@ fn pogoot_request_json(){
     let game_join_request = pogootRequest{request:requestType::SubscribeToGame, data:Data::SubscribeToGameData("GameId".to_string())};
     let game_join_request = serde_json::to_string(&game_join_request).unwrap();
     println!("Game join request: {:?}", game_join_request);
+
+    println!("Answer request");
+    let answer_request = pogootRequest{request:requestType::Answer, data:Data::AnswerData(1, 1)};
+    let answer_request = serde_json::to_string(&answer_request).unwrap();
+    println!("Answer request: {:?}", answer_request);
 }

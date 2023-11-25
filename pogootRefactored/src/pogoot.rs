@@ -431,7 +431,7 @@ impl pogootGame{
             let currentQuestion = self.questions.questions[currQuestion].clone();
             let answers = currentQuestion.answers.clone();
             //broadcast question
-            let broadcast_result = game_broadcaster.send(GameUpdate{update_version, data:gameUpdateHelper::newQuestion(currentQuestion.censored(), currQuestion)});
+            let broadcast_result = game_broadcaster.send(GameUpdate{update_version, data:gameUpdateHelper::newQuestion(currentQuestion.censored(currQuestion), currQuestion)});
             if broadcast_result.is_err(){
                 info!("Broadcast returned error");
                 currQuestion+=1;
