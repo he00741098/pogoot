@@ -478,14 +478,18 @@ impl pogootGame{
                                                 //find the correct player
                                                 let player_index = self.player_list.iter().enumerate().filter(|x|&x.1.1==&username&&&x.1.0==&token).collect::<Vec<(usize, &(String, String, usize))>>();
                                                 if player_index.len()==1{
+                                                    info!("Player found");
                                                     let player_index_in_vec = player_index[0].0;
                                                     drop(player_index);
                                                     self.player_list[player_index_in_vec].2+=((subscribers as f64/correct_answers as f64) * 800.0).floor() as usize;
                                                 }else if player_index.len()==0{
+                                                    info!("Player added!");
                                                     self.player_list.push((token, username, ((subscribers as f64/correct_answers as f64) * 800.0).floor() as usize));
                                                 }else if player_index.len()>1{
                                                     info!("Crazy things are happening right now! More than one player with same username and TOKEN")
                                                 }
+                                            }else{
+                                                info!("Wrong Question!");
                                             }
                                             if total_answers>=subscribers{
                                                 break;
