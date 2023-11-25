@@ -490,6 +490,18 @@ impl pogootGame{
                                                 }else if player_index.len()>1{
                                                     info!("Crazy things are happening right now! More than one player with same username and TOKEN")
                                                 }
+                                            }else if questionId==currQuestion&&answer<answers.len()&&!answers[answer].0{
+                                                //answer is wrong
+                                                let player_index = self.player_list.iter().enumerate().filter(|x|&x.1.1==&username&&&x.1.0==&token).collect::<Vec<(usize, &(String, String, usize))>>();
+                                                if player_index.len()==1{
+                                                    info!("Player found");
+                                                    drop(player_index);
+                                                }else if player_index.len()==0{
+                                                    info!("Player added!");
+                                                    self.player_list.push((token, username, 0));
+                                                }else if player_index.len()>1{
+                                                    info!("Crazy things are happening right now! More than one player with same username and TOKEN")
+                                                }
                                             }else{
                                                 info!("Wrong Question!");
                                             }
