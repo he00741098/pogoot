@@ -277,7 +277,10 @@ impl pogootGame{
                         if result.is_err(){
                             return;
                         }
+                        info!("Could not parse msg");
+                        continue;
                     }
+
                     let msg = msg.unwrap();
                     match msg.request{
                         requestType::NextQuestion=>{
