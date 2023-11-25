@@ -514,25 +514,32 @@ impl pogootGame{
                     }
             }
             }
+            //send updates about game
+            // update_version+=1;
+            // let broadcast_result_leaderboard = game_broadcaster.send(GameUpdate { update_version, data: gameUpdateHelper::playerListUpdate(self.player_list.clone()) });
+            // if broadcast_result_leaderboard.is_err(){
+            //     info!("broadcast_result_leaderboard errored");
+            // }
+
+            let question_sender_result = game_broadcaster.send(GameUpdate { update_version, data: gameUpdateHelper::playerListUpdate(self.player_list.clone()) });
+            update_version+=1;
+            if question_sender_result.is_err(){
+                info!("Question sender is error");
+            }
+            if currQuestion+1<self.questions.questions.len(){
+                while let Some(command) = crx.recv().await{
+                    match command{
+                        GameCommand::Next=>{break;},
+                        _=>{}
+                    }
+                }
+            }
             update_handle.abort();
             update_version+=1;
             currQuestion+=1;
         }
         
         //grade questions
-        let question_sender_result = game_broadcaster.send(GameUpdate { update_version, data: gameUpdateHelper::playerListUpdate(self.player_list.clone()) });
-        update_version+=1;
-        if question_sender_result.is_err(){
-            info!("Question sender is error");
-        }
-        if currQuestion+1<self.questions.questions.len(){
-            while let Some(command) = crx.recv().await{
-                match command{
-                    GameCommand::Next=>{break;},
-                    _=>{}
-                }
-            }
-        }
         //listen for next
         //send amount of responses
         //send results
