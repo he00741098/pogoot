@@ -48,6 +48,7 @@ info!("Initiated subscriber");
     .route("/hello", get(|| async {"hello!"}))
     .route("/ws", get(handler))
     .with_state(state)
+
     ;
 info!("App initiated");
 

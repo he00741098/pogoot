@@ -104,6 +104,7 @@ impl pogootGame{
             if gameUpdate.is_player_list(){
                 //filter playerlist and send relevant data to player
                 if gameUpdate.update_version==0{
+                    println!("Update version: {}", gameUpdate.update_version);
                     continue;
                 }
                 let player_list = gameUpdate.get_player_list();

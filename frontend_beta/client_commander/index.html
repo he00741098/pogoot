@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>My Website</title>
+    <link rel="stylesheet" href="./style.css">
+    <link rel="icon" href="./favicon.ico" type="image/x-icon">
+  </head>
+  <body>
+    <main>
+      <h1>Frontend No Fluff commander</h1>  
+      <!-- add question -->
+
+      <div id="questionCreator">
+        <h2>Add question</h2>
+        <h2 id="existingQuestions">Existing Questions</h2>
+        <ul id="existingQuestionsList">
+
+        </ul>
+        <h3>Input Question</h3>
+        <input id="question"></input>
+        <h3 id="existingChoices">Current answer choices</h3>
+        <ul id="existingChoicesList">
+
+        </ul>
+        <h3>Add answer choice</h3>
+
+        <input id="answerChoice"></input>
+        <input id="correct" type="checkbox">Is Correct</input>
+        <br>
+        <button id="addChoice">Add Answer Choice</button>
+
+        <br>
+        <button id="addQuestion">Add question</button>
+        <br>
+        <button id="startGame">Start Game</button>
+      </div>
+      <div id="commanderWaiting">
+        <button id="actualStart">Begin!</button>        
+      </div>
+      <div id="commanderControl">
+        <button id="next">Skip!</button>
+      </div>
+    </main>
+
+    <script src="script2.js"></script>
+    <script src="index.js"></script>
+  </body>
+</html>
+
+

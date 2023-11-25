@@ -15,10 +15,27 @@ fn test_pogoot_request_serialization(){
 }
 #[test]
 fn joinGameTest(){
-    let gameJoin = pogootRequest{requestType:request::SubscribeToGame("721174".to_string()), data:Data::Username("Poggooooo".to_string())};
+    let gameJoin = pogootRequest{requestType:request::SubscribeToGame("440476".to_string()), data:Data::Username("Poggooooo".to_string())};
     let magicResult = to_string(&gameJoin).unwrap();
     println!("MagicalResult2: {}", magicResult);
     info!("MagicalResult2: {}", magicResult);
+    let mut questions = vec![];
+    for i in 0..10{
+        let temp_question = Question{question:format!("What is this question: {}", i), answers:vec![(false, "Pog".to_string()),(false, "JFK".to_string()), (false, "Plog".to_string()), (true, i.to_string())]};
+        questions.push(temp_question);
+    }
+    let gameJoin = pogootRequest{requestType:request::CreateGame, data:Data::QuestionUpload(questionList { questions })};
+    let magicResult = to_string(&gameJoin).unwrap();
+    println!("MagicalResult2: {}", magicResult);
+    info!("MagicalResult2: {}", magicResult);
+
+        
+    let gameJoin = pogootRequest{requestType:request::StartGame("ting".to_string()), data:Data::None};
+    let magicResult = to_string(&gameJoin).unwrap();
+    println!("MagicalResult2: {}", magicResult);
+    info!("MagicalResult2: {}", magicResult);
+
+
 }
 
 //Expected orderings of requests
