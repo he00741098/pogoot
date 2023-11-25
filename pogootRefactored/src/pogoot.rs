@@ -457,7 +457,7 @@ impl pogootGame{
                 }
             });
             loop{
-            // while let Ok(Some(response)) = tokio::time::timeout_at(destination_time, game_receiver.recv()).await{
+            // while let Ok(Some(response)) = tokio::time::timeout_at(destination_time, game_receiver.recv()).await
                 tokio::select!{
                 response = tokio::time::timeout_at(destination_time, game_receiver.recv())=>{
                         if let Ok(Some(response))=response{
@@ -502,7 +502,7 @@ impl pogootGame{
                             match game_command.unwrap(){
                                 GameCommand::Next=>{
                                     update_handle.abort();
-                                    currQuestion+=1;
+                                    // currQuestion+=1;
                                     break;
                                 },
                                 _=>{}
