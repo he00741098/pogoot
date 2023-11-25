@@ -79,16 +79,16 @@ impl util{
         }
     }
     pub fn sort_player_list(player_list:&mut Vec<(String, String, usize)>){
-        player_list.sort_by(|a,b| a.2.partial_cmp(&b.2).unwrap_or(std::cmp::Ordering::Equal));
+        player_list.sort_by(|a,b| b.2.partial_cmp(&a.2).unwrap_or(std::cmp::Ordering::Equal));
     }
     pub fn get_relevant_data(player_list:&mut Vec<(String, String, usize)>, username:&str, token:&str)->pogootResponse{
         Self::sort_player_list(player_list);
         for i in 0..player_list.len(){
-            if player_list[i].0==username && player_list[i].1==token{
+            if player_list[i].1==username && player_list[i].0==token{
                 let mut in_front = "".to_string();
                 let mut in_front_points = 0;
                 if i>0{
-                    in_front = player_list[i-1].0.clone();
+                    in_front = player_list[i-1].1.clone();
                     in_front_points = player_list[i-1].2;
                 }
                 let cur_point = player_list[i].2;
@@ -103,4 +103,11 @@ impl util{
         }
         Err(pogootResponse::standard_error_message("Could not parse to internal answer"))
     }
+}
+
+#[test]
+fn test_sort_player_list(){
+    let mut playerlist = vec![("tokener".to_string(), "poggers".to_string(), 800),("tokener2".to_string(), "poggers2".to_string(), 900),("tokener3".to_string(), "poggers3".to_string(), 700)];
+    util::sort_player_list(&mut playerlist);
+    println!("Playerlist: {:?}", playerlist);
 }
