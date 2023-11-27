@@ -2,3 +2,14 @@
   display: block;
   
 }
+#actualStart{
+  background-color: lightblue;
+  size: 1fr;
+  width:1fr;
+  padding:auto;
+  margin:auto;
+}
+#actualStart:hover{
+  background-color: darkblue;
+  color: white;
+}

@@ -9,21 +9,54 @@ document.getElementById("tokenButton").onclick = function(){
   document.getElementById("waitPhase").style.display="block";
   joinGame();
 }
+let username;
 
 document.getElementById("nameButton").onclick=function(){
+  username = document.getElementById("nameInput").value;
+  try{
+  document.getElementById("usernamePhase").innerHTML="<h2>Setting Up...</h2>";
+
   fetch('https://play.sweep.rs/login', {
     method: 'POST',
     headers: {
       'Accept': 'application/json',
       'Content-Type': 'application/json'
     },
-    body: "{\"request\":\"Temp\",\"data\":{\"TempData\":\""+document.getElementById("nameInput").value+"\"}}"
+    body: "{\"request\":\"Temp\",\"data\":{\"TempData\":\""+username+"\"}}"
   })
     .then(response => response.text()
     ).then(response=>{
       console.log(response);
       login_token=response;
+      username_phase_over();
     });
+  }catch(error){
+    console.log(error);
+    document.getElementById("usernamePhase").innerHTML="<h2>Error occured, Retrying...</h2>";
+try{
+  fetch('https://play.sweep.rs/login', {
+    method: 'POST',
+    headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json'
+    },
+    body: "{\"request\":\"Temp\",\"data\":{\"TempData\":\""+username+"\"}}"
+  })
+    .then(response => response.text()
+    ).then(response=>{
+      console.log(response);
+      login_token=response;
+      username_phase_over();
+    });
+  }catch(error){
+      console.log("failed");
+    document.getElementById("usernamePhase").innerHTML="<h2>Login Failed, Reload and try again...</h2>";
+    }
+  }
+
+}
+
+function username_phase_over(){
   document.getElementById("usernamePhase").style.display="none";
   document.getElementById("tokenPhase").style.display="block";
 }
@@ -50,23 +83,48 @@ function joinGame(){
 
       case "questionResponse":
         if (parse_data.data.QuestionData.question_number!=null){
-          let display = "";
-          display+="<h2>"+parse_data.data.QuestionData.question+"</h2>";
-          display+="<ul>";
+          let arrayOfThings = [];
+          let display = document.getElementById("playPhase");
+          display.innerHTML="";
+          display.innerHTML+="<h2>"+parse_data.data.QuestionData.question+"</h2>";
+          display.innerHTML+="<ul>";
           for (i of parse_data.data.QuestionData.answers){
-            display+="<li> <button onclick='answer(+"+parse_data.data.QuestionData.question_number+","+parse_data.data.QuestionData.answers.indexOf(i)+"+)'>"+i+"</button> </li>"
+            display.innerHTML+="<li> <button id='"+i+"' >"+i+"</button> </li>"
+            arrayOfThings.push([i, parse_data.data.QuestionData.question_number, parse_data.data.QuestionData.answers.indexOf(i)]);
+
           }
-          display+="</ul>";
+          display.innerHTML+="</ul>";
           document.getElementById("playPhase").style.display="block";
-          document.getElementById("playPhase").innerHTML=display;
+          // document.getElementById("playPhase").innerHTML=display;
           document.getElementById("waitPhase").style.display="none";
+          console.log(arrayOfThings);
+          for (i of arrayOfThings){
+            let g = i;
+            console.log("Adding things");
+            console.log(g);
+            document.getElementById(""+g[0]).addEventListener("click",(event)=>{
+              console.log("answered: ");
+              console.log(""+g[0]);
+              socket2.send("{\"request\":\"Answer\",\"data\":{\"AnswerData\":["+g[1]+","+g[2]+"]}}")
+              document.getElementById("playPhase").style.display="none";
+              document.getElementById("waitPhase").innerHTML="<h2>Waiting...</h2>";
+              document.getElementById("waitPhase").style.display="block";
+            });
+          }
         }
         break;
       case "gameUpdateResponse":
-        if (parse_data.data.LeaderBoardUpdate!=null){
-
+        if (parse_data.data.gameUpdateData!=null){
+          //TODO: Streak, gains
+          let info_text = "<h2> You have [";
+          // document.getElementById("waitPhase").innerHTML="<h2> You have ["+parse_data.data.gameUpdateData[0]+"] points. with ["+parse_data.data.gameUpdateData+"]</h2>"
+          info_text+=parse_data.data.gameUpdateData[0]+"] points. ";
+          if (parse_data.data.gameUpdateData[1]!=""){
+            info_text+=parse_data.data.gameUpdateData[1]+" is in front of you with ["+(parse_data.data.gameUpdateData[2]-parse_data.data.gameUpdateData[0])+"] more points.";
+          }
+          document.getElementById("waitPhase").innerHTML=info_text;
         }
-      break;
+        break;
     }
   }
 
@@ -74,9 +132,4 @@ function joinGame(){
     console.log("Socket 2 closed")
   }
 
-  function answer(questionNumber, answer){
-          socket2.send("{\"request\":\"Answer\",\"data\":{\"AnswerData\":["+questionNumber+","+answer+"]}}")
-        document.getElementById("playPhase").style.display="none";
-        document.getElementById("waitPhase").style.display="block";
-  }
 }
