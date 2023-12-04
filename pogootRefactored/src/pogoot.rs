@@ -162,6 +162,7 @@ impl pogootGame{
             let msg = msg.unwrap();
             if let Ok(msg) = util::parse_msg_to_pogoot(msg){
                 match msg.request{
+                    //TODO: allow for id reference to a notcard set instead
                     requestType::CreateGame=>{
                         match msg.data{
                             Data::CreateGameData(questions)=>{

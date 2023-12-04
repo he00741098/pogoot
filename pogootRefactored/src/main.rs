@@ -17,6 +17,7 @@ mod pogoot;
 mod dataTypes;
 mod util;
 mod login;
+mod notecard;
 use dataTypes::*;
 use login::*;
 

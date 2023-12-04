@@ -1,6 +1,6 @@
 use crate::login::UserData;
 
-use super::{config::Config, state_storage::secrets};
+use super::{config::Config, state_storage::secrets, questionList};
 
 
 ///database absctraction
@@ -29,6 +29,12 @@ impl Database{
         todo!()
     }
     pub async fn fetch_user_data(&self, username:Option<String>, uuid:Option<String>)->Result<UserData, ()>{
+        todo!()
+    }
+    pub async fn store_note_card_set(&self, id:String, questionsList:questionList){
+        todo!()
+    }
+    pub async fn edit_note_card_set(&self, id:String, editedList:questionList){
         todo!()
     }
 }
