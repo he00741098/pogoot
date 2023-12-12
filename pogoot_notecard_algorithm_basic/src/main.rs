@@ -22,7 +22,7 @@ fn main() {
     questions.into_iter().map(|x|question{turns_until_repeat:0,corrects:0,wrongs:0,front:(x.0).to_string(),back:x.1.to_string()}).filter(|x|x.front.len()>0&&x.back.len()>0).collect::<Vec<question>>()
     };
 
-    let mut next_index =0;
+    // let mut next_index =0;
     loop {
         let mut served = false;
         for i in 0..questions.len(){
@@ -39,12 +39,12 @@ fn main() {
 
         }
 
-            if !served{
-                //serve next index
-                serve_question_multiple_choice(next_index, &mut questions);
-                
-                next_index+=1;
-            }
+            // if !served{
+            //     //serve next index
+            //     serve_question_multiple_choice(next_index, &mut questions);
+            //     
+            //     next_index+=1;
+            // }
             //lower turns for each question
             for i in 0..questions.len(){
             if questions[i].turns_until_repeat>0{
@@ -71,9 +71,7 @@ fn serve_question_short_answer(mut question:&mut question){
         }
     }else{
         println!("Wrong!: You answered: '{}', Correct answer: '{}'",answer, question.front.trim());
-        if question.wrongs>0{
         question.wrongs+=1;
-        }
         question.turns_until_repeat=rng.gen_range(6..12);
     }
     std::thread::sleep(std::time::Duration::from_secs(1));
