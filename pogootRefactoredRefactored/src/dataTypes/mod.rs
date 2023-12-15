@@ -1,4 +1,3 @@
 mod storage_types;
-pub struct basicRequestType{
+mod request_types;
 
-}
