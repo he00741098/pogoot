@@ -1,5 +1,6 @@
 use argon2::{PasswordHash, Argon2, PasswordVerifier};
 use serde::{Serialize, Deserialize};
+use serde_json::to_string;
 use std::{fs::File, sync::atomic::AtomicI64};
 use std::io::*;
 use libsql_client::{Config, Client, Value, Statement, args, ResultSet};
@@ -8,6 +9,7 @@ use std::result::Result as stdResult;
 use crate::services::user_manage::User;
 //the database abstraction
 ///Database is purely intended to be an abstraction for the actual database
+#[derive(Debug)]
 pub struct Database{
     ///The client is the connection to the database
     ///It is not intended to be accessed directly
@@ -125,7 +127,7 @@ impl Database{
 
     ///Fetches the raw json of the notecard based on the notecard id
     pub async fn fetch_note_card(&self, notecard_id:String)->stdResult<String, CoreDatatypeError>{
-        let stmt = Statement::with_args(r"Select * from NOTECARDS where ID=?", args!(notecard_id));
+        let stmt = Statement::with_args(r"Select * from NOTECARDS where ID=?;", args!(notecard_id));
         let fetched = self.client.execute(stmt).await;
         if fetched.is_err(){
             return Err(CoreDatatypeError::IdNotFound);
@@ -144,25 +146,6 @@ impl Database{
 
     }
     
-    // pub async fn fetch_note_card_by_name(&self, notecard_name:String)->stdResult<String, CoreDatatypeError>{
-    //     let stmt = Statement::with_args(r"Select * from NOTECARDS where NAME=?", args!(notecard_name));
-    //     let fetched = self.client.execute(stmt).await;
-    //     if fetched.is_err(){
-    //         return Err(CoreDatatypeError::IdNotFound);
-    //     }
-    //     let fetched = fetched.unwrap();
-    //     if fetched.rows.len()==1{
-    //         return match fetched.rows[0].values[2].clone(){
-    //             Value::Text { value } =>{Ok(value)},
-    //             _=>{Err(CoreDatatypeError::ValueNotText)}
-    //         }
-    //     }else if fetched.rows.len()==0{
-    //         return Err(CoreDatatypeError::DoesNotExist)
-    //     }else{
-    //         return Err(CoreDatatypeError::DuplicateEntries)
-    //     }
-
-    // }
 
     
     ///Generates a supposedly totally random notecard_id. NOTE THAT THIS IS NOT CHECKED WITH THE
@@ -182,7 +165,7 @@ impl Database{
         if parsed_result.is_err(){
             return Err(CoreDatatypeError::ToStringFailed);
         }
-        let stmt = Statement::with_args(r"INSERT INTO NOTECARDS VALUES (?, ?, ?, ?, ?, ?)", args!(&username, &notecard_id, name, parsed_result.unwrap(), notecard_rawjson, 1));
+        let stmt = Statement::with_args(r"INSERT INTO NOTECARDS VALUES (?, ?, ?, ?, ?, ?);", args!(&username, &notecard_id, name, parsed_result.unwrap(), notecard_rawjson, 1));
         let fetched = self.client.execute(stmt).await;
         if fetched.is_err(){
             return Err(CoreDatatypeError::DatabaseDisconnect);
@@ -195,21 +178,34 @@ impl Database{
     // RECENTIP text,
     // RAWJSON text,
     // VERSION INT
-    pub async fn register_user(&self, username:String, password:String, ip:String)->stdResult<(),CoreDatatypeError>{
-        let stringy = serde_json::to_string(&User::new(username.clone(), password.clone(), ip.clone()));
+    /// Purely registers the player. This does not log them in or give them a token
+    pub async fn register_user(&self, username:String, password:String, ip:String)->stdResult<User,CoreDatatypeError>{
+        // test if the username is available
+
+        let stmt1 = Statement::with_args(r"SELECT * FROM POGOOT WHERE USERNAME=?;", args!(&username));
+        let stmt1_result = self.client.execute(stmt1).await;
+        if stmt1_result.is_err(){
+            return Err(CoreDatatypeError::SomethingWentWrong)
+        }
+        let stmt1_final = stmt1_result.unwrap();
+        if stmt1_final.rows.len()>0{
+            return Err(CoreDatatypeError::DuplicateUsername)
+        }
+        let user = User::new(username.clone(), password.clone(), ip.clone());
+        let stringy = serde_json::to_string(&user);
         if stringy.is_err(){
             return Err(CoreDatatypeError::ToStringFailed)
         }
-        let stmt = Statement::with_args(r"INSERT INTO POGOOT VALUES (?, ?, ?, ?, ?)", args!(&username, &password, &ip, stringy.unwrap(), 1));
+        let stmt = Statement::with_args(r"INSERT INTO POGOOT VALUES (?, ?, ?, ?, ?);", args!(&username, &password, &ip, stringy.unwrap(), 1));
         let fetched = self.client.execute(stmt).await;
         if fetched.is_err(){
             return Err(CoreDatatypeError::DatabaseDisconnect);
         }
-        Ok(())
+        Ok(user)
     }
     pub async fn delete_user(&self, username:String)->stdResult<(), CoreDatatypeError>{
         
-        let stmt = Statement::with_args(r"Select * FROM POGOOT WHERE USERNAME=?", args!(&username));
+        let stmt = Statement::with_args(r"Select * FROM POGOOT WHERE USERNAME=?;", args!(&username));
         let fetched = self.client.execute(stmt).await;
         if fetched.is_err(){
             Err(CoreDatatypeError::DatabaseDisconnect)
@@ -243,9 +239,19 @@ impl Database{
 
         }
     }
-    ///TODO: Update user ip, allow changing settings, etc.
-    pub async fn update_user(){
-        todo!()
+    ///Updates the users raw json. Do not use to update usernames, passwords, etc
+    pub async fn update_user_json(&self, user:User)->stdResult<(), CoreDatatypeError>{
+        let stringy = to_string(&user);
+        if stringy.is_err(){
+            return Err(CoreDatatypeError::ToStringFailed);
+        }
+        let stmt = Statement::with_args(r"UPDATE POGOOT SET RAWJSON=? WHERE USERNAME=?;", args!(&user.username));
+        let execute_result = self.client.execute(stmt).await;
+        if execute_result.is_err(){
+            return Err(CoreDatatypeError::UpdateFailed);
+        }else{
+            return Ok(())
+        }
     }
     pub async fn change_password(){
         todo!()
@@ -253,6 +259,10 @@ impl Database{
     ///CHANGING USERNAME IS NOT ALLOWED> USERNAME WILL BE USED FOR PERMISSIONS STORAGE AS WELL AS
     ///OTHER STUFF
     pub async fn change_username(){
+        todo!()
+    }
+    pub async fn update_recent_ip(){
+        todo!()
     }
 
     ///Tries to get secrets
@@ -306,14 +316,6 @@ impl Database{
             client,
         })
     }
-    // pub async fn database_connected(&self)->bool{
-    //     let result = self.client.execute("SELECT * FROM infoDb").await;
-    //     if result.is_ok(){
-    //         true
-    //     }else{
-    //         false
-    //     }
-    // }
     
 }
 #[test]

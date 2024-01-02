@@ -1,6 +1,6 @@
 //The most basic note card structs and enums. Notecards will be stored in the database
 pub mod storage_controller;
-mod server;
+// mod server;
 use serde::{Serialize, Deserialize};
 
 #[derive(Serialize, Deserialize, Clone, Debug)]

@@ -1,7 +1,7 @@
 mod permissions_management;
 mod long_term_user_management;
-mod short_term_user_management;
-mod user_management_datatypes;
+pub mod short_term_user_management;
+pub mod user_management_datatypes;
 
 use serde::{Deserialize, Serialize};
 
