@@ -1,3 +1,3 @@
 # Pogoot
 
-A Notecard learning tool.
+A WIP Notecard learning tool.
