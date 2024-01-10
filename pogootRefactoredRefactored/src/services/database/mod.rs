@@ -1,6 +1,10 @@
-use argon2::{PasswordHash, Argon2, PasswordVerifier};
+use argon2::password_hash::SaltString;
+use argon2::{PasswordHash, Argon2, PasswordVerifier, PasswordHasher};
+use async_std::sync::Mutex;
+use rand::rngs::OsRng;
 use serde::{Serialize, Deserialize};
 use serde_json::to_string;
+use std::sync::Arc;
 use std::{fs::File, sync::atomic::AtomicI64};
 use std::io::*;
 use libsql_client::{Config, Client, Value, Statement, args, ResultSet};
@@ -84,6 +88,7 @@ impl Database{
         let statement = Statement::with_args(r"Select * from POGOOT where USERNAME=?;", args!(username));
         let retrieve_password_hash_result = self.client.execute(statement).await;
         if retrieve_password_hash_result.is_err(){
+            println!("Database Disconnected");
             return Err(CoreDatatypeError::DatabaseDisconnect);
         }
         let password_hashes = retrieve_password_hash_result.unwrap();
@@ -191,12 +196,20 @@ impl Database{
         if stmt1_final.rows.len()>0{
             return Err(CoreDatatypeError::DuplicateUsername)
         }
-        let user = User::new(username.clone(), password.clone(), ip.clone());
+        let salt = SaltString::generate(&mut OsRng);
+        let argon2 = Argon2::default();
+        let password_hash = argon2.hash_password(password.as_bytes(), &salt);
+        if password_hash.is_err(){
+            return Err(CoreDatatypeError::PasswordHashIsError)
+        }
+        let password_hash = password_hash.unwrap();
+        let user = User::new(username.clone(), password_hash.clone().to_string(), ip.clone());
         let stringy = serde_json::to_string(&user);
         if stringy.is_err(){
             return Err(CoreDatatypeError::ToStringFailed)
         }
-        let stmt = Statement::with_args(r"INSERT INTO POGOOT VALUES (?, ?, ?, ?, ?);", args!(&username, &password, &ip, stringy.unwrap(), 1));
+
+        let stmt = Statement::with_args(r"INSERT INTO POGOOT VALUES (?, ?, ?, ?, ?);", args!(&username, &password_hash.to_string(), &ip, stringy.unwrap(), 1));
         let fetched = self.client.execute(stmt).await;
         if fetched.is_err(){
             return Err(CoreDatatypeError::DatabaseDisconnect);
@@ -240,8 +253,9 @@ impl Database{
         }
     }
     ///Updates the users raw json. Do not use to update usernames, passwords, etc
-    pub async fn update_user_json(&self, user:User)->stdResult<(), CoreDatatypeError>{
-        let stringy = to_string(&user);
+    pub async fn update_user_json(&self, user:Arc<Mutex<User>>)->stdResult<(), CoreDatatypeError>{
+        let user = user.lock().await;
+        let stringy = to_string(&*user);
         if stringy.is_err(){
             return Err(CoreDatatypeError::ToStringFailed);
         }

@@ -1,12 +1,13 @@
 use std::sync::Arc;
-use std::{net::SocketAddr};
-use tokio::sync::{mpsc::Sender};
+use std::net::SocketAddr;
+use tokio::sync::mpsc::Sender;
 use axum::{extract::ws::WebSocket, Json};
 use axum::{Router, routing::{post, get}, extract::{WebSocketUpgrade, State}, response::{Response, IntoResponse}};
 use axum_client_ip::{SecureClientIpSource, SecureClientIp};
 use serde::{Serialize, Deserialize};
 use tower_http::cors::CorsLayer;
 use tokio::sync::oneshot;
+
 use super::{database::Database, user_manage::{user_management_datatypes::LoginRequest, self}};
 
 
@@ -23,15 +24,21 @@ pub enum FromClientRequest{
     ///Username, Password, Ip
     Login(String, String),
     Register(String, String),
-    ///SessionToken, Ip
-    VerifySessionToken(String)
+    ///Username, TOken
+    VerifySessionToken(String, String)
+}
+#[test]
+fn jsonify(){
+    let login_json = FromClientRequest::Login("GGs".to_string(), "Poggins".to_string());
+    let thing = serde_json::to_string(&login_json);
+    println!("Login Json: {:?}", thing);
 }
 impl FromClientRequest{
     pub fn to_regular_request(self, ip:String, callback:Callback)->LoginRequest{
         match self{
             FromClientRequest::Login(username, password) => LoginRequest::Login(username, password, ip, callback),
             FromClientRequest::Register(username, password) => LoginRequest::Register(username, password, ip, callback),
-            FromClientRequest::VerifySessionToken(token) => LoginRequest::VerifySessionToken(token, ip, callback),
+            FromClientRequest::VerifySessionToken(username, token) => LoginRequest::VerifySessionToken(token,username, ip, callback),
         }
     }
 }
@@ -84,8 +91,19 @@ impl Coordinator{
         // info!("Handling commander upgrade");
         ws.on_upgrade(|socket| Self::handle_commander_socket(socket))
     }
-    pub async fn login_handler(State(state): State<Arc<Database>>, SecureClientIp(ip): SecureClientIp, Json(json):Json<FromClientRequest>)->impl IntoResponse{
+    pub async fn login_handler(State(state): State<Arc<CoordinatorState>>, SecureClientIp(ip): SecureClientIp, Json(json):Json<FromClientRequest>)->impl IntoResponse{
         let ip = ip.to_string();
+        let (callback, callback_reciever) = oneshot::channel();
+        let login_result = state.login_thread_sender.send(json.to_regular_request(ip, callback)).await;
+        if login_result.is_err(){
+            return axum::http::StatusCode::INTERNAL_SERVER_ERROR.into_response()
+        }
+        let callback_result = callback_reciever.await;
+        if callback_result.is_err(){
+            return axum::http::StatusCode::INTERNAL_SERVER_ERROR.into_response()
+        }
+
+        return super::to_response_shortcut(callback_result.unwrap()).into_response()
     }
     pub async fn handle_player_socket(socket:WebSocket){
 
@@ -93,6 +111,8 @@ impl Coordinator{
     pub async fn handle_commander_socket(socket:WebSocket){
 
     }
+
+    
 
 }
 

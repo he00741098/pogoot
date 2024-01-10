@@ -1,4 +1,4 @@
-let socket1 = new WebSocket("wss://play.sweep.rs/commandSocket");
+// let socket1 = new WebSocket("wss://play.sweep.rs/commandSocket");
 let create_request = "{\"request\":\"CreateGame\",\"data\":{\"CreateGameData\":{\"questions\":[{\"question\":\"What is this question: 0\",\"answers\":[[false,\"Pog\"],[false,\"JFK\"],[false,\"Plog\"],[true,\"0\"]]},{\"question\":\"What is this question: 1\",\"answers\":[[false,\"Pog\"],[false,\"JFK\"],[false,\"Plog\"],[true,\"1\"]]},{\"question\":\"What is this question: 2\",\"answers\":[[false,\"Pog\"],[false,\"JFK\"],[false,\"Plog\"],[true,\"2\"]]},{\"question\":\"What is this question: 3\",\"answers\":[[false,\"Pog\"],[false,\"JFK\"],[false,\"Plog\"],[true,\"3\"]]},{\"question\":\"What is this question: 4\",\"answers\":[[false,\"Pog\"],[false,\"JFK\"],[false,\"Plog\"],[true,\"4\"]]},{\"question\":\"What is this question: 5\",\"answers\":[[false,\"Pog\"],[false,\"JFK\"],[false,\"Plog\"],[true,\"5\"]]},{\"question\":\"What is this question: 6\",\"answers\":[[false,\"Pog\"],[false,\"JFK\"],[false,\"Plog\"],[true,\"6\"]]},{\"question\":\"What is this question: 7\",\"answers\":[[false,\"Pog\"],[false,\"JFK\"],[false,\"Plog\"],[true,\"7\"]]},{\"question\":\"What is this question: 8\",\"answers\":[[false,\"Pog\"],[false,\"JFK\"],[false,\"Plog\"],[true,\"8\"]]},{\"question\":\"What is this question: 9\",\"answers\":[[false,\"Pog\"],[false,\"JFK\"],[false,\"Plog\"],[true,\"9\"]]}]}}}"
 let game_request = "{\"request\":\"StartGame\",\"data\":\"StartGameData\"}"
 let next_request = 
@@ -9,13 +9,13 @@ let token;
 let recon_pass;
 let login_token;
 
-fetch('https://play.sweep.rs/login', {
+fetch('http://0.0.0.0:3000/login', {
     method: 'POST',
     headers: {
         'Accept': 'application/json',
         'Content-Type': 'application/json'
     },
-    body: "{\"request\":\"Temp\",\"data\":{\"TempData\":\"Poggers\"}}"
+    body: "{\"Login\":[\"GGs\",\"Poggins\"]}"
 })
    .then(response => response.text()
   ).then(response=>{
