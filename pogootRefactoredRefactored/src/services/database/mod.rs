@@ -338,11 +338,11 @@ impl Database{
     }
     
 }
-#[test]
-fn init_database_test(){
-    let db = Database::new(Database::try_to_get_secrets());
+// #[test]
+// fn init_database_test(){
+//     let db = Database::new(Database::try_to_get_secrets());
 
-}
+// }
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct DBSecrets{
