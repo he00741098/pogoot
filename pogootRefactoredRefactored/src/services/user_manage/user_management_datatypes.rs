@@ -1,5 +1,7 @@
 use serde::Serialize;
-use tokio::sync::{mpsc::channel, oneshot};
+use tokio::sync::oneshot;
+
+use super::permissions_management::Permissions;
 ///The login request also will be useed for registering
 type callback = oneshot::Sender<LoginResponse>;
 pub enum LoginRequest{
@@ -13,7 +15,7 @@ pub enum LoginRequest{
 pub enum LoginResponse{
     ///Session Token
     Success(String),
-    ///For the session token verification
-    Verified,
+    ///For the session token verification, returns username
+    Verified(String, Permissions),
     Failed
 }

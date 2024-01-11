@@ -8,11 +8,14 @@ use serde::{Serialize, Deserialize};
 use tower_http::cors::CorsLayer;
 use tokio::sync::oneshot;
 
+use self::datatypes::NoteCardUploadRequest;
+
+use super::notecard::NoteCardVariants;
 use super::{database::Database, user_manage::{user_management_datatypes::LoginRequest, self}};
 
 
 type Callback = oneshot::Sender<user_manage::user_management_datatypes::LoginResponse>;
-
+mod datatypes;
 pub struct Coordinator{
 }
 pub struct CoordinatorState{
@@ -106,10 +109,13 @@ impl Coordinator{
         return super::to_response_shortcut(callback_result.unwrap()).into_response()
     }
     pub async fn handle_player_socket(socket:WebSocket){
-
+        todo!()
     }
     pub async fn handle_commander_socket(socket:WebSocket){
-
+        todo!()
+    }
+    pub async fn upload_note_card(State(state):State<Arc<CoordinatorState>>, SecureClientIp(ip):SecureClientIp, Json(json):Json<NoteCardUploadRequest>){
+        //TODO: verify the validity of the session token
     }
 
     
