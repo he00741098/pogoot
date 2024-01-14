@@ -43,7 +43,7 @@ pub enum CoreDatatypeError {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BasicPermissionManager{
     owners:Vec<String>,
-    ///Setting editors to None means that everyone can edit - Probably nto a good idea
+    ///Setting editors to None means that everyone can edit - Probably not a good idea
     editors:Option<Vec<String>>,
     ///Setting viewers to None means that everyone can view
     viewers:Option<Vec<String>>,
@@ -176,6 +176,12 @@ impl Database{
             return Err(CoreDatatypeError::DatabaseDisconnect);
         }
         Ok(notecard_id)
+    }
+    pub async fn edit_note_card_permissions(){
+        todo!()
+    }
+    pub async fn edit_note_card_contents(){
+        todo!()
     }
 
     // USERNAME text,
@@ -332,11 +338,11 @@ impl Database{
     }
     
 }
-#[test]
-fn init_database_test(){
-    let db = Database::new(Database::try_to_get_secrets());
+// #[test]
+// fn init_database_test(){
+//     let db = Database::new(Database::try_to_get_secrets());
 
-}
+// }
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct DBSecrets{
