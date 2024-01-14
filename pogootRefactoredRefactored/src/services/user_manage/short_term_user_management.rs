@@ -28,6 +28,8 @@ impl LoginSystem{
         tx
     }
     async fn thread(mut self, mut rx:Receiver<LoginRequest>){
+        //keeps track of potentially suspicious ip addresses - Counts failed verification attempts
+        let mut sus_ips:HashMap<String, i32> = HashMap::new();
         while let Some(thing) = rx.recv().await{
             match thing{
                 LoginRequest::Login(username, password, ip, callback) => {
@@ -71,7 +73,7 @@ impl LoginSystem{
                                 },
                             };
                             user.most_recent_ip=ip.clone();
-                            user.ips.push(ip);
+                            user.ips.push(ip.clone());
                             //token generation sequence, New tokens will be generated each login.
                             //Old tokens will still be able to be used but will expire. All tokens
                             //expire in 1 day, no renewing
@@ -92,7 +94,7 @@ impl LoginSystem{
                                 },
                             };
                             user.most_recent_ip=ip.clone();
-                            user.ips.push(ip);
+                            user.ips.push(ip.clone());
                             //token generation sequence, New tokens will be generated each login.
                             //Old tokens will still be able to be used but will expire. All tokens
                             //expire in 1 day, no renewing
@@ -112,6 +114,10 @@ impl LoginSystem{
                             }
 
                             let callback_result = callback.send(LoginResponse::Success(new_token));
+                            //Reset fails on successful login
+                            if let Some(fails) = sus_ips.get_mut(&ip){
+                                *fails = 0;
+                            }
                             if callback_result.is_err(){
                                 println!("Callback was Error");
                             }
@@ -133,7 +139,47 @@ impl LoginSystem{
                     }
                 },
                 LoginRequest::VerifySessionToken(sessions_token, username, ip, callback) => {
-                    todo!("Verify Session Token")
+                    if let Some(fails) = sus_ips.get(&ip){
+                        if *fails>4{
+                            let callback_send_result = callback.send(LoginResponse::Failed);
+                            if callback_send_result.is_err(){
+                                println!("Verify Token Failed");
+                            }
+                            return;
+                        }
+                    }
+                    let user = self.logged_in_users.get(&sessions_token);
+                    if user.is_none(){
+                        let callback_send = callback.send(LoginResponse::Failed);
+                        if callback_send.is_err(){println!(
+                        "Callback Erred"
+                    )}
+                        return;
+                    }
+                    let user = user.unwrap().clone();
+                    let user = user.lock().await;
+                    if username==user.username{
+                        if user.most_recent_ip==ip||user.ips.contains(&ip){
+                            let callback_result = callback.send(LoginResponse::Verified);
+                            if callback_result.is_err(){
+                                println!("Token verified. Response failed to send");
+                            }
+                        }
+                    }else{
+                        let sus_factor = sus_ips.get_mut(&ip);
+                        if sus_factor.is_some(){
+                            let sussy = sus_factor.unwrap();
+                            *sussy = *sussy+1;
+                        }else{
+                            sus_ips.insert(ip, 1);
+                        }
+                        println!("Token verification failed");
+                        let callback_result = callback.send(LoginResponse::Failed);
+                        if callback_result.is_err(){
+                            println!("Token not verified. Response failed to send");
+                        }
+                    }
+
                 },
                 LoginRequest::Register(username, password,ip, callback) => {
                     let result = self.database_access.register_user(username, password, ip.clone()).await;
