@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use crate::services::database::{Database, CoreDatatypeError};
 
 use super::NoteCardVariants;
@@ -6,7 +8,7 @@ pub struct NotecardStorageManager{
 }
 
 impl NotecardStorageManager{
-    pub async fn notecard_store(username:String, set_name:String, notecard:NoteCardVariants, database_access:Database)->Result<(),()>{
+    pub async fn notecard_store(username:String, set_name:String, notecard:NoteCardVariants, database_access:Arc<Database>)->Result<String,()>{
         let notecard_rawjson = serde_json::to_string(&notecard);
         if notecard_rawjson.is_err(){return Err(())}
         let notecard_rawjson = notecard_rawjson.unwrap();
@@ -14,7 +16,7 @@ impl NotecardStorageManager{
         if database_action_result.is_err(){
             Err(())
         }else{
-            Ok(())
+            Ok(database_action_result.unwrap())
         }
     }
     pub async fn retrieve_from_storage(set_id:String, database_access:Database)->Result<NoteCardVariants, CoreDatatypeError>{

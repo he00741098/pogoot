@@ -1,0 +1,30 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Card from '../components/Card.astro';
+---
+
+<Layout title="Home | Pogoot">
+  <div id="sidebar">
+    <a>Home</a>
+  </div>
+	<main>
+    <h1>Welcome!</h1>
+	</main>
+</Layout>
+
+<style>
+  body{
+    display:grid;
+    grid-template-columns: 80px auto;
+    width:100%;
+    height:100%;
+  }
+
+  main{
+    width:100%;
+    border: 2px solid red;
+  }
+  #sidebar{
+    border: 2px solid red;
+  }
+</style>

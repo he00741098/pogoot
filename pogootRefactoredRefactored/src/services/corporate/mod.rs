@@ -1,5 +1,6 @@
 use std::sync::Arc;
 use std::net::SocketAddr;
+use axum::http::StatusCode;
 use tokio::sync::mpsc::Sender;
 use axum::{extract::ws::WebSocket, Json};
 use axum::{Router, routing::{post, get}, extract::{WebSocketUpgrade, State}, response::{Response, IntoResponse}};
@@ -8,7 +9,9 @@ use serde::{Serialize, Deserialize};
 use tower_http::cors::CorsLayer;
 use tokio::sync::oneshot;
 
-use self::datatypes::NoteCardUploadRequest;
+use crate::services::notecard::storage_controller::NotecardStorageManager;
+
+use self::datatypes::{NoteCardUploadRequest, NoteCardGetRequest, NoteCardGetRequestPart2};
 
 use super::notecard::NoteCardVariants;
 use super::{database::Database, user_manage::{user_management_datatypes::LoginRequest, self}};
@@ -78,6 +81,9 @@ impl Coordinator{
         .route("/hello", get(|| async {"hello!"}))
         .route("/ws", get(Self::player_handler))
         .route("/cws", get(Self::commander_handler))
+        .route("/ntcdup", post(Self::upload_note_card))
+        .route("/ntlist", post(Self::list_note_card_ids))
+        .route("/ntcdget", post(Self::get_note_card))
         .with_state(database)
         .layer(CorsLayer::permissive())
         // .layer(TraceLayer::new_for_http())
@@ -114,10 +120,85 @@ impl Coordinator{
     pub async fn handle_commander_socket(socket:WebSocket){
         todo!()
     }
-    pub async fn upload_note_card(State(state):State<Arc<CoordinatorState>>, SecureClientIp(ip):SecureClientIp, Json(json):Json<NoteCardUploadRequest>){
+    pub async fn upload_note_card(State(state):State<Arc<CoordinatorState>>, SecureClientIp(ip):SecureClientIp, Json(json):Json<NoteCardUploadRequest>)->impl IntoResponse{
         //TODO: verify the validity of the session token
+        let (callback, callback_reciever) = oneshot::channel();
+        let login_send_result = state.login_thread_sender.send(LoginRequest::VerifySessionToken(json.session_token.clone(), json.username.clone(), ip.to_string(), callback)).await;
+        if login_send_result.is_err(){
+            println!("Login send failed");
+            return StatusCode::INTERNAL_SERVER_ERROR.into_response();
+        }else{
+            let callback_result = callback_reciever.await;
+            if callback_result.is_err(){
+                println!("Callback recieve failed");
+                return StatusCode::INTERNAL_SERVER_ERROR.into_response();
+            }else{
+                let callback_final = callback_result.unwrap();
+                match callback_final{
+                    user_manage::user_management_datatypes::LoginResponse::Verified => {
+                        println!("Successful token Verification");
+                        let store_result = NotecardStorageManager::notecard_store(json.username, json.set_name, json.notecard_varient, state.db.clone()).await;
+                        if store_result.is_ok(){
+                            let notecard_id = store_result.unwrap();
+                            let register_result = state.login_thread_sender.send(LoginRequest::RegisterNoteCardId(notecard_id, json.session_token)).await;
+                            if register_result.is_err(){
+                                println!("Note card Register failed");
+                            }
+                            return StatusCode::OK.into_response();
+                        }else{
+                            return StatusCode::INTERNAL_SERVER_ERROR.into_response();
+                        }
+                    },
+                    _=>{
+                        println!("Token Verification Failed");
+                        return serde_json::to_string(&callback_final).unwrap().into_response();
+                    }
+                }
+            }
+        }
+    }
+    pub async fn get_note_card(State(state):State<Arc<CoordinatorState>>, SecureClientIp(ip):SecureClientIp, Json(json):Json<NoteCardGetRequestPart2>)->impl IntoResponse{
+        // pub set_name: String,
+        // pub session_token:String,
+        // pub username:String,
+        let perms = state.db.get_notecard_permissions(&json.notecard_id).await;
+        if perms.is_err(){
+            return StatusCode::INTERNAL_SERVER_ERROR.into_response();
+        }
+        let mut perms = perms.unwrap();
+        if !perms.has_permission(&json.username){
+            return StatusCode::FORBIDDEN.into_response();
+        }
+        let fetched = state.db.fetch_note_card(json.notecard_id).await;
+        if fetched.is_err(){
+            return StatusCode::INTERNAL_SERVER_ERROR.into_response();
+        }
+        let raw_json = fetched.unwrap();
+        raw_json.into_response()
     }
 
+    pub async fn list_note_card_ids(State(state):State<Arc<CoordinatorState>>, SecureClientIp(ip):SecureClientIp, Json(json):Json<NoteCardGetRequest>)->impl IntoResponse{
+        let (callback, callback_reciever) = oneshot::channel();
+        let user = state.login_thread_sender.send(LoginRequest::GetUser(json.session_token, callback)).await;
+        if user.is_err(){
+            println!("Login thread send failed");
+            return StatusCode::INTERNAL_SERVER_ERROR.into_response();
+        }
+        if let Ok(Ok(user)) = callback_reciever.await{
+            println!("Successfully found user");
+            let locked = user.lock().await;
+            return serde_json::to_string(&locked.uploaded_sets).unwrap().into_response();
+        }
+        println!("Failed to get user");
+        return StatusCode::INTERNAL_SERVER_ERROR.into_response();
+    }
+    async fn shut_down_sequence(State(state):State<Arc<CoordinatorState>>){
+        //shut down logins
+        let (callback, callback_reciever) = oneshot::channel();
+        let _ = state.login_thread_sender.send(LoginRequest::Shutdown(callback)).await;
+        let _ = callback_reciever.await;
+        todo!("Make graceful shutdown work perfectly");
+    }
     
 
 }

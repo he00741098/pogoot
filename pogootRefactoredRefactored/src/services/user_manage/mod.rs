@@ -20,9 +20,10 @@ pub struct User{
     pub unique_id:String,
     pub is_banned:bool,
     pub deleted:bool,
+    pub uploaded_sets:Vec<String>
 }
 impl User{
     pub fn new(username:String, password:String, recent_ip:String)->Self{
-        User { username , password , most_recent_ip: recent_ip.clone(), ips: vec![recent_ip], unique_id: Database::generate_random_id(), is_banned:false, deleted:false }
+        User { username , password , most_recent_ip: recent_ip.clone(), ips: vec![recent_ip], unique_id: Database::generate_random_id(), is_banned:false, deleted:false, uploaded_sets:vec![] }
     }
 }

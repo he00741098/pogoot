@@ -63,6 +63,38 @@ impl BasicPermissionManager{
         basic.owners.push(username.to_owned());
         basic
     }
+    ///checks if a user has permissions for this permission manager
+    ///The ordering of priority starts with the explicitly named before going into general
+    ///permissions
+    ///Blacklist trumps general permissions but specific permissions trump blacklist
+    pub fn has_permission(&mut self, username:&String)->bool{
+        let viewers = std::mem::take(&mut self.viewers).unwrap();
+       if viewers.contains(username){
+            self.viewers=Some(viewers);
+            return true;
+        }else{
+            self.viewers=Some(viewers);
+        }
+        let editors = std::mem::take(&mut self.editors).unwrap();
+        if editors.contains(username){
+            self.editors=Some(editors);
+            return true
+        }else{
+            self.editors=Some(editors);
+        }
+        if self.owners.contains(username){
+            return true;
+        }
+        if self.blacklist.contains(username){
+            return false;
+        }else if self.viewers.is_none(){
+            return true;
+        }else if self.editors.is_none(){
+            return true;
+        }
+        false
+
+    }
 }
 
 impl Database{
@@ -176,6 +208,33 @@ impl Database{
             return Err(CoreDatatypeError::DatabaseDisconnect);
         }
         Ok(notecard_id)
+    }
+    ///id, username, token
+    ///Grabs the permissions of a specific notecard set
+    pub async fn get_notecard_permissions(&self, id:&str)->stdResult<BasicPermissionManager, CoreDatatypeError>{
+        let stmt = Statement::with_args(r"SELECT * FROM NOTECARDS VALUES WHERE ID=?;", args!(id));
+        let fetched = self.client.execute(stmt).await;
+        if fetched.is_err(){
+            return Err(CoreDatatypeError::DatabaseDisconnect);
+        }
+        let fetched = fetched.unwrap();
+        println!("Notecard fetched permission JSON: {:?}", fetched);
+        if fetched.rows.len()==1{
+            return match fetched.rows[0].values[1].clone(){
+                Value::Text { value } =>{
+                    if let Ok(value) = serde_json::from_str(&value){
+                        Ok(value)
+                    }else{
+                        Err(CoreDatatypeError::ParseFailed)
+                    }
+                },
+                _=>{Err(CoreDatatypeError::ValueNotText)}
+            }
+        }else if fetched.rows.len()==0{
+            return Err(CoreDatatypeError::DoesNotExist)
+        }else{
+            return Err(CoreDatatypeError::DuplicateEntries)
+        }
     }
     pub async fn edit_note_card_permissions(){
         todo!()
