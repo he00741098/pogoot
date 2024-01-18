@@ -1,0 +1,37 @@
+---
+import AccountButton from "./AccountButton.astro";
+
+---
+<div class="navbar">
+  <a class="navElement">LOGO</a>
+  <a class="navElement">Home</a>
+  <a class="navElement">Library</a>
+  <a class="navElement">Tools</a>
+  <div class="searchBar navElement">Search</div>
+  <a class="navElement">Create</a>
+  <a class="navElement">Notifications</a>
+  <a class="navElement">Purchase</a>
+  <AccountButton/>
+</div>
+
+<style>
+
+  .navbar{
+    position:absolute;
+    top:0px;
+    left:0px;
+    width:100%;
+    max-width: 100%;
+    overflow-x: hidden;
+    outline: 2px solid red;
+    display: grid;
+    grid-template-columns: 5% 5% 5% 5% 40% 5% 10% 5% 19%;
+    height:50px;
+    text-align: center;
+    align-items: center;
+    background-color:white;
+  }
+  .navElement{
+    outline: 2px solid red;
+  }
+</style>
