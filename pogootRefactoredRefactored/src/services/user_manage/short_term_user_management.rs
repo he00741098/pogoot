@@ -334,14 +334,17 @@ impl remoteLoginSystem{
     async fn proccess_request(request:LoginRequest)->LoginResponse{
         match request{
             LoginRequest::Login(username, password, ip, _) => {
-
+                todo!()
             },
             LoginRequest::Register(username, password, ip, _) => {
-
+                todo!()
             },
             LoginRequest::VerifySessionToken(token, username, ip, _) => {
-
+                todo!()
             },
+            LoginRequest::Shutdown(_) => todo!(),
+            LoginRequest::RegisterNoteCardId(_, _) => todo!(),
+            LoginRequest::GetUser(_, _) => todo!(),
         }
     }
 }

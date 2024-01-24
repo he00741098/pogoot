@@ -26,7 +26,7 @@ impl commandCenter{
         let database = Arc::new(Database::new(Database::try_to_get_secrets()).await.unwrap());
         let login_system = super::user_manage::short_term_user_management::LoginSystem::new(database.clone());
         let login_system_access_point = login_system.thread_start().await;
-        let state = CoordinatorState{ login_thread_sender: login_system_access_point, db: database.clone() };
+        let state = CoordinatorState{ login_thread_sender: login_system_access_point, db: database.clone(), one_server:false, commander:true};
         let dbstate = Arc::new(state);
         //Init the login/user management service
         //start listening for requests
@@ -50,9 +50,10 @@ impl commandCenter{
 
     }
     pub async fn login_handler(State(state): State<Arc<CoordinatorState>>, SecureClientIp(ip): SecureClientIp, Json(json):Json<FromClientRequest>)->impl IntoResponse{
+        //Ip tracking - Determine if the ip is from a known server
         let ip = ip.to_string();
         let (callback, callback_reciever) = oneshot::channel();
-        let login_result = state.login_thread_sender.send(json.to_regular_request(ip, callback)).await;
+        let login_result = state.login_thread_sender.send(json.to_regular_request("".to_string(), callback)).await;
         if login_result.is_err(){
             return axum::http::StatusCode::INTERNAL_SERVER_ERROR.into_response()
         }

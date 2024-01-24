@@ -28,6 +28,7 @@ pub struct CoordinatorState {
     pub(crate) login_thread_sender: Sender<LoginRequest>,
     pub(crate) db: Arc<Database>,
     pub(crate) one_server: bool,
+    pub(crate) commander: bool,
 }
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum FromClientRequest {
@@ -93,6 +94,7 @@ impl Coordinator {
             login_thread_sender: login_system_access_point,
             db: database.clone(),
             one_server: false,
+            commander:false,
         };
         let dbstate = Arc::new(state);
         //Init the login/user management service
@@ -119,6 +121,7 @@ impl Coordinator {
         // .layer(TraceLayer::new_for_http())
         // .layer(TraceLayer::new_for_http())
         // .layer(SecureClientIpSource::ConnectInfo.into_extension())
+
     }
     pub async fn player_handler(
         ws: WebSocketUpgrade,
