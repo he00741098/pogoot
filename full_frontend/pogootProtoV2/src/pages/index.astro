@@ -1,0 +1,47 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Card from '../components/Card.astro';
+import NavBar from '../components/NavBar.astro';
+---
+
+<Layout title="Home | Pogoot">
+  <NavBar />
+  <main class="FirstGlance">
+    <!-- <img src="../../public/placeholderimage.jpg" class="bannerImage"> -->
+    <h1>A tool to learn</h1>
+    <div>Bubble</div>
+    <div>Bubble</div>
+    <div>Bubble</div>
+    <div>Bubble</div>
+    <div>Bubble</div>
+    <div>Bubble</div>
+  </main>
+</Layout>
+
+<style>
+  body{
+    display:grid;
+    width:100%;
+    height:100%;
+    background-color: rgb(253, 249, 241);
+    /* margin:-8px; */
+  }
+
+  main{
+    position:absolute;
+    width:100%;
+    outline: 2px solid red;
+    top:50px;
+    left:0px;
+    /* background-image:url("../../public/placeholderimage.jpg"); */
+    background-image: linear-gradient(to bottom right, #F5E3B8, #F5DD67);
+    /* margin:-8px; */
+  }
+  #sidebar{
+    outline: 2px solid red;
+  }
+  .bannerImage{
+    /* width:100%; */
+    /* height: */
+  }
+</style>

@@ -1,7 +1,8 @@
 use std::{collections::{HashMap, VecDeque}, sync::Arc};
 
 use async_std::sync::Mutex;
-use chrono::Utc;
+use chrono::{Utc, Duration};
+use tokio::sync::oneshot::{self};
 use nanoid::nanoid;
 use tokio::sync::mpsc::{Sender, Receiver};
 
@@ -35,7 +36,23 @@ impl LoginSystem{
         tx
     }
     async fn thread(mut self, mut rx:Receiver<LoginRequest>){
-        while let Some(thing) = rx.recv().await{
+        //keeps track of potentially suspicious ip addresses - Counts failed verification attempts
+        let mut sus_ips:HashMap<String, i32> = HashMap::new();
+        let mut last_token_shift = chrono::Utc::now();
+
+        let sleep = tokio::time::sleep(tokio::time::Duration::from_secs(1800));
+        tokio::pin!(sleep);
+        let mut running = true;
+        let mut shutdown_callback=oneshot::channel().0;
+        while running{
+        tokio::select! {
+            thing = rx.recv()=>{
+            if thing.is_none(){
+                    println!("Loop over");
+                    running = false;
+                    return;
+                }
+            let thing = thing.unwrap();
             match thing{
                 LoginRequest::Login(username, password, ip, callback) => {
                     let result = self.database_access.verify_password(username.clone(), password).await;
@@ -78,7 +95,7 @@ impl LoginSystem{
                                 },
                             };
                             user.most_recent_ip=ip.clone();
-                            user.ips.push(ip);
+                            user.ips.push(ip.clone());
                             //token generation sequence, New tokens will be generated each login.
                             //Old tokens will still be able to be used but will expire. All tokens
                             //expire in 1 day, no renewing
@@ -99,7 +116,7 @@ impl LoginSystem{
                                 },
                             };
                             user.most_recent_ip=ip.clone();
-                            user.ips.push(ip);
+                            user.ips.push(ip.clone());
                             //token generation sequence, New tokens will be generated each login.
                             //Old tokens will still be able to be used but will expire. All tokens
                             //expire in 1 day, no renewing
@@ -119,8 +136,12 @@ impl LoginSystem{
                             }
 
                             let callback_result = callback.send(LoginResponse::Success(new_token));
+                            //Reset fails on successful login
+                            if let Some(fails) = sus_ips.get_mut(&ip){
+                                *fails = 0;
+                            }
                             if callback_result.is_err(){
-                                println!("Callback was Error");
+                                println!("Callback was Esleeprror");
                             }
 
                         }else{
@@ -140,7 +161,47 @@ impl LoginSystem{
                     }
                 },
                 LoginRequest::VerifySessionToken(sessions_token, username, ip, callback) => {
-                    todo!("Verify Session Token")
+                    if let Some(fails) = sus_ips.get(&ip){
+                        if *fails>4{
+                            let callback_send_result = callback.send(LoginResponse::Failed);
+                            if callback_send_result.is_err(){
+                                println!("Verify Token Failed");
+                            }
+                            return;
+                        }
+                    }
+                    let user = self.logged_in_users.get(&sessions_token);
+                    if user.is_none(){
+                        let callback_send = callback.send(LoginResponse::Failed);
+                        if callback_send.is_err(){println!(
+                        "Callback Erred"
+                    )}
+                        return;
+                    }
+                    let user = user.unwrap().clone();
+                    let user = user.lock().await;
+                    if username==user.username{
+                        if user.most_recent_ip==ip||user.ips.contains(&ip){
+                            let callback_result = callback.send(LoginResponse::Verified);
+                            if callback_result.is_err(){
+                                println!("Token verified. Response failed to send");
+                            }
+                        }
+                    }else{
+                        let sus_factor = sus_ips.get_mut(&ip);
+                        if sus_factor.is_some(){
+                            let sussy = sus_factor.unwrap();
+                            *sussy = *sussy+1;
+                        }else{
+                            sus_ips.insert(ip, 1);
+                        }
+                        println!("Token verification failed");
+                        let callback_result = callback.send(LoginResponse::Failed);
+                        if callback_result.is_err(){
+                            println!("Token not verified. Response failed to send");
+                        }
+                    }
+
                 },
                 LoginRequest::Register(username, password,ip, callback) => {
                     let result = self.database_access.register_user(username, password, ip.clone()).await;
@@ -160,8 +221,48 @@ impl LoginSystem{
                         println!("Callback was Error");
                     }
                 },
+                LoginRequest::Shutdown(callback)=>{
+                        running = false;
+                        shutdown_callback=callback;
+                    },
+                LoginRequest::RegisterNoteCardId(notecard_id, token)=>{
+                        if let Some(user) = self.logged_in_users.get(&token){
+                            let mut locked_user = user.lock().await;
+                            locked_user.uploaded_sets.push(notecard_id);
+                        }
+                    },
+                LoginRequest::GetUser(token, callback)=>{
+                        if let Some(user) = self.logged_in_users.get(&token){
+                            let callback_send = callback.send(Ok(user.clone()));
+                            if callback_send.is_err(){
+                                println!("Callback send failed");
+                            }
+                        }else{
+                            let send_result = callback.send(Err(()));
+                            println!("Get User failed to find user");
+                            if send_result.is_err(){
+                                println!("Send result failed");
+                            }
+                        }
+                    }
+
+                    
+            }
+        },
+            _ = &mut sleep=>{
+
+            if last_token_shift+Duration::minutes(30)<chrono::Utc::now(){
+                last_token_shift=chrono::Utc::now();
+                self.cleanup_expired_tokens().await;
             }
         }
+    };
+        }
+        futures::future::join_all(self.logged_in_users.into_iter().map(|x|self.database_access.update_user_json(x.1))).await;
+        //TODO: deal with errors
+        let _ = shutdown_callback.send(LoginResponse::Verified);
+        return
+
     }
     pub fn new(db:Arc<Database>)->Self{
         LoginSystem { logged_in_users: HashMap::new(), database_access: db, cleanup_logger:VecDeque::new(), user_token_map:HashMap::new() }
