@@ -9,7 +9,14 @@ use crate::services::database::Database;
 
 use super::{user_management_datatypes::{LoginRequest, LoginResponse}, User};
 
-
+trait LoginHandler{
+    async fn thread_start(self)->Sender<LoginRequest> where Self: Sized;
+    async fn thread(self, rx:Receiver<LoginRequest>);
+    async fn generate_new_token(&mut self, user:User)->String;
+    fn new(db:Arc<Database>)->Self;
+    async fn generate_new_token_for_existing_user(self, user:Arc<Mutex<User>>, username:String)->String;
+    async fn cleanup_expired_tokens(self);
+}
 
 pub struct LoginSystem{
     // session_tokens:Vec<String>
@@ -215,4 +222,25 @@ impl LoginSystem{
 
 }
 
+///A struct intended to deal with sending login requests to a central database/login system
+/// This will ensure that there are no race conditions.
+pub struct remoteLoginSystem{
 
+
+}
+impl remoteLoginSystem{
+    ///sends a post request to the login server
+    async fn proccess_request(request:LoginRequest)->LoginResponse{
+        match request{
+            LoginRequest::Login(username, password, ip, _) => {
+
+            },
+            LoginRequest::Register(username, password, ip, _) => {
+
+            },
+            LoginRequest::VerifySessionToken(token, username, ip, _) => {
+
+            },
+        }
+    }
+}
