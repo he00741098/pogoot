@@ -1,30 +1,21 @@
 # Rust as the base image
-FROM rust:1.75.0 as build
-
+FROM rust:1.75.0
 # create a new empty shell project
-RUN USER=root cargo new --bin pogootRefactoredRefactored
-WORKDIR /pogootRefactoredRefactored
+RUN apt-get update && apt-get upgrade -y
+RUN apt-get install libssl-dev
 
-# copy over your manifests
-COPY ./Cargo.lock ./Cargo.lock
-COPY ./Cargo.toml ./Cargo.toml
+RUN apt-get install -y -q build-essential curl
+RUN curl https://sh.rustup.rs -sSf | sh -s -- -y
+ENV PATH="/root/.cargo/bin:${PATH}"
 
-# this build step will cache your dependencies
-RUN cargo build --release
-RUN rm src/*.rs
+WORKDIR /command-agent
+COPY ./src/. /command-agent/src/
+# COPY .env /command-agent/
+COPY Cargo.toml /command-agent/
+COPY Cargo.lock /command-agent/
+COPY ./src/DBSecrets.toml /command-agent/
 
-# copy your source tree
-COPY ./src ./src
-
-# build for release
-RUN rm ./target/release/deps/pogootRefactoredRefactored*
 RUN cargo build --release
 
-# our final base
-FROM debian:buster-slim
-
-# copy the build artifact from the build stage
-COPY --from=build /pogootRefactoredRefactored/target/release/pogootRefactoredRefactored .
-
-# set the startup command to run your binary
-CMD ["./pogootRefactoredRefactored"]
+EXPOSE 3000
+ENTRYPOINT /command-agent/target/release/pogootRefactoredRefactored

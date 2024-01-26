@@ -349,10 +349,23 @@ impl Database{
     ///This is only intended to be called once at startup
     pub fn try_to_get_secrets()->DBSecrets{
         let mut contents = String::new();
-        let mut file = File::open("DBSecrets.toml").expect("to open file DBSecrets.toml");
-        file.read_to_string(&mut contents).expect("to put file contents in string");
-        let db_secrets:DBSecrets = toml::from_str(&contents).unwrap(); 
-        db_secrets
+        let mut file = File::open("DBSecrets.toml");
+        if file.is_err(){
+            // return DBSecrets{
+            //     turso_url:std::env!("turso").to_string(),
+            //     auth_token:std::env!("auth").to_string(),
+
+            // }
+            panic!("File read failed");
+            // let std::env!()
+        }
+        let mut file = file.unwrap();
+        if file.read_to_string(&mut contents).is_ok(){
+            let db_secrets:DBSecrets = toml::from_str(&contents).unwrap(); 
+            db_secrets
+        }else{
+            panic!("No Secrets!");
+        }
     }
     pub async fn new(credentials:DBSecrets)->Option<Self>{
         let url = credentials.turso_url.as_str().try_into();
