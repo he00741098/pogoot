@@ -1,4 +1,6 @@
-use axum::{extract::ws::WebSocket, Json};
+use axum::{extract::{ws::WebSocket, Host}, Json, ServiceExt, http::Uri, BoxError, response::Redirect, handler::HandlerWithoutStateExt};
+use axum_server::tls_rustls::RustlsConfig;
+use std::{net::SocketAddr, path::PathBuf};
 use axum::{
     extract::{State, WebSocketUpgrade},
     response::{IntoResponse, Response},
@@ -7,7 +9,6 @@ use axum::{
 };
 use axum_client_ip::{SecureClientIp, SecureClientIpSource};
 use serde::{Deserialize, Serialize};
-use std::net::SocketAddr;
 use axum::http::StatusCode;
 use std::sync::Arc;
 use tokio::sync::mpsc::Sender;
@@ -74,9 +75,28 @@ impl FromClientRequest {
     }
     }
 }
-
+#[derive(Debug, Clone, Copy)]
+pub struct Ports{
+    pub http: u16,
+    pub https: u16
+}
 impl Coordinator {
     pub async fn start_all_services() {
+        //deal with rustls
+        //TODO - match rustls settings with supersystem
+ 
+        let ports = Ports {
+            http: 80,
+            https: 443,
+        };       
+        //redirect to https
+        tokio::spawn(redirect_http_to_https(ports));
+        let config = RustlsConfig::from_pem_file(
+            PathBuf::from("cert.cer"),
+            PathBuf::from("key.key"),
+        )
+            .await
+            .unwrap();
         //TODO: deal with user management
         //TODO: Complete all of the database stuff
         //TODO: all notecards to be transfered
@@ -100,7 +120,8 @@ impl Coordinator {
         //Init the login/user management service
         //start listening for requests
         let app = Self::start_router(dbstate.clone()).await;
-        axum::Server::bind(&"0.0.0.0:3000".parse().unwrap())
+        let addr = SocketAddr::from(([0, 0, 0, 0], ports.https));
+        axum_server::bind_rustls(addr, config)
             .serve(app.into_make_service_with_connect_info::<SocketAddr>())
             .await
             .unwrap();
@@ -274,4 +295,38 @@ impl Coordinator {
     }
     
 
+}
+
+pub async fn redirect_http_to_https(ports: Ports) {
+    fn make_https(host: String, uri: Uri, ports: Ports) -> Result<Uri, BoxError> {
+        let mut parts = uri.into_parts();
+
+        parts.scheme = Some(axum::http::uri::Scheme::HTTPS);
+
+        if parts.path_and_query.is_none() {
+            parts.path_and_query = Some("/".parse().unwrap());
+        }
+
+        let https_host = host.replace(&ports.http.to_string(), &ports.https.to_string());
+        parts.authority = Some(https_host.parse()?);
+
+        Ok(Uri::from_parts(parts)?)
+    }
+
+    let redirect = move |Host(host): Host, uri: Uri| async move {
+        match make_https(host, uri, ports) {
+            Ok(uri) => Ok(Redirect::permanent(&uri.to_string())),
+            Err(error) => {
+                tracing::warn!(%error, "failed to convert URI to HTTPS");
+                Err(StatusCode::BAD_REQUEST)
+            }
+        }
+    };
+
+    let addr = SocketAddr::from(([0, 0, 0, 0], ports.http));
+    let listener = tokio::net::TcpListener::bind(addr).await.unwrap();
+    tracing::debug!("listening on {}", listener.local_addr().unwrap());
+    axum::serve(listener, redirect.into_make_service())
+        .await
+        .unwrap();
 }

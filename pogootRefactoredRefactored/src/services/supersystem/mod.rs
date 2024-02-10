@@ -1,13 +1,13 @@
 //Starts the command center instead of a normal server
 
-use std::{net::SocketAddr, sync::Arc};
-
+use std::{net::SocketAddr, sync::Arc, path::PathBuf};
+use axum_server::tls_rustls::RustlsConfig;
 use axum::{extract::State, response::IntoResponse, routing::post, Json, Router};
 use axum_client_ip::{SecureClientIp, SecureClientIpSource};
 use tokio::sync::oneshot;
 use tower_http::cors::CorsLayer;
 
-use super::{corporate::{CoordinatorState, FromClientRequest}, database::Database};
+use super::{corporate::{CoordinatorState, FromClientRequest, Ports, redirect_http_to_https}, database::Database};
 
 pub struct commandCenter{
 
@@ -20,6 +20,20 @@ impl commandCenter{
         //TODO: all notecards to be transfered
         // let notecard_storage_manager =NotecardStorageManager{};
         
+
+        let ports = Ports {
+            http: 80,
+            https: 443,
+        };       
+        //redirect to https
+        tokio::spawn(redirect_http_to_https(ports));
+        let config = RustlsConfig::from_pem_file(
+            PathBuf::from("cert.cer"),
+            PathBuf::from("key.key"),
+        )
+            .await
+            .unwrap();
+
         //initialization sequence
         //
         //Init the database
@@ -30,11 +44,12 @@ impl commandCenter{
         let dbstate = Arc::new(state);
         //Init the login/user management service
         //start listening for requests
-    let app = Self::start_router(dbstate.clone()).await;
-    axum::Server::bind(&"0.0.0.0:3000".parse().unwrap())
-        .serve(app.into_make_service_with_connect_info::<SocketAddr>())
-        .await
-        .unwrap();
+        let app = Self::start_router(dbstate.clone()).await;
+        let addr = SocketAddr::from(([0, 0, 0, 0], ports.https));
+        axum_server::bind_rustls(addr, config)
+            .serve(app.into_make_service_with_connect_info::<SocketAddr>())
+            .await
+            .unwrap();
     }
     pub async fn start_router(database:Arc<CoordinatorState>)->Router{
     // let state = Database::new(Database::try_to_get_secrets()).await.unwrap();

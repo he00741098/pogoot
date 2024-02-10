@@ -2,3 +2,9 @@
 pogoot_notecard_algorithm_basic/target
 pogootRefactoredRefactored/target
 pogootRefactoredRefactored/src/DBSecrets.toml
+pogootRefactoredRefactored/src/CloudflareSecrets.toml
+pogootRefactoredRefactored/src/ca.cer
+pogootRefactoredRefactored/src/cert.cer
+pogootRefactoredRefactored/src/fullchain.cer
+pogootRefactoredRefactored/src/key.key
+pogootRefactoredRefactored/src/aws_secret_fetch_example.rs
