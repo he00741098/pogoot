@@ -1,6 +1,7 @@
 //Starts the command center instead of a normal server
-
-use std::{net::SocketAddr, sync::Arc, path::PathBuf};
+use std::net::{IpAddr, Ipv6Addr};
+use std::{sync::Arc, path::PathBuf};
+use std::net::{SocketAddr};
 use axum_server::tls_rustls::RustlsConfig;
 use axum::{extract::State, response::IntoResponse, routing::post, Json, Router};
 use axum_client_ip::{SecureClientIp, SecureClientIpSource};
@@ -45,7 +46,7 @@ impl commandCenter{
         //Init the login/user management service
         //start listening for requests
         let app = Self::start_router(dbstate.clone()).await;
-        let addr = SocketAddr::from(([0, 0, 0, 0], ports.https));
+        let addr = SocketAddr::from((IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 0, 0, 0, 1)), ports.https));
         axum_server::bind_rustls(addr, config)
             .serve(app.into_make_service_with_connect_info::<SocketAddr>())
             .await

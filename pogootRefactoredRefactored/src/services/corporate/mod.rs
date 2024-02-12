@@ -1,6 +1,6 @@
 use axum::{extract::{ws::WebSocket, Host}, Json, ServiceExt, http::Uri, BoxError, response::Redirect, handler::HandlerWithoutStateExt};
 use axum_server::tls_rustls::RustlsConfig;
-use std::{net::SocketAddr, path::PathBuf};
+use std::{net::{SocketAddr, IpAddr, Ipv6Addr}, path::PathBuf};
 use axum::{
     extract::{State, WebSocketUpgrade},
     response::{IntoResponse, Response},
@@ -120,7 +120,7 @@ impl Coordinator {
         //Init the login/user management service
         //start listening for requests
         let app = Self::start_router(dbstate.clone()).await;
-        let addr = SocketAddr::from(([0, 0, 0, 0], ports.https));
+        let addr = SocketAddr::from((IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 0, 0, 0, 1)), ports.https));
         axum_server::bind_rustls(addr, config)
             .serve(app.into_make_service_with_connect_info::<SocketAddr>())
             .await
@@ -131,7 +131,7 @@ impl Coordinator {
     Router::new()
         .route("/login", post(Self::login_handler))
         .layer(SecureClientIpSource::ConnectInfo.into_extension()) 
-        .route("/hello", get(|| async {"hello!"}))
+        .route("/hello", get(|| async {println!("Pinged!");"hello!"}))
         .route("/ws", get(Self::player_handler))
         .route("/cws", get(Self::commander_handler))
         .route("/ntcdup", post(Self::upload_note_card))
@@ -323,7 +323,7 @@ pub async fn redirect_http_to_https(ports: Ports) {
         }
     };
 
-    let addr = SocketAddr::from(([0, 0, 0, 0], ports.http));
+    let addr = SocketAddr::from((IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 0, 0, 0, 1)), ports.http));
     let listener = tokio::net::TcpListener::bind(addr).await.unwrap();
     tracing::debug!("listening on {}", listener.local_addr().unwrap());
     axum::serve(listener, redirect.into_make_service())

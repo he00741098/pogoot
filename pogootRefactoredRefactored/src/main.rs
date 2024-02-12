@@ -9,12 +9,12 @@ mod services;
 async fn main() {
     //change cloudflare stuff ----
     //
-    let ip = if let Some(ip) = public_ip::addr().await {
-        println!("public ip address: {:?}", ip);
+    let ip = if let Some(ip) = public_ip::addr_v6().await {
+        println!("ipv6 address: {:?}", ip);
         ip.to_string()
     } else {
-        println!("couldn't get an IP address");
-        panic!("Cant get ip");
+        println!("Couldn't get an IP address");
+        panic!("Can't get ip");
     };
 
     //run script to setup certbot
@@ -60,8 +60,8 @@ async fn main() {
 
     let mut map = HashMap::new();
     map.insert("content", ip.clone());
-    map.insert("name", format!("{}.sweep.rs", ip.replace('.',"").to_string()));
-    map.insert("type", "A".to_string());
+    map.insert("name", format!("{}.sweep.rs", ip.replace(':',"").replace('.',"").to_string()));
+    map.insert("type", "AAAA".to_string());
     map.insert("comment", "auto_dns_update".to_string());
     map.insert("ttl", "1".to_string());
 
