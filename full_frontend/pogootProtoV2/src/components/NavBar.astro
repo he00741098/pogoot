@@ -2,12 +2,12 @@
 import AccountButton from "./AccountButton.astro";
 import SearchBar from "./SearchBar.astro";
 ---
-<div class="navbar">
+<div class="navbar" transition:persist>
   <div class="navBox"><a class="navElement" href="/">LOGO</a></div>
   <div class="navBox"><a class="navElement" href="/">Home</a></div>
   <div class="navBox"><a class="navElement" href="/library">Library</a></div>
   <div class="navBox"><a class="navElement" href="/tools">Tools</a></div>
-  <div class="navBox"><SearchBar/></div>
+  <div class="navBox" id="searchbar"><SearchBar/></div>
   <div class="navBox"><a class="navElement" href="/create">Create</a></div>
   <div class="navBox"><a class="navElement">Notifications</a></div>
   <div class="navBox"><a class="navElement" href="/pricing">Features</a></div>
@@ -15,7 +15,12 @@ import SearchBar from "./SearchBar.astro";
 </div>
 
 <style>
+  
+  /* #searchbar{ */
+  /*   position:relative; */
+  /*   top:0px; */
 
+  /* } */
   .navbar{
     position:absolute;
     top:0px;
@@ -27,7 +32,7 @@ import SearchBar from "./SearchBar.astro";
     display: grid;
     grid-template-columns: 5% 5% 5% 5% 40% 5% 10% 5% 19%;
     grid-template-rows: 100%;
-    height:45px;
+    height:55px;
     text-align: center;
     align-items: center;
     background-color:var(--blue);
@@ -44,6 +49,7 @@ import SearchBar from "./SearchBar.astro";
     justify-content:center;
     text-align:center;
     grid-template-columns:100%;
+    /* float:baseline; */
     /* font-size:40px; */
   }
 
