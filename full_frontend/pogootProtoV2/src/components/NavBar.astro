@@ -1,16 +1,16 @@
 ---
 import AccountButton from "./AccountButton.astro";
-
+import SearchBar from "./SearchBar.astro";
 ---
 <div class="navbar">
-  <a class="navElement">LOGO</a>
-  <a class="navElement">Home</a>
-  <a class="navElement">Library</a>
-  <a class="navElement">Tools</a>
-  <div class="searchBar navElement">Search</div>
-  <a class="navElement">Create</a>
-  <a class="navElement">Notifications</a>
-  <a class="navElement">Purchase</a>
+  <div class="navBox"><a class="navElement" href="/">LOGO</a></div>
+  <div class="navBox"><a class="navElement" href="/">Home</a></div>
+  <div class="navBox"><a class="navElement" href="/library">Library</a></div>
+  <div class="navBox"><a class="navElement" href="/tools">Tools</a></div>
+  <div class="navBox"><SearchBar/></div>
+  <div class="navBox"><a class="navElement" href="/create">Create</a></div>
+  <div class="navBox"><a class="navElement">Notifications</a></div>
+  <div class="navBox"><a class="navElement" href="/pricing">Features</a></div>
   <AccountButton/>
 </div>
 
@@ -23,15 +23,28 @@ import AccountButton from "./AccountButton.astro";
     width:100%;
     max-width: 100%;
     overflow-x: hidden;
-    outline: 2px solid red;
+    /* outline: 2px solid red; */
     display: grid;
     grid-template-columns: 5% 5% 5% 5% 40% 5% 10% 5% 19%;
-    height:50px;
+    grid-template-rows: 100%;
+    height:45px;
     text-align: center;
     align-items: center;
-    background-color:white;
+    background-color:var(--blue);
+    border-bottom: 1px solid;
+
   }
   .navElement{
-    outline: 2px solid red;
   }
+  .navBox{
+    /* outline: 2px solid red; */
+    height:100%;
+    display:grid;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+    grid-template-columns:100%;
+    /* font-size:40px; */
+  }
+
 </style>

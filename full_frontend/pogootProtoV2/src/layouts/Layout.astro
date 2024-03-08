@@ -10,7 +10,7 @@ const { title } = Astro.props;
 <html lang="en">
 	<head>
 		<meta charset="UTF-8" />
-		<meta name="description" content="Astro description" />
+		<meta name="description" content="The Greatest Notecard Website Ever Created" />
 		<meta name="viewport" content="width=device-width" />
 		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 		<meta name="generator" content={Astro.generator} />
@@ -22,9 +22,17 @@ const { title } = Astro.props;
 </html>
 <style is:global>
 	:root {
+    --green:#00FF5F;
+    --blue:#0A0163;
+    --orange:#FF5F00;
+    --purple:#3C0163;
+    --pink:#630159;
+
 	}
 	html {
     /* width:100%; */
+    /* outline: 2px solid red; */
+    margin:0;
 	}
 	code {
 		font-family:
@@ -37,4 +45,20 @@ const { title } = Astro.props;
 			Courier New,
 			monospace;
 	}
+@font-face {
+  font-family: 'LeagueGothic';
+  src: url('/fonts/LeagueGothic-1.601/static/WOFF/LeagueGothic-Regular.woff') format('WOFF');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'LeagueSpartan';
+  src: url('fonts/LeagueSpartan-2.220/variable/WOFF2/LeagueSpartan-VF.woff2') format('woff2-variations');
+  font-weight: 200 900;
+}
+  a{
+    color:white;
+    text-decoration:none;
+  }
 </style>
