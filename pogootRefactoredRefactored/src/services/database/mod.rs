@@ -11,6 +11,7 @@ use libsql_client::{Config, Client, Value, Statement, args, ResultSet};
 use uuid::Uuid;
 use std::result::Result as stdResult;
 use crate::services::user_manage::User;
+use crate::AwsSecrets;
 //the database abstraction
 ///Database is purely intended to be an abstraction for the actual database
 #[derive(Debug)]
@@ -347,24 +348,10 @@ impl Database{
     ///Tries to get secrets
     ///Note that DBSecrets.toml MUST exist or it will panic
     ///This is only intended to be called once at startup
-    pub fn try_to_get_secrets()->DBSecrets{
-        let mut contents = String::new();
-        let mut file = File::open("DBSecrets.toml");
-        if file.is_err(){
-            // return DBSecrets{
-            //     turso_url:std::env!("turso").to_string(),
-            //     auth_token:std::env!("auth").to_string(),
-
-            // }
-            panic!("File read failed");
-            // let std::env!()
-        }
-        let mut file = file.unwrap();
-        if file.read_to_string(&mut contents).is_ok(){
-            let db_secrets:DBSecrets = toml::from_str(&contents).unwrap(); 
-            db_secrets
-        }else{
-            panic!("No Secrets!");
+    pub fn try_to_get_secrets(secrets:AwsSecrets)->DBSecrets{
+        DBSecrets{
+            turso_url: secrets.turso_url,
+            auth_token: secrets.auth_token,
         }
     }
     pub async fn new(credentials:DBSecrets)->Option<Self>{

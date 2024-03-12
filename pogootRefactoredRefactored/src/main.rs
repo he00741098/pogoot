@@ -5,10 +5,35 @@ use serde::{Deserialize, Serialize};
 
 mod services;
 
+#[derive(Deserialize, Serialize)]
+struct AwsSecrets{
+    turso_url:String,
+    auth_token:String,
+    zone_id:String,
+    auth_key:String,
+    auth_email:String,
+    cloudflare_cert:String,
+    cloudflare_key:String
+}
+
 #[tokio::main]
 async fn main() {
     //change cloudflare stuff ----
     //
+    let aws_secrets = fetch_aws_secrets().await;
+    if aws_secrets.is_err(){
+        println!("Secrets read failed...");
+        //TODO: Make fallback
+    }
+    let aws_secrets = aws_secrets.unwrap();
+    if aws_secrets.is_none(){
+        println!("No Secrets!");
+    }
+    let aws_secrets = aws_secrets.unwrap();
+
+    println!("Secrets:\n {:?}", aws_secrets);
+    let mut aws_secrets = serde_json::from_str::<AwsSecrets>(&aws_secrets).unwrap();
+
     let ip = if let Some(ip) = public_ip::addr_v6().await {
         println!("ipv6 address: {:?}", ip);
         ip.to_string()
@@ -17,50 +42,17 @@ async fn main() {
         panic!("Can't get ip");
     };
 
-    //run script to setup certbot
+// pub struct CFSecrets{
+//     zone_id:String,
+//     auth_key:String,
+//     auth_email:String
+// }
 
-    // Command::new("sudo certbot certonly")
-    //     .arg("--non-interactive")
-    //     .arg("--agree-tos")
-    //     .arg("--no-eff-email")
-    //     .arg("--no-redirect")
-    //     .arg("--email 'admin@sweep.rs'")
-    //     .arg("--certname pogootCert")
-    //     .arg("--domains '*.sweep.rs'")
-    //     .spawn()
-    //     .expect("Certbot failed to start");
-
-    // Command::new("sudo certbot install")
-    //     .arg("--nginx")
-    //     .arg("--no-redirect")
-    //     .arg("--certname pogootCert")
-    //     .arg(format!("--domains '{}.sweep.rs'", ip.clone().replace(".", "")))
-    //     .spawn()
-    //     .expect("Certbot failed to start");
-
-
-    let mut contents = String::new();
-    let mut file = File::open("CloudflareSecrets.toml");
-    if file.is_err(){
-        // return DBSecrets{
-        //     turso_url:std::env!("turso").to_string(),
-        //     auth_token:std::env!("auth").to_string(),
-
-        // }
-        panic!("File read failed");
-        // let std::env!()
-    }
-    let mut file = file.unwrap();
-    let cf_secrets = if file.read_to_string(&mut contents).is_ok(){
-        let cf_secrets:CFSecrets = toml::from_str(&contents).unwrap(); 
-        cf_secrets
-    }else{
-        panic!("No Secrets!");
-    };
-
+    let cf_secrets = CFSecrets { zone_id:std::mem::take(&mut aws_secrets.zone_id), auth_key:std::mem::take(&mut aws_secrets.auth_key), auth_email:std::mem::take(&mut aws_secrets.auth_email) };
     let mut map = HashMap::new();
     map.insert("content", ip.clone());
     map.insert("name", format!("{}.sweep.rs", ip.replace(':',"").replace('.',"").to_string()));
+    map.insert("proxied", "true".to_string());
     map.insert("type", "AAAA".to_string());
     map.insert("comment", "auto_dns_update".to_string());
     map.insert("ttl", "1".to_string());
@@ -76,12 +68,13 @@ async fn main() {
     if res.is_err(){
         println!("Res Is Err: {:?}", res);
         panic!("Ip not set up");
-    }else{
-        println!("Res Is Ok: {:?}", res.unwrap().json::<CfResponse>().await);
     }
+    let res = res.unwrap();
+    println!("Res Is Ok: {:?}", res);
+
     
     // if res.is
-    services::corporate::Coordinator::start_all_services().await;
+    services::corporate::Coordinator::start_all_services(aws_secrets).await;
 }
 
 

@@ -1,4 +1,5 @@
 use axum::{extract::{ws::WebSocket, Host}, Json, ServiceExt, http::Uri, BoxError, response::Redirect, handler::HandlerWithoutStateExt};
+use base64::prelude::*;
 use axum_server::tls_rustls::RustlsConfig;
 use std::{net::{SocketAddr, IpAddr, Ipv6Addr}, path::PathBuf};
 use axum::{
@@ -14,7 +15,7 @@ use std::sync::Arc;
 use tokio::sync::mpsc::Sender;
 use tokio::sync::oneshot;
 use tower_http::cors::CorsLayer;
-use crate::services::notecard::storage_controller::NotecardStorageManager;
+use crate::{services::notecard::storage_controller::NotecardStorageManager, AwsSecrets};
 use self::datatypes::{NoteCardUploadRequest, NoteCardGetRequest, NoteCardGetRequestPart2};
 use super::notecard::NoteCardVariants;
 use super::{
@@ -81,7 +82,7 @@ pub struct Ports{
     pub https: u16
 }
 impl Coordinator {
-    pub async fn start_all_services() {
+    pub async fn start_all_services(mut secrets:AwsSecrets) {
         //deal with rustls
         //TODO - match rustls settings with supersystem
  
@@ -91,9 +92,9 @@ impl Coordinator {
         };       
         //redirect to https
         tokio::spawn(redirect_http_to_https(ports));
-        let config = RustlsConfig::from_pem_file(
-            PathBuf::from("cert.cer"),
-            PathBuf::from("key.key"),
+        let config = RustlsConfig::from_pem(
+            BASE64_STANDARD.decode(std::mem::take(&mut secrets.cloudflare_cert)).unwrap(),
+            BASE64_STANDARD.decode(std::mem::take(&mut secrets.cloudflare_key)).unwrap(),
         )
             .await
             .unwrap();
@@ -105,7 +106,7 @@ impl Coordinator {
         //initialization sequence
         //
         //Init the database
-        let database = Arc::new(Database::new(Database::try_to_get_secrets()).await.unwrap());
+        let database = Arc::new(Database::new(Database::try_to_get_secrets(secrets)).await.unwrap());
         let login_system =
             super::user_manage::short_term_user_management::LoginSystem::new(database.clone());
         let login_system_access_point = login_system.thread_start().await;

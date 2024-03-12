@@ -1,0 +1,2 @@
+aws configure set default.s3.use_dualstack_endpoint true
+aws configure set default.s3.addressing_style virtual
