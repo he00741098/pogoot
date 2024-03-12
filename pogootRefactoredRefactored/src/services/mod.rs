@@ -3,7 +3,6 @@ mod notecard;
 mod pogoot;
 mod user_manage;
 pub mod corporate;
-pub mod supersystem;
 
 use axum::response::IntoResponse;
 use serde::Serialize;
