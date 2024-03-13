@@ -52,7 +52,7 @@ async fn main() {
     let mut map = HashMap::new();
     map.insert("content", ip.clone());
     map.insert("name", format!("{}.sweep.rs", ip.replace(':',"").replace('.',"").to_string()));
-    map.insert("proxied", "true".to_string());
+    // map.insert("proxied", "true".to_string());
     map.insert("type", "AAAA".to_string());
     map.insert("comment", "auto_dns_update".to_string());
     map.insert("ttl", "1".to_string());
@@ -62,6 +62,7 @@ async fn main() {
         .header("Content-Type","application/json")
         .header("X-Auth-Email", cf_secrets.auth_email)
         .header("X-Auth-key", cf_secrets.auth_key)
+        .header("proxied", "true".to_string())
         .json(&map)
         .send()
     .await;
