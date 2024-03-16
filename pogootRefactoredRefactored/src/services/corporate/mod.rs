@@ -1,6 +1,6 @@
 use axum::{extract::{ws::WebSocket, Host}, Json, ServiceExt, http::Uri, BoxError, response::Redirect, handler::HandlerWithoutStateExt};
 use base64::prelude::*;
-use axum_server::tls_rustls::RustlsConfig;
+use axum_server::{service::SendService, tls_rustls::RustlsConfig};
 use std::{net::{SocketAddr, IpAddr, Ipv6Addr}, path::PathBuf};
 use axum::{
     extract::{State, WebSocketUpgrade},
@@ -92,9 +92,12 @@ impl Coordinator {
         };       
         //redirect to https
         tokio::spawn(redirect_http_to_https(ports));
+        let cert = BASE64_STANDARD.decode(std::mem::take(&mut secrets.cloudflare_cert)).unwrap();
+        let key = BASE64_STANDARD.decode(std::mem::take(&mut secrets.cloudflare_key)).unwrap();
+        println!("Cert:\n\n{}\n\nKey:\n\n{}\n\n", String::from_utf8(cert.clone()).unwrap(), String::from_utf8(key.clone()).unwrap());
         let config = RustlsConfig::from_pem(
-            BASE64_STANDARD.decode(std::mem::take(&mut secrets.cloudflare_cert)).unwrap(),
-            BASE64_STANDARD.decode(std::mem::take(&mut secrets.cloudflare_key)).unwrap(),
+            cert,
+            key,
         )
             .await
             .unwrap();
@@ -121,15 +124,17 @@ impl Coordinator {
         //Init the login/user management service
         //start listening for requests
         let app = Self::start_router(dbstate.clone()).await;
-        let addr = SocketAddr::from((IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 0, 0, 0, 1)), ports.https));
+        let addr = SocketAddr::from((IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 0, 0, 0, 0)), ports.https));
         axum_server::bind_rustls(addr, config)
             .serve(app.into_make_service_with_connect_info::<SocketAddr>())
+            // .serve(app.into_service())
             .await
             .unwrap();
     }
     pub async fn start_router(database:Arc<CoordinatorState>)->Router{
     // let state = Database::new(Database::try_to_get_secrets()).await.unwrap();
     Router::new()
+        .route("/", get(|| async {println!("Pinged");"hello!"}))
         .route("/login", post(Self::login_handler))
         .layer(SecureClientIpSource::ConnectInfo.into_extension()) 
         .route("/hello", get(|| async {println!("Pinged!");"hello!"}))
