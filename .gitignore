@@ -8,3 +8,8 @@ pogootRefactoredRefactored/src/cert.cer
 pogootRefactoredRefactored/src/fullchain.cer
 pogootRefactoredRefactored/src/key.key
 pogootRefactoredRefactored/src/aws_secret_fetch_example.rs
+pogootRefactoredRefactored/src/cloud_flare_key.key
+pogootRefactoredRefactored/src/cfkey
+pogootWebServerTest
+pogootRefactoredRefactored/src/cloud_flare_pem.pem
+pogootRefactoredRefactored/src/cfpem

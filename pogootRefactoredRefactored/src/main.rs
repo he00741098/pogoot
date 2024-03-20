@@ -1,10 +1,6 @@
-use std::{fs::File, io::Read, collections::HashMap};
-use std::process::Command;
-
 use serde::{Deserialize, Serialize};
-
+use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 mod services;
-
 #[derive(Deserialize, Serialize)]
 struct AwsSecrets{
     turso_url:String,
@@ -18,8 +14,18 @@ struct AwsSecrets{
 
 #[tokio::main]
 async fn main() {
-    //change cloudflare stuff ----
-    //
+
+    tracing_subscriber::registry()
+        .with(
+            tracing_subscriber::EnvFilter::try_from_default_env()
+                .unwrap_or_else(|_| "pogoot=debug".into()),
+        )
+        .with(tracing_subscriber::fmt::layer())
+        .init();
+
+
+
+
     let aws_secrets = fetch_aws_secrets().await;
     if aws_secrets.is_err(){
         println!("Secrets read failed...");
@@ -32,82 +38,15 @@ async fn main() {
     let aws_secrets = aws_secrets.unwrap();
 
     println!("Secrets:\n {:?}", aws_secrets);
-    let mut aws_secrets = serde_json::from_str::<AwsSecrets>(&aws_secrets).unwrap();
+    let aws_secrets = serde_json::from_str::<AwsSecrets>(&aws_secrets).unwrap();
 
-    let ip = if let Some(ip) = public_ip::addr_v6().await {
-        println!("ipv6 address: {:?}", ip);
-        ip.to_string()
-    } else {
-        println!("Couldn't get an IP address");
-        panic!("Can't get ip");
-    };
-
-// pub struct CFSecrets{
-//     zone_id:String,
-//     auth_key:String,
-//     auth_email:String
-// }
-
-    let cf_secrets = CFSecrets { zone_id:std::mem::take(&mut aws_secrets.zone_id), auth_key:std::mem::take(&mut aws_secrets.auth_key), auth_email:std::mem::take(&mut aws_secrets.auth_email) };
-    let mut map = HashMap::new();
-    map.insert("content", ip.clone());
-    map.insert("name", format!("{}.sweep.rs", ip.replace(':',"").replace('.',"").to_string()));
-    map.insert("proxied", "true".to_string());
-    map.insert("type", "AAAA".to_string());
-    map.insert("comment", "auto_dns_update".to_string());
-    map.insert("ttl", "1".to_string());
-
-    let client = reqwest::Client::new();
-    let res = client.post(format!("https://api.cloudflare.com/client/v4/zones/{}/dns_records", cf_secrets.zone_id))
-        .header("Content-Type","application/json")
-        .header("X-Auth-Email", cf_secrets.auth_email)
-        .header("X-Auth-key", cf_secrets.auth_key)
-        .json(&map)
-        .send()
-    .await;
-    if res.is_err(){
-        println!("Res Is Err: {:?}", res);
-        panic!("Ip not set up");
-    }
-    let res = res.unwrap();
-    println!("Res Is Ok: {:?}", res);
-
-    
-    // if res.is
-    services::corporate::Coordinator::start_all_services(aws_secrets).await;
+    server::start_serving(aws_secrets).await;
 }
 
 
-#[derive(Serialize, Deserialize, Clone)]
-pub struct CFSecrets{
-    zone_id:String,
-    auth_key:String,
-    auth_email:String
-}
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
-pub enum CfResponse{
-    result {
-        content:String,
-        name:String,
-        proxied:bool,
-        r#type:String,
-        comment:String,
-        created_on:String,
-        id:String,
-        locked:bool,
-        meta:meta,
-    modified_on:String,
-    proxiable:bool,
-    tags:Vec<String>,
-    ttl:i32,
-    zone_id:String,
-    zone_name:String,
-    }
-}
-
-#[derive(Serialize, Deserialize, Clone, Debug)]
-pub struct meta{
+pub struct Meta{
         auto_added:bool,
         source:String,
 }
@@ -116,6 +55,8 @@ pub struct meta{
 
 use aws_config::{self, BehaviorVersion, Region};
 use aws_sdk_secretsmanager;
+use services::server;
+
 
 async fn fetch_aws_secrets() -> Result<Option<String>, aws_sdk_secretsmanager::Error> {
     let secret_name = "pogootSecrets";
