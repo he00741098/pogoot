@@ -3,14 +3,31 @@ use text_io::read;
 use rand::seq::SliceRandom;
 use serde::{Deserialize, Serialize};
 fn main() {
-    let result = std::fs::read_to_string("quizlet.txt").unwrap();
+    let multi_file_spanish = std::fs::read_to_string("words");
+    let multi_file_english = std::fs::read_to_string("wordsEnglish");
+    let multi_file_alt_spanish = std::fs::read_to_string("wordsAltSpanish");
+    // let result = std::fs::read_to_string("quizlet.txt").unwrap();
     let pogin = std::fs::read_to_string("quizProgress");
     let thing;
     let mut questions = if let Ok(thingy) = pogin{
         thing = thingy;
         serde_json::from_str(&thing).unwrap()
+    }else if multi_file_alt_spanish.is_ok()&&multi_file_english.is_ok()&&multi_file_spanish.is_ok(){
+        let spanish_alt_string = multi_file_alt_spanish.unwrap();
+        let english_string = multi_file_english.unwrap();
+        let spanish_string = multi_file_spanish.unwrap();
+        let spanish_alt = spanish_alt_string.split("\n").collect::<Vec<&str>>();
+        let english = english_string.split("\n").collect::<Vec<&str>>();
+        let spanish = spanish_string.split("\n").collect::<Vec<&str>>();
+        let spanish_alt = spanish_alt.into_iter().map(|x|if x=="Filler"{"".to_string()}else{format!("    {}",x)}).collect::<Vec<String>>();
+
+        let mut questions = vec![];
+        for i in 0..spanish.len(){
+            questions.push(question{turns_until_repeat:0,corrects:0,wrongs:0,front:spanish[i].to_string(),back:format!("{}\n\n{}",english[i].to_string(), spanish_alt[i].to_string())});
+        }
+        questions
     }else{
-    
+    let result = std::fs::read_to_string("quizlet.txt").unwrap();
     let questions = result.split("####");
     let questions = questions.map(|x|x.split("##")).map(|x|x.collect::<Vec<&str>>()).map(|x|{
         if x.len()==2{
@@ -24,6 +41,7 @@ fn main() {
 
     // let mut next_index =0;
     loop {
+        println!("\n\n\n\n\n\n\n");
         let mut served = false;
         for i in 0..questions.len(){
             if questions[i].turns_until_repeat==0{
@@ -107,7 +125,7 @@ fn serve_question_multiple_choice(index:usize, mut questions:&mut Vec<question>)
     for i in 1..=other_options.len(){
         println!("\n{}. {}", i, other_options[i-1]);
     }
-    println!("Input a number: ");
+    println!("\n    Input a number: ");
     let input:usize = read!();
     let input = input-1;
     if input<other_options.len()&&other_options[input]==&question.back{
