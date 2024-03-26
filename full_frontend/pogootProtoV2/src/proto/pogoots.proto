@@ -1,0 +1,141 @@
+syntax = "proto3";
+package pogootRefactoredRefactored;
+
+
+//Note card stuff
+service NotecardService{
+  rpc Upload(NotecardListUploadRequest) returns (NotecardUploadResponse);
+  rpc Fetch(NotecardFetchRequest) returns (NotecardList);
+  rpc Modify(NotecardModifyRequest) returns (NotecardUploadResponse);
+}
+
+message NotecardModifyRequest{
+  repeated Notecard notecards = 1;
+  repeated int32 modified = 2;
+  string auth_token = 3;
+}
+
+message NotecardFetchRequest{
+  string id = 1;
+  string auth_token = 3;
+}
+
+message NotecardListUploadRequest{
+  NotecardList notecards = 1;
+  string auth_token = 3;
+}
+
+message NotecardList{
+  repeated Notecard notecards = 1;
+}
+
+message Notecard{
+  repeated string front = 1;
+  repeated string back = 2;
+}
+
+message NotecardUploadResponse{
+  bool success = 1;
+  string id = 2;
+}
+
+
+//User stuff
+service LoginServer{
+  rpc Login(UserLoginRequest) returns (LoginResponse);
+  rpc Register(UserRegisterWithEmailRequest) returns (LoginResponse);
+  rpc Update(UserPasswordUpdateRequest) returns (LoginResponse);
+
+}
+message UserRegisterWithEmailRequest{
+  string email = 1;
+  string password = 2;
+}
+
+message UserLoginRequest{
+  string email = 1;
+  string password = 2;
+}
+
+message UserPasswordUpdateRequest{
+  string email = 1;
+  string password = 2;
+}
+
+message LoginResponse{
+  bool success = 1;
+  string mystery = 2;
+}
+
+service PogootPlayerServer{
+  //Starts conversation with the server
+  rpc Join(PogootRequest) returns (PogootJoinCode);
+  //Answering is essentially posting to the server
+  rpc Answer(stream PogootAnswerRequest) returns (stream PogootResultsResponse);
+  rpc EstablishQuestionStream(PogootJoinCode) returns (stream PogootQuestion);
+}
+
+//Join the game
+message PogootRequest{
+  //the specific id of the game
+  string gameid = 1;
+  //the tmp username assigned to the player(Non unique)
+  string username = 2;
+}
+
+message PogootJoinCode{
+  //After Joining, the server will return a tempuuid that will identify the user. This uuid will be sent to initialize the streams
+  string tempuuid = 1;
+}
+
+message PogootQuestionList{
+  repeated PogootQuestion questions = 1;
+}
+
+message PogootQuestion{
+  string question = 1;
+  repeated string choices = 2;
+}
+
+message PogootResultsResponse{
+  int32 rank = 1;
+  string position = 2;
+}
+
+message PogootAnswerRequest{
+  int32 answerIndex = 1;
+  //verification required once per stream connection
+  optional string tempuuid = 2;
+}
+
+service LeadServer{
+  rpc Create(PogootCreationRequest) returns (PogootCreationResponse);
+  rpc FinishRound(Progress) returns (RoundResultResponse);
+  rpc StartNextRound(Progress) returns (PogootQuestion);
+  rpc Manage(ManagerPlayerRequest) returns (Progress);
+  rpc PlayerJoins(Progress) returns (stream GameStartInfoResponse);
+}
+
+message PogootCreationRequest{
+  //an existing notecard's id
+  string id = 1;
+}
+message PogootCreationResponse{
+  string gameid = 1;
+}
+message Progress{
+  
+}
+message RoundResultResponse{
+  repeated int32 answerdistro = 1;
+  repeated string inthelead = 2;
+}
+message ManagerPlayerRequest{
+  string id = 1;
+  optional string rename = 2;
+  optional bool kick = 3;
+}
+message GameStartInfoResponse{
+  optional string newplayer = 1;
+  optional string gamePin = 2;
+}
