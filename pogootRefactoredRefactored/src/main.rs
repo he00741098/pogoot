@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 mod services;
-#[derive(Deserialize, Serialize, Default)]
+#[derive(Deserialize, Serialize, Default, Clone)]
 struct AwsSecrets {
     turso_url: String,
     auth_token: String,

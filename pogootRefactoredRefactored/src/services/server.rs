@@ -7,6 +7,7 @@ use self::{
     login_server_server::LoginServer, notecard_service_server::NotecardService,
     pogoot_player_server_server::PogootPlayerServer,
 };
+use pogoots::login_server_server::LoginServerServer;
 use pogoots::notecard_service_server::NotecardServiceServer;
 use pogoots::*;
 use std::pin::Pin;
@@ -22,14 +23,27 @@ pub async fn start_serving(secrets: AwsSecrets) {
     // let greeter = MyGreeter::default();
     // let greeter = GreeterServer::new(greeter);
     let (tx, rx) = tokio::sync::mpsc::channel(100);
+    let clone_secret = secrets.clone();
+    tokio::spawn(async move {
+        crate::services::notecard::upload_proccessor(rx, clone_secret).await;
+    });
     let notecardServer = NotecardServer { send_channel: tx };
     let notecardServer = NotecardServiceServer::new(notecardServer);
-    println!("Server listening on {}", addr);
 
+    let (ltx, lrx) = tokio::sync::mpsc::channel(100);
+    tokio::spawn(async move {
+        crate::services::user_manage::proccess_user_auth(lrx, secrets.clone()).await;
+    });
+    let loginServer = LoginService { send_channel: ltx };
+    let loginServer = LoginServerServer::new(loginServer);
+
+    println!("Server listening on {}", addr);
+    // let pog = aboasldjf;
     let result = Server::builder()
         // GrpcWeb is over http1 so we must enable it.
         .accept_http1(true)
         .add_service(tonic_web::enable(notecardServer))
+        .add_service(tonic_web::enable(loginServer))
         .serve(addr)
         .await;
     println!("Result: {:?}", result);
@@ -50,7 +64,7 @@ struct NotecardServer {
     pub send_channel: mpsc::Sender<NotecardDBRequest>,
 }
 
-enum LoginDBRequest {
+pub enum LoginDBRequest {
     Register(UserRegisterWithEmailRequest, Sender<LoginResponse>),
     Login(UserLoginRequest, Sender<LoginResponse>),
     Update(UserPasswordUpdateRequest, Sender<LoginResponse>),
