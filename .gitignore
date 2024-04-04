@@ -14,3 +14,5 @@ pogootWebServerTest
 pogootRefactoredRefactored/src/cloud_flare_pem.pem
 pogootRefactoredRefactored/src/cfpem
 compression_test/target
+frontend_beta/node_modules
+full_frontend/node_modules

@@ -1,63 +1,442 @@
-
 ---
-import Layout from '../layouts/Layout.astro';
-import Card from '../components/Card.astro';
-import NavBar from '../components/NavBar.astro';
+import Layout from "../layouts/Layout.astro";
+// import Card from '../components/Card.astro';
+import NavBar from "../components/NavBar.astro";
+// import { NotecardServiceClient } from "../proto/pogoots_grpc_web_pb";
+// import {NotecardU}
+// const client = new NotecardServiceClient("http://localhost:80", null, null);
 ---
 
 <Layout title="Home | Pogoot">
   <NavBar />
   <main class="LibraryMain">
+    <div class="createTitle">
+      <h1>Create A New Note Set</h1>
+      <div class="SaveButton" id="save">Save</div>
+    </div>
+    <div id="top">
+      <input class="notecardInput" id="titleInput" placeholder="Title" />
+      <div id="grid2">
+        <textarea
+          class="notecardInput"
+          id="description"
+          placeholder="Description"></textarea>
+        <input class="notecardInput" placeholder="Tags" id="tags" />
+        <input class="notecardInput" placeholder="School" id="school" />
+        <div class="editing">
+          <div class="button">Swap Terms</div>
+          <div class="button">+ Import</div>
+          <div class="button">Share</div>
+        </div>
+      </div>
+    </div>
+    <div id="cards">
+      <div id="create" class="notecardContainer">
+        <textarea
+          autocomplete="on"
+          autofocus="on"
+          id="createFrontInput"
+          class="notecardInput frontNotecardInput"
+          value=""
+          placeholder="Add new card"
+          rows="1"></textarea><textarea
+          rows="1"
+          id="createBackInput"
+          class="notecardInput backNotecardInput"
+          value=""></textarea>
+      </div>
+      <div id="created" class="notecardContainer"></div>
+      <div id="notecardHeaderLeft" class="notecardHeaderLeft">
+        <input class="orderNumber" value="1" disabled />
+      </div>
+      <div id="notecardHeaderRight" class="notecardHeaderRight">
+        <strong>X</strong>
+      </div>
+      <div id="end_cap">Add Card</div>
+    </div>
   </main>
+  <div id="Alerts">
+    <div class="AlertBox" id="exampleAlert">
+      <h1></h1>
+      <p></p>
+    </div>
+  </div>
 </Layout>
 
 <style>
-  body{
-    display:grid;
-    width:100%;
-    height:100%;
+  #Alerts {
+    position: fixed;
+    bottom: 10px;
+    right: 10px;
+  }
+  .AlertBox {
+    width: 200px;
+    height: 100px;
+    color: var(--blue);
+    display: grid;
+    grid-template-rows: 30% 60%;
+    row-gap: 10%;
+    padding: 0px;
+    text-align: center;
+    /* outline: red solid 1px; */
+  }
+  .createTitle {
+    display: grid;
+    grid-template-columns: 50% 50%;
+    justify-content: center;
+    align-content: center;
+  }
+  .SaveButton {
+    background-color: white;
+    color: var(--blue);
+    margin-bottom: 5px;
+    width: 50px;
+    height: 20px;
+    font-size: 25px;
+    padding-top: 6px;
+    padding-bottom: 6px;
+    padding-left: 4px;
+    padding-right: 4px;
+    text-align: center;
+    border-radius: 2px;
+    cursor: pointer;
+    justify-self: end;
+    align-self: center;
+    /* float: right; */
+  }
+  .button {
+    background-color: white;
+    border-radius: 10px 10px 10px 10px;
+    color: var(--blue);
+    padding-top: 7px;
+    padding-bottom: 7px;
+    padding-left: 2px;
+    /* width: 50%; */
+    text-align: center;
+    vertical-align: center;
+    justify-content: center;
+  }
+  .button:hover {
+    /* background-color: var(--green); */
+  }
+  .editing {
+    display: grid;
+    width: 100%;
+    column-gap: 1.25%;
+    grid-template-columns: repeat(10, calc(8.75%));
+    grid-column: 1/3;
+    margin-top: 20px;
+  }
+  #description {
+    grid-row: 1/3;
+    grid-column: 1;
+    font-size: 15px;
+    padding: 3px;
+  }
+  #school {
+    grid-column: 2;
+    padding-left: 10px;
+    width: calc(100% - 10px);
+  }
+  #tags {
+    padding-left: 10px;
+    width: calc(100% - 10px);
+  }
+  #grid2 {
+    display: grid;
+    column-gap: 15px;
+    row-gap: 2px;
+    grid-template-columns: calc(50% - 7.5px) calc(50% - 7.5px);
+  }
+  #top {
+    margin-bottom: 20px;
+    display: grid;
+    text-align: center;
+    /* grid-template-columns: ; */
+  }
+  #end_cap {
+    margin-top: 10px;
+    padding-top: 2px;
+    font-size: 25px;
+    text-align: center;
+    /* width: 100%; */
+    text-decoration: underline;
+    cursor: pointer;
+  }
+  #end_cap:hover {
+    /* color: var(--blue); */
+    /* background-color: white; */
+    font-size: 27px;
+  }
+  .notecardHeaderRight:hover {
+    cursor: pointer;
+    color: black;
+  }
+  .orderNumber {
+    width: 40px;
+    height: 20px;
+    font-size: 25px;
+    text-align: center;
+    border: none;
+    border-bottom: 2px solid grey;
+  }
+  .notecardHeaderLeft {
+    background-color: white;
+    width: 100%;
+    /* border-bottom: 1px solid grey; */
+    margin-bottom: 10px;
+  }
+  .notecardHeaderRight {
+    background-color: white;
+    color: red;
+    text-align: end;
+    justify-self: end;
+    /* width: 100%; */
+    font-size: 25px;
+  }
+
+  #titleInput {
+    width: 100%;
+    margin-bottom: 15px;
+    font-size: 28px;
+    text-align: center;
+    color: black;
+    background-color: white;
+    /* margin: 50px; */
+    /* position: relative; */
+
+    /* padding-left: 10px; */
+    /* margin-left: 10px; */
+  }
+  #cards {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 100%;
+    row-gap: 10px;
+  }
+  .notecardInput {
+    width: 100%;
+    min-height: 30px;
+    font-size: 25px;
+    border-color: black;
+    border-width: 0px;
+    border-bottom: 1px solid grey;
+    padding: 0px;
+    margin: 0px;
+    resize: none;
+    /* padding-left: 20px; */
+    /* text-indent: 15px; */
+    /* background-color: white; */
+    /* color: white; */
+    /* border-radius: 4px; */
+  }
+
+  .backNotecardInput {
+    /* float: right; */
+  }
+  .notecardContainer {
+    display: grid;
+    grid-template-columns: 45% 45%;
+    width: 100%;
+    column-gap: 2%;
+    /* padding: 10px; */
+    padding-top: 10px;
+    padding-bottom: 10px;
+    /* border-radius: 10px; */
+    background-color: white;
+    justify-items: center;
+    align-items: center;
+    justify-content: center;
+    /* box-shadow: 2px 2px 1px black; */
+    /* margin:5px; */
+  }
+
+  body {
+    display: grid;
+    width: 100%;
+    height: 100%;
     /* background-color: rgb(253, 249, 241); */
     margin: 0;
-    background-color:var(--blue);
-    color:white;
+    background-color: var(--blue);
+    color: white;
     font-family: LeagueSpartan;
-    font-size:20px;
+    font-size: 20px;
     /* outline: 2px solid red; */
     /* margin:-8px; */
   }
 
-  main{
-    display:grid;
-    position:absolute;
-    width:50%;
+  main {
+    display: grid;
+    position: absolute;
+    width: 50%;
     /* outline: 2px solid red; */
-    top:50px;
-    left:25%;
+    top: 100px;
+    left: 25%;
+    /* text-align: center; */
     /* padding-left:50px; */
     /* background-image: linear-gradient(to bottom right, #F5E3B8, #F5DD67); */
     /* outline: 2px solid red; */
   }
-  #sidebar{
+  #sidebar {
     /* outline: 2px solid red; */
   }
-  .notecardplaceholder{
-    width:500px;
-    height:300px;
-    border-radius:10px 10px 10px 10px;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    text-align:center;
+  .notecardplaceholder {
+    width: 500px;
+    height: 300px;
+    border-radius: 10px 10px 10px 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
   }
-  #notecard1{
-    background-color:var(--green);
+  #notecard1 {
+    background-color: var(--green);
   }
-  #notecard2{
-    margin-top:10px;
-    background-color:var(--pink);
+  #notecard2 {
+    margin-top: 10px;
+    background-color: var(--pink);
     /* position:absolute; */
     /* left:100px; */
-    float:right;
+    float: right;
   }
-  
 </style>
+
+<script src="../proto/result.js">
+  // console.log("request");
+  // uploader();
+</script>
+<script>
+  // let clone_count = 0;
+  // let cards = document.getElementById("cards");
+  // let example_created = document.getElementById("created");
+  // example_created.style.display = "none";
+  // notecardHeaderLeft.style.display = "none";
+  // notecardHeaderRight.style.display = "none";
+  // var creates = document.getElementById("create");
+  // var front_input = document.getElementById("createFrontInput");
+  // var back_input = document.getElementById("createBackInput");
+  // var end_cap = document.getElementById("end_cap");
+  // var skip_back_input = false;
+  // var skip_front_input = false;
+  // let rows = 1;
+  //
+  // let immediate_line_add = false;
+  // let last_value_length = 0;
+  // let entered_rows = 0;
+  // let last_line_count = 1;
+  // front_input.oninput = function (ev) {
+  //   let input1 = front_input.value.split("\n");
+  //   let rows = 0;
+  //   for (var index = input1.length - 1; index >= 0; index--) {
+  //     rows += 1;
+  //     let length_temp = input1[index].length;
+  //     while (length_temp > 34) {
+  //       rows += 1;
+  //       length_temp -= 34;
+  //     }
+  //   }
+  //
+  //   front_input.rows = rows;
+  // };
+  // back_input.oninput = function (ev) {
+  //   let input1 = back_input.value.split("\n");
+  //   let rows = 0;
+  //   for (var index = input1.length - 1; index >= 0; index--) {
+  //     rows += 1;
+  //     let length_temp = input1[index].length;
+  //     while (length_temp > 34) {
+  //       rows += 1;
+  //       length_temp -= 34;
+  //     }
+  //   }
+  //
+  //   back_input.rows = rows;
+  // };
+  // end_cap.onclick = function (ev) {
+  //   skip_front_input = true;
+  //   skip_back_input = true;
+  //   new_card(ev);
+  // };
+  // front_input.onblur = back_input.onblur = new_card;
+  //
+  // function new_card(ev) {
+  //   if (
+  //     (front_input.value == "" && !skip_front_input) ||
+  //     (back_input.value == "" && !skip_back_input)
+  //   ) {
+  //     return;
+  //   }
+  //   let cloned_created = example_created.cloneNode();
+  //   cloned_created.id = "created:" + clone_count;
+  //   let cloned_front_input = front_input.cloneNode();
+  //   let cloned_back_input = back_input.cloneNode();
+  //   let cloned_left_header = document
+  //     .getElementById("notecardHeaderLeft")
+  //     .cloneNode(true);
+  //   cloned_left_header.value = cloned_left_header.value + ":" + clone_count;
+  //   let cloned_right_header = document
+  //     .getElementById("notecardHeaderRight")
+  //     .cloneNode(true);
+  //
+  //   cloned_right_header.value = cloned_right_header.value + ":" + clone_count;
+  //   let current_clone = clone_count;
+  //   cloned_right_header.childNodes[1].onclick = function (ev) {
+  //     console.log(ev);
+  //     let node = document.getElementById("created:" + current_clone);
+  //     cards.removeChild(node);
+  //     reorder_all_entries();
+  //   };
+  //   cloned_left_header.childNodes[1].value = clone_count + 1;
+  //   cloned_left_header.style.display = cloned_right_header.style.display =
+  //     "grid";
+  //   front_input.value = "";
+  //   back_input.value = "";
+  //   cloned_front_input.id = "front:" + clone_count;
+  //   cloned_back_input.id = "back:" + clone_count;
+  //   clone_count++;
+  //   cloned_created.appendChild(cloned_left_header);
+  //   cloned_created.appendChild(cloned_right_header);
+  //   cloned_created.appendChild(cloned_front_input);
+  //   cloned_created.appendChild(cloned_back_input);
+  //   cloned_created.style.display = "grid";
+  //   cards.insertBefore(cloned_created, creates.nextSibling);
+  //   skip_back_input = false;
+  //   skip_front_input = false;
+  //   front_input.rows = 1;
+  //   back_input.rows = 1;
+  //   rows = 1;
+  //   front_input.focus();
+  //   console.log(cards.childNodes);
+  // }
+  //
+  // function reorder_all_entries() {
+  //   let nodes = document.getElementsByClassName("notecardContainer");
+  //   for (var node = nodes.length - 2; node > 0; node--) {
+  //     let node_entry = nodes[node];
+  //     node_entry.id = "temp_node:" + (node - 1);
+  //     node_entry.childNodes[2].id = "temp_front:" + (node - 1);
+  //     node_entry.childNodes[3].id = "temp_back:" + (node - 1);
+  //   }
+  //
+  //   for (var node = nodes.length - 2; node > 0; node--) {
+  //     let node_entry = nodes[node];
+  //     console.log(node);
+  //     node_entry.id = "created:" + (node - 1);
+  //     node_entry.childNodes[0].childNodes[1].value =
+  //       nodes.length - 2 - node + 1;
+  //     let current_clone = node - 1;
+  //     node_entry.childNodes[1].childNodes[1].onclick = function (ev) {
+  //       let noder = document.getElementById("created:" + current_clone);
+  //       cards.removeChild(noder);
+  //       reorder_all_entries();
+  //     };
+  //     node_entry.childNodes[2].id = "front:" + (node - 1);
+  //     node_entry.childNodes[3].id = "back:" + (node - 1);
+  //   }
+  //   if (nodes.length == 2) {
+  //     clone_count = 0;
+  //   } else {
+  //     clone_count = nodes.length - 2;
+  //   }
+  // }
+</script>

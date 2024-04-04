@@ -1,103 +1,141 @@
 ---
-import Layout from '../layouts/Layout.astro';
-import Card from '../components/Card.astro';
-import NavBar from '../components/NavBar.astro';
-import SearchBar from '../components/SearchBar.astro'
+import Layout from "../layouts/Layout.astro";
+import Card from "../components/Card.astro";
+import NavBar from "../components/NavBar.astro";
+import SearchBar from "../components/SearchBar.astro";
 ---
 
 <Layout title="Home | Pogoot">
   <NavBar />
-      <div class="accountSection">
-        <div class="profilePicture">I</div>
-        <div> <h2>Name</h2> <p>username</p></div>
+  <div class="accountSection">
+    <div class="profilePicture">I</div>
+    <div><h2>Name</h2> <p>username</p></div>
     <SearchBar id="accountSearchBar" />
-    </div>
+  </div>
   <main class="LibraryMain">
-      <!-- placeholder things -->
-
-      {[""].map((_) => <div class="placeholderLibraryEntry"><div class="header"><p class="titlePlaceholder"><strong>Title</strong></p><p class="authorPlaceholder"><strong>Author: </strong></p><p class="datePlaceholder">Created: </p></div></div>)}
-
+    <div class="placeholderLibraryEntry">
+      <div class="header">
+        <p class="titlePlaceholder"><strong>Title</strong></p><p
+          class="authorPlaceholder"
+        >
+          <strong>Author: </strong>
+        </p><p class="datePlaceholder">Created:</p>
+      </div>
+    </div>
   </main>
 </Layout>
 
 <style>
-.profilePicture{
-  background-color:white;
-  border-radius: 100% 100%;
-  height:75px;
-  width:75px;
-  justify-self:center;
-  align-self:center;
-  text-align:center;
-}
-  body{
-    display:grid;
-    grid-template-columns:100%;
-    width:100%;
-    height:100%;
+  .profilePicture {
+    background-color: white;
+    border-radius: 100% 100%;
+    height: 75px;
+    width: 75px;
+    justify-self: center;
+    align-self: center;
+    text-align: center;
+  }
+  body {
+    display: grid;
+    grid-template-columns: 100%;
+    width: 100%;
+    height: 100%;
     /* background-color: rgb(253, 249, 241); */
     margin: 0;
-    background-color:var(--blue);
-    color:white;
+    background-color: var(--blue);
+    color: white;
     font-family: LeagueSpartan;
-    font-size:20px;
+    font-size: 20px;
     /* outline: 2px solid red; */
     /* margin:-8px; */
   }
-  .accountSection{
-    top:55px;
+  .accountSection {
+    top: 55px;
     /* width:calc(100%-16.5%); */
-    position:relative;
-    width:50%;
+    position: relative;
+    width: 50%;
     /* height:100%; */
-    left:16.5%;
+    left: 16.5%;
     display: grid;
-  grid-template-columns: 100px 100px;
+    grid-template-columns: 100px 100px;
   }
 
-  .placeholderLibraryEntry{
+  .placeholderLibraryEntry {
     /* width:50%; */
     /* height:25%; */
-    background-color:white;
-    color:black;
-    width:100%;
+    background-color: white;
+    color: black;
+    width: 100%;
     /* padding-top:10px; */
     /* margin:5px; */
     border-radius: 5px 5px 5px 5px;
-    display:grid;
+    display: grid;
     /* grid-template-columns: 25% 12.5% 12.5%; */
-    text-align:left;
-    padding-left:15px;
+    text-align: left;
+    padding-left: 15px;
     /* justify-content:center; */
     /* align-content:center; */
-    
   }
-  .header{
+  .header {
     /* justify-content:space-between; */
-    gap:18px;
-    align-content:baseline;
-    display:flex;
-    position:relative;
-    top:0px;
+    gap: 18px;
+    align-content: baseline;
+    display: flex;
+    position: relative;
+    top: 0px;
     left: 0px;
-    height:60px;
+    height: 60px;
     /* padding-left:10px; */
   }
 
-  main{
-    margin-top:20px;
-    display:grid;
+  main {
+    margin-top: 20px;
+    display: grid;
     grid-template-rows: repeat(auto-fit, 60px);
-    position:relative;
-    width:50%;
-    height:100%;
+    position: relative;
+    width: 50%;
+    height: 100%;
     /* outline: 2px solid red; */
-    top:50px;
-    left:16.5%;
-    row-gap:10px;
+    top: 50px;
+    left: 16.5%;
+    row-gap: 10px;
     /* padding-left:50px; */
     /* background-image: linear-gradient(to bottom right, #F5E3B8, #F5DD67); */
     /* outline: 2px solid red; */
   }
-  
 </style>
+
+<script>
+  {
+    /* <div class="placeholderLibraryEntry"> */
+  }
+  {
+    /*   <div class="header"> */
+  }
+  {
+    /*     <p class="titlePlaceholder"><strong>Title</strong></p><p */
+  }
+  {
+    /*       class="authorPlaceholder" */
+  }
+  {
+    /*     > */
+  }
+  {
+    /*       <strong>Author: </strong> */
+  }
+  {
+    /*     </p><p class="datePlaceholder">Created:</p> */
+  }
+  {
+    /*   </div> */
+  }
+  {
+    /* </div> */
+  }
+
+  var placeholder = document.getElementsByClassName(
+    "placeholderLibraryEntry",
+  )[0];
+  placeholder.style.display = "none";
+</script>

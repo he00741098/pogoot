@@ -1,10 +1,11 @@
 mod database;
 mod notecard;
 mod pogoot;
-mod user_manage;
 mod search_engine;
 pub mod server;
+mod user_manage;
 
+mod CFStorage;
 use serde::Serialize;
 use serde_json::to_string;
 // pub fn to_response_shortcut<g>(item:g)->impl IntoResponse

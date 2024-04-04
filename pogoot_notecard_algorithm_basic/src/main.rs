@@ -19,7 +19,7 @@ fn main() {
         let spanish_alt = spanish_alt_string.split("\n").collect::<Vec<&str>>();
         let english = english_string.split("\n").collect::<Vec<&str>>();
         let spanish = spanish_string.split("\n").collect::<Vec<&str>>();
-        let spanish_alt = spanish_alt.into_iter().map(|x|if x=="Filler"{"".to_string()}else{format!("    {}",x)}).collect::<Vec<String>>();
+        let spanish_alt = spanish_alt.into_iter().map(|x|if x=="Filler"{"".to_string()}else{format!("    {}",x.to_lowercase())}).collect::<Vec<String>>();
 
         let mut questions = vec![];
         for i in 0..spanish.len(){
@@ -79,7 +79,7 @@ fn serve_question_short_answer(mut question:&mut question){
     let mut rng = thread_rng();
     println!("{} :", question.back);
     let answer:String = read!("{}\n");
-    if answer.trim()==question.front.trim(){
+    if answer.trim().to_lowercase()==question.front.trim().to_lowercase(){
         println!("Correct!");
         question.corrects+=1;
         if question.corrects>question.wrongs{

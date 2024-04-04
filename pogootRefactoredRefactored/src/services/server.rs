@@ -3,121 +3,193 @@ use crate::AwsSecrets;
 pub mod pogoots {
     include!("../pogoot_refactored_refactored.rs");
 }
+use self::{
+    login_server_server::LoginServer, notecard_service_server::NotecardService,
+    pogoot_player_server_server::PogootPlayerServer,
+};
+use pogoots::login_server_server::LoginServerServer;
+use pogoots::notecard_service_server::NotecardServiceServer;
 use pogoots::*;
 use std::pin::Pin;
-use tokio::sync::mpsc::{Sender, Receiver};
 use tokio::sync::mpsc;
-use tonic::{Request, Response, Status, Streaming};
-use self::{login_server_server::LoginServer, notecard_service_server::NotecardService, pogoot_player_server_server::PogootPlayerServer};
+use tokio::sync::mpsc::{Receiver, Sender};
 use tokio_stream::{wrappers::ReceiverStream, Stream};
+use tonic::{transport::Server, Request, Response, Status, Streaming};
 
 type Callback<C> = tokio::sync::oneshot::Sender<C>;
-pub async fn start_serving(secrets:AwsSecrets){
-    
-    
+pub async fn start_serving(secrets: AwsSecrets) {
+    let addr = "0.0.0.0:80".parse().unwrap();
 
+    // let greeter = MyGreeter::default();
+    // let greeter = GreeterServer::new(greeter);
+    let (tx, rx) = tokio::sync::mpsc::channel(100);
+    let clone_secret = secrets.clone();
+    tokio::spawn(async move {
+        crate::services::notecard::upload_proccessor(rx, clone_secret).await;
+    });
+    let notecardServer = NotecardServer { send_channel: tx };
+    let notecardServer = NotecardServiceServer::new(notecardServer);
+
+    let (ltx, lrx) = tokio::sync::mpsc::channel(100);
+    tokio::spawn(async move {
+        crate::services::user_manage::proccess_user_auth(lrx, secrets.clone()).await;
+    });
+    let loginServer = LoginService { send_channel: ltx };
+    let loginServer = LoginServerServer::new(loginServer);
+
+    println!("Server listening on {}", addr);
+    // let pog = aboasldjf;
+    let result = Server::builder()
+        // GrpcWeb is over http1 so we must enable it.
+        .accept_http1(true)
+        .add_service(tonic_web::enable(notecardServer))
+        .add_service(tonic_web::enable(loginServer))
+        .serve(addr)
+        .await;
+    println!("Result: {:?}", result);
 }
 
-pub enum NotecardDBRequest{
+//The proto implementations
+pub enum NotecardDBRequest {
     ///Stores a notecard
     Store(NotecardListUploadRequest, Callback<NotecardUploadResponse>),
     ///Takes an ID and a callback
-    Fetch(String, Callback<NotecardList>)
+    Fetch(String, Callback<NotecardList>),
+    ///Takes an ID and a callback
+    Modify(NotecardModifyRequest, Callback<NotecardUploadResponse>),
 }
 
 #[derive(Debug)]
-struct NotecardServer{
-    pub send_channel:mpsc::Sender<NotecardDBRequest>
+struct NotecardServer {
+    pub send_channel: mpsc::Sender<NotecardDBRequest>,
 }
 
-enum LoginDBRequest{
+pub enum LoginDBRequest {
     Register(UserRegisterWithEmailRequest, Sender<LoginResponse>),
     Login(UserLoginRequest, Sender<LoginResponse>),
-    Update(UserPasswordUpdateRequest, Sender<LoginResponse>)
-    
+    Update(UserPasswordUpdateRequest, Sender<LoginResponse>),
 }
 
 #[derive(Debug)]
-struct LoginService{
-    pub send_channel:mpsc::Sender<LoginDBRequest>
+struct LoginService {
+    pub send_channel: mpsc::Sender<LoginDBRequest>,
 }
 
 #[derive(Debug)]
 struct PogootClientService;
 
-
-
 #[tonic::async_trait]
-impl NotecardService for NotecardServer{
-    async fn upload(&self, request:tonic::Request<NotecardListUploadRequest>)->Result<tonic::Response<NotecardUploadResponse>, Status>{
+impl NotecardService for NotecardServer {
+    ///The request is forwarded through a channel.
+    ///A store request will be processed by the database system
+    ///The NotecardList will be serialized and compressed.
+    ///Then it will be assigned an id and it will be compressed. The id will be stored in turso
+    ///and the data will be stored eventually in cloudflare R2
+    ///The storing will be proccessed in batches. Each upload will be forwarded to at least 2 other
+    ///servers. The 2 other servers will store replicas. During the batch storage, one server,
+    ///likely the most powerful, will verify its contents and then store everything
+    ///The other servers will be notified and will flush their memory.
+    ///Input = Upload request, Result = Stored in cloudflare
+    async fn upload(
+        &self,
+        request: tonic::Request<NotecardListUploadRequest>,
+    ) -> Result<tonic::Response<NotecardUploadResponse>, Status> {
+        println!("Recieved upload request");
         let (tx, rx) = tokio::sync::oneshot::channel();
-        let send_result = self.send_channel.send(NotecardDBRequest::Store(request.into_inner(), tx)).await;
+        let send_result = self
+            .send_channel
+            .send(NotecardDBRequest::Store(request.into_inner(), tx))
+            .await;
         let result = rx.await;
-        if result.is_ok(){
-            return Ok(Response::new(result.unwrap()))
+        if result.is_ok() {
+            let result = result.unwrap();
+            //Print for testing
+            println!("Note Card upload processed: {:?}", result);
+            return Ok(Response::new(result));
         }
         //TODO:Better debug info
         Err(Status::new(tonic::Code::Internal, "Something went wrong"))
     }
-    async fn modify(&self, request:tonic::Request<NotecardModifyRequest>)->Result<tonic::Response<NotecardUploadResponse>, Status>{
-        unimplemented!()
-    }
-    async fn fetch(&self, request:tonic::Request<NotecardFetchRequest>)->Result<tonic::Response<NotecardList>, Status>{
-        unimplemented!()
-    }
+    async fn modify(
+        &self,
+        request: tonic::Request<NotecardModifyRequest>,
+    ) -> Result<tonic::Response<NotecardUploadResponse>, Status> {
+        let (tx, rx) = tokio::sync::oneshot::channel();
+        let send_result = self
+            .send_channel
+            .send(NotecardDBRequest::Modify(request.into_inner(), tx))
+            .await;
 
+        let result = rx.await;
+        if result.is_ok() {
+            let result = result.unwrap();
+            //Print for testing
+            println!("Note Card modify processed: {:?}", result);
+            return Ok(Response::new(result));
+        }
+        //TODO:Better debug info
+        Err(Status::new(tonic::Code::Internal, "Something went wrong"))
+    }
+    async fn fetch(
+        &self,
+        request: tonic::Request<NotecardFetchRequest>,
+    ) -> Result<tonic::Response<NotecardList>, Status> {
+        unimplemented!()
+    }
 }
 
-
 #[tonic::async_trait]
-impl LoginServer for LoginService{
-  // rpc Login(UserLogin) returns (LoginResponse);
-  // rpc Register(UserRegisterWithEmail) returns (LoginResponse);
-  //rpc Update(UserPasswordUpdate) returns (LoginResponse);
-    async fn login(&self, userlogin:Request<UserLoginRequest>)->Result<Response<LoginResponse>, Status>{
+impl LoginServer for LoginService {
+    // rpc Login(UserLogin) returns (LoginResponse);
+    // rpc Register(UserRegisterWithEmail) returns (LoginResponse);
+    //rpc Update(UserPasswordUpdate) returns (LoginResponse);
+    async fn login(
+        &self,
+        userlogin: Request<UserLoginRequest>,
+    ) -> Result<Response<LoginResponse>, Status> {
         unimplemented!()
     }
-    async fn register(&self, userRegisterWithEmail:Request<UserRegisterWithEmailRequest>)->Result<Response<LoginResponse>, Status>{
+    async fn register(
+        &self,
+        userRegisterWithEmail: Request<UserRegisterWithEmailRequest>,
+    ) -> Result<Response<LoginResponse>, Status> {
         unimplemented!()
     }
-    async fn update(&self, userNewInfo:Request<UserPasswordUpdateRequest>)->Result<Response<LoginResponse>, Status>{
+    async fn update(
+        &self,
+        userNewInfo: Request<UserPasswordUpdateRequest>,
+    ) -> Result<Response<LoginResponse>, Status> {
         unimplemented!()
     }
 }
 
-// type Stream<T> = Pin<Box<dyn tokio_stream::Stream<Item = std::result::Result<T, Status>> + Send + 'static>>;
-// type Streaming<T> = Request<tonic::Streaming<T>>;
+///The pogoot Client Service
+///Handle joins, answers, and stream questions
 #[tonic::async_trait]
-impl PogootPlayerServer for PogootClientService{
+impl PogootPlayerServer for PogootClientService {
     type AnswerStream = ReceiverStream<Result<PogootResultsResponse, Status>>;
-    type EstablishQuestionStreamStream = Pin<Box<dyn Stream<Item = Result<PogootQuestion, Status>> + Send  + 'static>>;
+    type EstablishQuestionStreamStream =
+        Pin<Box<dyn Stream<Item = Result<PogootQuestion, Status>> + Send + 'static>>;
 
-    async fn join(&self, request:Request<PogootRequest>)->Result<Response<PogootJoinCode>, Status>{
+    async fn join(
+        &self,
+        request: Request<PogootRequest>,
+    ) -> Result<Response<PogootJoinCode>, Status> {
         unimplemented!()
     }
-    async fn answer(&self, request:Request<Streaming<PogootAnswerRequest>>)->Result<Response<ReceiverStream<Result<PogootResultsResponse, Status>>>, Status>{
+    async fn answer(
+        &self,
+        request: Request<Streaming<PogootAnswerRequest>>,
+    ) -> Result<Response<ReceiverStream<Result<PogootResultsResponse, Status>>>, Status> {
         unimplemented!()
     }
-    async
-    fn establish_question_stream(&self, request:Request<PogootJoinCode>)
-    ->Result<Response<Pin<Box<dyn Stream<Item = Result<PogootQuestion, Status>> + Send  + 'static>>>, Status>{
-
+    async fn establish_question_stream(
+        &self,
+        request: Request<PogootJoinCode>,
+    ) -> Result<
+        Response<Pin<Box<dyn Stream<Item = Result<PogootQuestion, Status>> + Send + 'static>>>,
+        Status,
+    > {
         unimplemented!()
     }
 }
-
-
-// service PogootPlayerServer{
-//   //Starts conversation with the server
-//   rpc Join(PogootRequest) returns (PogootJoinCode);
-//   //Answering is essentially posting to the server
-//   rpc Answer(stream PogootAnswer) returns (stream PogootResults);
-//   rpc EstablishQuestionStream(PogootJoinCode) returns (stream PogootQuestion);
-// }
-// service LeadServer{
-//   rpc Create(PogootCreationRequest) returns (PogootCreationResponse);
-//   rpc FinishRound(Progress) returns (RoundResult);
-//   rpc StartNextRound(Progress) returns (PogootQuestion);
-//   rpc Manage(ManagePlayer) returns (Progress);
-//   rpc PlayerJoins(Progress) returns (stream GameStartInfo);
-// }
