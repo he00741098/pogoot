@@ -6,7 +6,8 @@
 
 use crate::services::server::NotecardDBRequest;
 use crate::AwsSecrets;
-use libsql_client::{args, Client, Config, ResultSet, Statement, Value};
+use libsql::Connection;
+//use libsql_client::{args, Client, Config, ResultSet, Statement, Value};
 use prost::Message;
 // use rusqlite::Statement;
 use uuid::Uuid;
@@ -33,21 +34,27 @@ impl NotecardStorageControllerService {
         Some(dbobj)
     }
 
-    async fn turso_init(secrets: &AwsSecrets) -> Result<Client, ()> {
+    async fn turso_init(secrets: &AwsSecrets) -> Result<Connection, ()> {
         let url = secrets.turso_url.as_str().try_into();
         if url.is_err() {
             return Err(());
         }
         let url = url.unwrap();
-        let config = Config {
-            url,
-            auth_token: Some(secrets.auth_token.clone()),
-        };
-        let client = if let Ok(c) = Client::from_config(config).await {
-            c
-        } else {
+        // let config = Config {
+        //     url,
+        //     auth_token: Some(secrets.auth_token.clone()),
+        // };
+        // let client = if let Ok(c) = Client::from_config(config).await {
+        //     c
+        // } else {
+        //     return Err(());
+        // };
+        let client = libsql::Builder::new_remote(url, secrets.auth_token).build.await;
+        if client.is_err() {
             return Err(());
-        };
+        }
+        let client = client.unwrap();
+        let client = db.connect().unwrap();
         //tracks the users username, password, most recently used ip, and stores more data as
         //rawJSON
         //TODO: Figure out the optimal database setup
@@ -76,6 +83,7 @@ impl NotecardStorageControllerService {
         );",
             )
             .await;
+
         if create_table_result.is_err() {
             return Err(());
         }

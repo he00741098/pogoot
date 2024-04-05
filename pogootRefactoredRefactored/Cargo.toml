@@ -25,7 +25,7 @@ tower-http = {version="0.5.2", features=["cors","trace"]}
 uuid = {version="1.7.0", features=["v4", "serde", "macro-diagnostics", "fast-rng"]}
 reqwest = { version = "0.11.24", features=["json"]}
 openssl = { version = "0.10.64"}#, features=["vendored"]
-libsql-client = "0.31.11"
+# libsql-client = "0.31.11"
 rusqlite = { version = "0.28.0", features = ["bundled"] }
 public-ip = "0.2.2"
 enum-as-inner = "0.6.0"
@@ -41,6 +41,7 @@ async-stream = "0.3.5"
 aws-sdk-s3 = "1.19.1"
 flate2 = { version = "1.0.17", features = ["zlib-ng"], default-features = false }
 tonic-web = "0.11.0"
+libsql = "0.3.2"
 
 [build-dependencies]
 tonic-build = "0.11"
