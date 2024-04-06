@@ -1,3 +1,4 @@
+use crate::services::user_manage::{self, User_Manager};
 use crate::AwsSecrets;
 
 pub mod pogoots {
@@ -10,13 +11,16 @@ use self::{
 use pogoots::login_server_server::LoginServerServer;
 use pogoots::notecard_service_server::NotecardServiceServer;
 use pogoots::*;
+use std::collections::HashMap;
 use std::pin::Pin;
+use std::time::Duration;
 use tokio::sync::mpsc;
 use tokio::sync::mpsc::{Receiver, Sender};
 use tokio_stream::{wrappers::ReceiverStream, Stream};
 use tonic::{transport::Server, Request, Response, Status, Streaming};
 
 type Callback<C> = tokio::sync::oneshot::Sender<C>;
+///Entry point into starting the service.
 pub async fn start_serving(secrets: AwsSecrets) {
     let addr = "0.0.0.0:80".parse().unwrap();
 
@@ -29,16 +33,29 @@ pub async fn start_serving(secrets: AwsSecrets) {
     });
     let notecardServer = NotecardServer { send_channel: tx };
     let notecardServer = NotecardServiceServer::new(notecardServer);
+    let mut con = crate::services::database::new_connection(secrets.clone()).await;
 
+    //repeat connection attempts every 5 seconds
+    while con.is_none() {
+        println!("Turso connection failed, Trying again");
+        tokio::time::sleep(Duration::new(5, 0)).await;
+        con = crate::services::database::new_connection(secrets.clone()).await;
+    }
+
+    let con = con.unwrap();
+    let user_manager = User_Manager {
+        tokens: HashMap::new(),
+        users: HashMap::new(),
+        connection: con,
+    };
     let (ltx, lrx) = tokio::sync::mpsc::channel(100);
     tokio::spawn(async move {
-        crate::services::user_manage::proccess_user_auth(lrx, secrets.clone()).await;
+        user_manager.proccess_user_auth(lrx, secrets.clone()).await;
     });
     let loginServer = LoginService { send_channel: ltx };
     let loginServer = LoginServerServer::new(loginServer);
 
     println!("Server listening on {}", addr);
-    // let pog = aboasldjf;
     let result = Server::builder()
         // GrpcWeb is over http1 so we must enable it.
         .accept_http1(true)
