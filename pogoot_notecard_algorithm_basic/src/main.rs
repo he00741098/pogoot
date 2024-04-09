@@ -11,6 +11,9 @@ fn main() {
     let thing;
     let mut questions = if let Ok(thingy) = pogin{
         thing = thingy;
+        std::mem::drop(multi_file_spanish);
+        std::mem::drop(multi_file_english);
+        std::mem::drop(multi_file_alt_spanish);
         serde_json::from_str(&thing).unwrap()
     }else if multi_file_alt_spanish.is_ok()&&multi_file_english.is_ok()&&multi_file_spanish.is_ok(){
         let spanish_alt_string = multi_file_alt_spanish.unwrap();
@@ -79,7 +82,7 @@ fn serve_question_short_answer(mut question:&mut question){
     let mut rng = thread_rng();
     println!("{} :", question.back);
     let answer:String = read!("{}\n");
-    if answer.trim().to_lowercase()==question.front.trim().to_lowercase(){
+    if question.front.trim().to_lowercase()==answer.trim().to_lowercase()||question.front.split("/").map(|x|x.trim().to_lowercase()).collect::<Vec<String>>().contains(&answer.trim().to_lowercase()){
         println!("Correct!");
         question.corrects+=1;
         if question.corrects>question.wrongs{

@@ -58,7 +58,7 @@ impl User_Manager {
                             if result.is_err() {
                                 println!("Callback errored when user already logged in");
                             }
-                            continue;
+                            // continue;
                         } else {
                             let random_auth_token = uuid::Uuid::new_v4().to_string();
 
@@ -74,7 +74,7 @@ impl User_Manager {
                         }
                     }
 
-                    todo!()
+                    // todo!()
                 }
                 //Login user
                 LoginDBRequest::Login(mut req, callback) => {
