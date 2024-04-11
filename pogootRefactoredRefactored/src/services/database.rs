@@ -103,7 +103,7 @@ async fn store_string_notecard(conn: Connection, notes: Vec<ReMapNotecard>) -> R
     todo!()
 }
 pub async fn store_user_info(email: String, password: String, conn: &Connection) -> Result<(), ()> {
-    //         CREATE TABLE IF NOT EXISTS USERS(
+    //     CREATE TABLE IF NOT EXISTS USERS(
     //     USERNAME text,
     //     PASSWORD text,
     //     RECENTIPS text
@@ -124,11 +124,7 @@ pub async fn store_user_info(email: String, password: String, conn: &Connection)
     //
     // NOTE: hash params from `parsed_hash` are used instead of what is configured in the
     // `Argon2` instance.
-    let parsed_hash = PasswordHash::new(&password_hash);
-    if parsed_hash.is_err() {
-        return Err(());
-    }
-    let parsed_hash = parsed_hash.unwrap();
+
     let result = conn
         .execute(
             "INSERT INTO USERS VALUES (?,?,?);",
@@ -143,7 +139,7 @@ pub async fn store_user_info(email: String, password: String, conn: &Connection)
     Ok(())
 }
 
-//checks if an email exists in the database. If it does, it will return the password
+///checks if an email exists in the database. If it does, it will return the password
 pub async fn check_email_exists(conn: &Connection, email: &str) -> Result<Option<String>, ()> {
     let result = conn
         .query(

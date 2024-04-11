@@ -1,6 +1,7 @@
 use crate::services::user_manage::{self, User_Manager};
 use crate::AwsSecrets;
 
+use tokio::sync::Mutex;
 pub mod pogoots {
     include!("../pogoot_refactored_refactored.rs");
 }
@@ -44,8 +45,8 @@ pub async fn start_serving(secrets: AwsSecrets) {
 
     let con = con.unwrap();
     let user_manager = User_Manager {
-        tokens: HashMap::new(),
-        users: HashMap::new(),
+        tokens: Mutex::new(HashMap::new()),
+        users: Mutex::new(HashMap::new()),
         connection: con,
     };
     let (ltx, lrx) = tokio::sync::mpsc::channel(100);
