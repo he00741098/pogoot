@@ -1,15 +1,14 @@
 use crate::{
-    server::NotecardDBRequest, services::server::pogoots::NotecardUploadResponse, AwsSecrets,
+    server::NotecardDBRequest,
+    services::server::pogoots::{LoginResponse, NotecardUploadResponse},
+    AwsSecrets,
 };
 use serde::{Deserialize, Serialize};
 use tokio::sync::mpsc::{Receiver, Sender};
 
 use super::server::pogoots::Notecard;
 
-pub async fn upload_proccessor(
-    mut reciever: tokio::sync::mpsc::Receiver<NotecardDBRequest>,
-    secrets: AwsSecrets,
-) {
+pub async fn upload_proccessor(mut reciever: tokio::sync::mpsc::Receiver<NotecardDBRequest>) {
     while let Some(request) = reciever.recv().await {
         match request {
             NotecardDBRequest::Store(Request, callback) => {
@@ -22,6 +21,11 @@ pub async fn upload_proccessor(
                         .map(ReMapNotecard::remap)
                         .collect::<Vec<ReMapNotecard>>();
                     store_with_sql(notes, auth).await;
+
+                    callback.send(NotecardUploadResponse {
+                        success: false,
+                        id: "not implemented".to_string(),
+                    });
                 } else {
                     let response = NotecardUploadResponse {
                         success: false,

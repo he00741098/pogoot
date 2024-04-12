@@ -27,9 +27,8 @@ pub async fn start_serving(secrets: AwsSecrets) {
     // let greeter = MyGreeter::default();
     // let greeter = GreeterServer::new(greeter);
     let (tx, rx) = tokio::sync::mpsc::channel(100);
-    let clone_secret = secrets.clone();
     tokio::spawn(async move {
-        crate::services::notecard::upload_proccessor(rx, clone_secret).await;
+        crate::services::notecard::upload_proccessor(rx).await;
     });
     let notecard_server = NotecardServer { send_channel: tx };
     let notecard_server = NotecardServiceServer::new(notecard_server);
