@@ -129,9 +129,10 @@ pub async fn store_user_info(email: String, password: String, conn: &Connection)
     // Hash password to PHC string ($argon2id$v=19$...)
     let password_hash = argon2.hash_password(password.as_bytes(), &salt);
     if password_hash.is_err() {
+        println!("Password hasing failed: {:?}", password_hash);
         return Err(());
     }
-    let password_hash = password_hash.unwrap().to_string();
+    // let password_hash = password_hash.unwrap().to_string();
 
     // Verify password against PHC string.
     //
@@ -140,11 +141,13 @@ pub async fn store_user_info(email: String, password: String, conn: &Connection)
 
     let result = conn
         .execute(
-            "INSERT INTO USERS VALUES (?,?,?);",
-            params![email.as_str(), password.as_str(), ""],
+            "INSERT INTO USERS VALUES (?,?,?,?);",
+            //username, email, password, ips
+            params![email.as_str(), email.as_str(), password.as_str(), ""],
         )
         .await;
     if result.is_err() {
+        println!("Database Insertion failed: {:?}", result);
         return Err(());
     }
     let result = result.unwrap();
