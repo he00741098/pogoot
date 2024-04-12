@@ -14,29 +14,21 @@ struct AwsSecrets {
 
 #[tokio::main]
 async fn main() {
-    // tracing_subscriber::registry()
-    //     .with(
-    //         tracing_subscriber::EnvFilter::try_from_default_env()
-    //             .unwrap_or_else(|_| "pogoot=debug".into()),
-    //     )
-    //     .with(tracing_subscriber::fmt::layer())
-    //     .init();
+    // let aws_secrets = fetch_aws_secrets().await;
+    // if aws_secrets.is_err() {
+    //     println!("Secrets read failed...");
+    //     //TODO: Make fallback
+    // }
+    // let aws_secrets = aws_secrets.unwrap();
+    // if aws_secrets.is_none() {
+    //     println!("No Secrets!");
+    // }
+    // let aws_secrets = aws_secrets.unwrap();
+    //
+    // println!("Secrets:\n {:?}", aws_secrets);
+    // let aws_secrets = serde_json::from_str::<AwsSecrets>(&aws_secrets).unwrap();
 
-    let aws_secrets = fetch_aws_secrets().await;
-    if aws_secrets.is_err() {
-        println!("Secrets read failed...");
-        //TODO: Make fallback
-    }
-    let aws_secrets = aws_secrets.unwrap();
-    if aws_secrets.is_none() {
-        println!("No Secrets!");
-    }
-    let aws_secrets = aws_secrets.unwrap();
-
-    println!("Secrets:\n {:?}", aws_secrets);
-    let aws_secrets = serde_json::from_str::<AwsSecrets>(&aws_secrets).unwrap();
-    // let AwsSecrets { turso_url, auth_token, zone_id, auth_key, auth_email, cloudflare_cert, cloudflare_key };
-    // let aws_secrets = AwsSecrets::default();
+    let aws_secrets = AwsSecrets::default();
     server::start_serving(aws_secrets).await;
 }
 
@@ -47,7 +39,7 @@ pub struct Meta {
 }
 
 use aws_config::{self, BehaviorVersion, Region};
-use aws_sdk_secretsmanager;
+// use aws_sdk_secretsmanager;
 use services::server;
 
 async fn fetch_aws_secrets() -> Result<Option<String>, aws_sdk_secretsmanager::Error> {

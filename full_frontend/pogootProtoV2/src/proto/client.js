@@ -1,15 +1,37 @@
 // const {Notecard}
+//
+//
 const {
-  NotecardListUploadRequest,
-  NotecardUploadResponse,
+  GameStartInfoResponse,
+  LoginResponse,
+  ManagerPlayerRequest,
   Notecard,
+  NotecardFetchRequest,
   NotecardList,
+  NotecardListUploadRequest,
+  NotecardModifyRequest,
+  NotecardUploadResponse,
+  PogootAnswerRequest,
+  PogootCreationRequest,
+  PogootCreationResponse,
+  PogootJoinCode,
+  PogootQuestion,
+  PogootQuestionList,
+  PogootRequest,
+  PogootResultsResponse,
+  Progress,
+  RoundResultResponse,
+  UserLoginRequest,
+  UserPasswordUpdateRequest,
+  UserRegisterWithEmailRequest,
 } = require("./pogoots_pb.js");
-const { NotecardServiceClient } = require("./pogoots_grpc_web_pb.js");
+const {
+  NotecardServiceClient,
+  LoginServerClient,
+  PogootPlayerServerClient,
+} = require("./pogoots_grpc_web_pb.js");
 
 var client = new NotecardServiceClient("http://localhost:80");
-
-// uploader();
 
 let clone_count = 0;
 let cards = document.getElementById("cards");

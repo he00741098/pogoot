@@ -1,4 +1,4 @@
-mod CFStorage {
+mod cfstorage {
 
     use aws_config::{BehaviorVersion, Region};
     use aws_sdk_s3::types::{
@@ -79,15 +79,15 @@ mod CFStorage {
         // }
         // let mut file = file.unwrap();
         let mut buffer = vec![];
-        let mut byte_count = 0_usize;
+        // let mut byte_count = 0_usize;
         while let Ok(Some(bytes)) = object.body.try_next().await {
-            let bytes_len = bytes.len();
+            // let bytes_len = bytes.len();
             let err = buffer.write_all(&bytes);
             if err.is_err() {
                 println!("Buffer write erred");
                 return Err(());
             }
-            byte_count += bytes_len;
+            // byte_count += bytes_len;
         }
 
         // println!("{:?}", String::from_utf8(buffer));

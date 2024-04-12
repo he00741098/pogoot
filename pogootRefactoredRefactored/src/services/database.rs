@@ -17,6 +17,7 @@ use super::notecard::ReMapNotecard;
 pub async fn new_connection(secrets: AwsSecrets) -> Option<Connection> {
     let client_result = turso_init(&secrets).await;
     if client_result.is_err() {
+        println!("Turso init failed");
         return None;
     }
     let client = client_result.unwrap();
@@ -25,6 +26,7 @@ pub async fn new_connection(secrets: AwsSecrets) -> Option<Connection> {
 }
 
 async fn turso_init(secrets: &AwsSecrets) -> Result<Connection, ()> {
+    let DEV_BUILD_MODE = true;
     let url = secrets.turso_url.as_str();
     let url = url.to_string();
     // let config = Config {
@@ -40,8 +42,14 @@ async fn turso_init(secrets: &AwsSecrets) -> Result<Connection, ()> {
         .build()
         .await;
     if client.is_err() {
+        println!("Client build failed: {:?}", client);
         return Err(());
     }
+    let client = if DEV_BUILD_MODE {
+        libsql::Builder::new_local(":memory:").build().await
+    } else {
+        client
+    };
     let client = client.unwrap();
     let client = client.connect().unwrap();
     //tracks the users username, password, most recently used ip, and stores more data as
@@ -60,6 +68,10 @@ async fn turso_init(secrets: &AwsSecrets) -> Result<Connection, ()> {
         .await;
 
     if create_table_result.is_err() {
+        println!(
+            "Turso table creation failed for USERS: {:?}",
+            create_table_result
+        );
         return Err(());
     }
 
@@ -77,6 +89,7 @@ async fn turso_init(secrets: &AwsSecrets) -> Result<Connection, ()> {
         .await;
 
     if create_table_result.is_err() {
+        println!("Turso table creation failed for NOTECARDS");
         return Err(());
     }
     // client.clone();
