@@ -1,11 +1,8 @@
 use crate::{
-    server::NotecardDBRequest,
-    services::server::pogoots::{LoginResponse, NotecardUploadResponse},
-    AwsSecrets,
+    server::NotecardDBRequest, services::server::pogoots::NotecardUploadResponse, AwsSecrets,
 };
 use libsql::Connection;
 use serde::{Deserialize, Serialize};
-use tokio::sync::mpsc::{Receiver, Sender};
 
 use super::{
     database,
@@ -20,24 +17,24 @@ pub async fn upload_proccessor(
 ) {
     while let Some(request) = reciever.recv().await {
         match request {
-            NotecardDBRequest::Store(Request, callback) => {
-                println!("Store Request Recieved: {:?}", Request);
+            NotecardDBRequest::Store(request, callback) => {
+                println!("Store Request Recieved: {:?}", request);
 
-                let auth = Request.auth_token;
-                let title = Request.title;
-                let school = Request.school;
-                let tags = Request.tags;
-                let description = Request.description;
+                let auth = request.auth_token;
+                let title = request.title;
+                let school = request.school;
+                let tags = request.tags;
+                let description = request.description;
                 let data = NotecardData {
                     auth,
                     title,
                     school,
                     tags,
                     desc: description,
-                    username: Request.username,
+                    username: request.username,
                 };
 
-                if let Some(set) = Request.notecards {
+                if let Some(set) = request.notecards {
                     let notes = set.notecards;
                     let notes = notes
                         .into_iter()
@@ -47,10 +44,11 @@ pub async fn upload_proccessor(
                     println!("{:?}", notes);
                     let clonecon = conn.clone();
                     let verifyerclone = verifyer.clone();
-                    let secretClone = secrets.clone();
+                    let secret_clone = secrets.clone();
                     tokio::spawn(async move {
                         let store_result =
-                            store_with_sql(clonecon, notes, data, verifyerclone, secretClone).await;
+                            store_with_sql(clonecon, notes, data, verifyerclone, secret_clone)
+                                .await;
 
                         let callback_result = if let Ok(result) = store_result {
                             callback.send(NotecardUploadResponse {
@@ -79,10 +77,10 @@ pub async fn upload_proccessor(
                     }
                 }
             }
-            NotecardDBRequest::Fetch(ID, callback) => {
+            NotecardDBRequest::Fetch(id, callback) => {
                 todo!()
             }
-            NotecardDBRequest::Modify(Request, callback) => {
+            NotecardDBRequest::Modify(request, callback) => {
                 todo!()
             }
         }

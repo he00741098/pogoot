@@ -1,15 +1,10 @@
-use std::fmt::format;
-
 //A database system that needs to accomplish a few key tasks
 //1. Store notecards in a Database
 //2. Retreive notecards from a Database
 //3. Store user data
 //4. Retreive user data
-use crate::services::server::NotecardDBRequest;
 use crate::AwsSecrets;
-use argon2::password_hash::{
-    rand_core::OsRng, PasswordHash, PasswordHasher, PasswordVerifier, SaltString,
-};
+use argon2::password_hash::{rand_core::OsRng, PasswordHasher, SaltString};
 use argon2::Argon2;
 use libsql::{params, Connection};
 use uuid::Uuid;
@@ -29,7 +24,7 @@ pub async fn new_connection(secrets: AwsSecrets) -> Option<Connection> {
 }
 
 async fn turso_init(secrets: &AwsSecrets) -> Result<Connection, ()> {
-    let DEV_BUILD_MODE = true;
+    let dev_build_mode = true;
     let url = secrets.turso_url.as_str();
     let url = url.to_string();
     // let config = Config {
@@ -48,7 +43,7 @@ async fn turso_init(secrets: &AwsSecrets) -> Result<Connection, ()> {
         println!("Client build failed: {:?}", client);
         return Err(());
     }
-    let client = if DEV_BUILD_MODE {
+    let client = if dev_build_mode {
         libsql::Builder::new_local(":memory:").build().await
     } else {
         client
@@ -108,7 +103,7 @@ async fn turso_init(secrets: &AwsSecrets) -> Result<Connection, ()> {
 pub async fn store_notecards(
     conn: Connection,
     notes: Vec<ReMapNotecard>,
-    mut secrets: &mut AwsSecrets,
+    secrets: &mut AwsSecrets,
     data: NotecardData,
 ) -> Result<String, ()> {
     let json = serde_json::to_string(&notes);
@@ -143,12 +138,8 @@ pub async fn store_notecards(
         return Err(());
     }
 
-    let result = crate::services::CFStorage::cfstorage::upload_notecard_to_cloudflare(
-        &mut secrets,
-        compressed,
-        &id,
-    )
-    .await;
+    let result =
+        crate::services::cfstorage::upload_notecard_to_cloudflare(secrets, compressed, &id).await;
     if result.is_err() {
         println!("Notecard Store in Cloudflare Failed");
         return Err(());

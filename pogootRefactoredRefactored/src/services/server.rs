@@ -145,6 +145,12 @@ impl NotecardService for NotecardServer {
             .send_channel
             .send(NotecardDBRequest::Modify(request.into_inner(), tx))
             .await;
+        if send_result.is_err() {
+            return Err(Status::new(
+                tonic::Code::Internal,
+                "Modify request failed when send channel failed to send",
+            ));
+        }
 
         let result = rx.await;
         if result.is_ok() {

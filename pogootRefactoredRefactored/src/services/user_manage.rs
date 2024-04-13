@@ -142,7 +142,11 @@ impl UserManager {
         // println!("{:?}\n\n{:?}", *temp_user, email);
         let user = temp_user.get(&email);
         // let mut exists = false;
-        let user = if user.is_none() {
+        let user = if let Some(user) = user {
+            // exists = true;
+            // println!("User Found In Hashmaps");
+            user.clone()
+        } else {
             println!("User does not exist in hashmap");
             Arc::new(Mutex::new(User {
                 username: email.clone(),
@@ -150,11 +154,8 @@ impl UserManager {
                 ips: vec![],
                 auth_tokens: vec![],
             }))
-        } else {
-            // exists = true;
-            // println!("User Found In Hashmaps");
-            user.unwrap().clone()
         };
+
         drop(temp_user);
 
         //Check if user exists in database
