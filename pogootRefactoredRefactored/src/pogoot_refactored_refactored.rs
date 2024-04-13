@@ -23,6 +23,16 @@ pub struct NotecardListUploadRequest {
     pub notecards: ::core::option::Option<NotecardList>,
     #[prost(string, tag = "3")]
     pub auth_token: ::prost::alloc::string::String,
+    #[prost(string, tag = "4")]
+    pub title: ::prost::alloc::string::String,
+    #[prost(string, tag = "5")]
+    pub description: ::prost::alloc::string::String,
+    #[prost(string, tag = "6")]
+    pub tags: ::prost::alloc::string::String,
+    #[prost(string, tag = "7")]
+    pub school: ::prost::alloc::string::String,
+    #[prost(string, tag = "8")]
+    pub username: ::prost::alloc::string::String,
 }
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]

@@ -182,26 +182,39 @@ save_button.onclick = function(ev) {
     send_alert("red", "No Content", "Please add at least 1 card");
     return;
   }
+  if (cookie_get("auth").length < 2 || cookie_get("username").length < 2) {
+    send_alert("red", "Login", "Please Login before uploading");
+  }
 
   var list = [];
   for (var i = 1; i < fronts.length; i++) {
     var notecard = new Notecard();
-    notecard.setFrontList(fronts[i].value);
-    notecard.setBackList(backs[i].value);
+    // console.log(fronts[i].value);
+    notecard.setFrontList([fronts[i].value]);
+    notecard.setBackList([backs[i].value]);
+    // console.log(notecard);
     list.push(notecard);
   }
   var notecardList = new NotecardList();
   notecardList.setNotecardsList(list);
 
+  console.log(notecardList);
+
   var request = new NotecardListUploadRequest();
   request.setNotecards(notecardList);
-  request.setAuthToken("1238946");
+  request.setAuthToken(cookie_get("auth"));
+  request.setTitle(document.getElementById("titleInput").value);
+  request.setDescription(document.getElementById("description").value);
+  request.setTags(document.getElementById("tags").value);
+  request.setSchool(document.getElementById("school"));
+  request.setUsername(cookie_get("username"));
+  console.log(request);
   uploader(request);
 };
 
 function uploader(request) {
   client.upload(request, {}, (err, response) => {
-    console.log(response.getMessage());
+    console.log(response.array[1]);
   });
 }
 
@@ -217,5 +230,50 @@ function send_alert(color, header, text) {
   alerts.appendChild(box);
   setTimeout(() => {
     alerts.removeChild(box);
-  }, 2000);
+  }, 5000);
+}
+
+function cookie_set(key, value) {
+  var date = new Date();
+  date.setTime(date.getTime() + 3 * 24 * 60 * 60 * 1000);
+  let cookies = document.cookie;
+  let split = cookies.split(";");
+  let validCookies = false;
+  for (var cookie of split) {
+    if (cookie.trim().split("=")[0] == "validCookies") {
+      validCookies = true;
+      break;
+    }
+  }
+
+  if (!validCookies) {
+    console.log("no cookies");
+    document.cookie =
+      "auth=; SameSite=None; Secure; expires=" + date.toUTCString() + ";";
+    document.cookie =
+      "username=; SameSite=None; Secure; expires=" + date.toUTCString() + ";";
+    document.cookie =
+      "validCookies=; SameSite=None; Secure; expires=" +
+      date.toUTCString() +
+      ";";
+  }
+  cookies = document.cookie;
+  document.cookie =
+    key +
+    "=" +
+    value +
+    "; SameSite=None; Secure; expires=" +
+    date.toUTCString() +
+    ";";
+}
+
+function cookie_get(key) {
+  let cookies = document.cookie;
+  let split = cookies.split(";");
+  for (var cookie of split) {
+    let cook = cookie.trim().split("=");
+    if (cook[0] == key) {
+      return cook[1];
+    }
+  }
 }

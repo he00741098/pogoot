@@ -12,9 +12,9 @@ use self::{
 use pogoots::login_server_server::LoginServerServer;
 use pogoots::notecard_service_server::NotecardServiceServer;
 use pogoots::*;
-use std::collections::HashMap;
 use std::pin::Pin;
 use std::time::Duration;
+use std::{collections::HashMap, sync::Arc};
 use tokio::sync::mpsc;
 use tokio_stream::{wrappers::ReceiverStream, Stream};
 use tonic::{transport::Server, Request, Response, Status, Streaming};
@@ -26,15 +26,7 @@ pub async fn start_serving(secrets: AwsSecrets) {
 
     // let greeter = MyGreeter::default();
     // let greeter = GreeterServer::new(greeter);
-    let (tx, rx) = tokio::sync::mpsc::channel(100);
-    tokio::spawn(async move {
-        crate::services::notecard::upload_proccessor(rx).await;
-    });
-    let notecard_server = NotecardServer { send_channel: tx };
-    let notecard_server = NotecardServiceServer::new(notecard_server);
     let mut con = crate::services::database::new_connection(secrets.clone()).await;
-
-    //repeat connection attempts every 5 seconds
     while con.is_none() {
         println!("Turso connection failed, Trying again");
         tokio::time::sleep(Duration::new(5, 0)).await;
@@ -42,17 +34,29 @@ pub async fn start_serving(secrets: AwsSecrets) {
     }
 
     let con = con.unwrap();
+    let clonecon = con.clone();
+
+    //repeat connection attempts every 5 seconds
     let user_manager = UserManager {
-        tokens: Mutex::new(HashMap::new()),
-        users: Mutex::new(HashMap::new()),
+        tokens: Arc::new(Mutex::new(HashMap::new())),
+        users: Arc::new(Mutex::new(HashMap::new())),
         connection: con,
     };
     let (ltx, lrx) = tokio::sync::mpsc::channel(100);
     tokio::spawn(async move {
         user_manager.proccess_user_auth(lrx).await;
     });
-    let login_server = LoginService { send_channel: ltx };
+    let login_server = LoginService {
+        send_channel: ltx.clone(),
+    };
     let login_server = LoginServerServer::new(login_server);
+
+    let (tx, rx) = tokio::sync::mpsc::channel(100);
+    tokio::spawn(async move {
+        crate::services::notecard::upload_proccessor(clonecon, rx, ltx, secrets).await;
+    });
+    let notecard_server = NotecardServer { send_channel: tx };
+    let notecard_server = NotecardServiceServer::new(notecard_server);
 
     println!("Server listening on {}", addr);
     let result = Server::builder()
@@ -84,6 +88,8 @@ pub enum LoginDBRequest {
     Register(UserRegisterWithEmailRequest, Callback<LoginResponse>),
     Login(UserLoginRequest, Callback<LoginResponse>),
     Update(UserPasswordUpdateRequest, Callback<LoginResponse>),
+    ///Token, Username
+    VerifyToken(String, String, Callback<bool>),
 }
 
 #[derive(Debug)]

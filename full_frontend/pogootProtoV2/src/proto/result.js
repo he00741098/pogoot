@@ -183,26 +183,39 @@ save_button.onclick = function(ev) {
     send_alert("red", "No Content", "Please add at least 1 card");
     return;
   }
+  if (cookie_get("auth").length < 2 || cookie_get("username").length < 2) {
+    send_alert("red", "Login", "Please Login before uploading");
+  }
 
   var list = [];
   for (var i = 1; i < fronts.length; i++) {
     var notecard = new Notecard();
-    notecard.setFrontList(fronts[i].value);
-    notecard.setBackList(backs[i].value);
+    // console.log(fronts[i].value);
+    notecard.setFrontList([fronts[i].value]);
+    notecard.setBackList([backs[i].value]);
+    // console.log(notecard);
     list.push(notecard);
   }
   var notecardList = new NotecardList();
   notecardList.setNotecardsList(list);
 
+  console.log(notecardList);
+
   var request = new NotecardListUploadRequest();
   request.setNotecards(notecardList);
-  request.setAuthToken("1238946");
+  request.setAuthToken(cookie_get("auth"));
+  request.setTitle(document.getElementById("titleInput").value);
+  request.setDescription(document.getElementById("description").value);
+  request.setTags(document.getElementById("tags").value);
+  request.setSchool(document.getElementById("school"));
+  request.setUsername(cookie_get("username"));
+  console.log(request);
   uploader(request);
 };
 
 function uploader(request) {
   client.upload(request, {}, (err, response) => {
-    console.log(response.getMessage());
+    console.log(response.array[1]);
   });
 }
 
@@ -218,7 +231,52 @@ function send_alert(color, header, text) {
   alerts.appendChild(box);
   setTimeout(() => {
     alerts.removeChild(box);
-  }, 2000);
+  }, 5000);
+}
+
+function cookie_set(key, value) {
+  var date = new Date();
+  date.setTime(date.getTime() + 3 * 24 * 60 * 60 * 1000);
+  let cookies = document.cookie;
+  let split = cookies.split(";");
+  let validCookies = false;
+  for (var cookie of split) {
+    if (cookie.trim().split("=")[0] == "validCookies") {
+      validCookies = true;
+      break;
+    }
+  }
+
+  if (!validCookies) {
+    console.log("no cookies");
+    document.cookie =
+      "auth=; SameSite=None; Secure; expires=" + date.toUTCString() + ";";
+    document.cookie =
+      "username=; SameSite=None; Secure; expires=" + date.toUTCString() + ";";
+    document.cookie =
+      "validCookies=; SameSite=None; Secure; expires=" +
+      date.toUTCString() +
+      ";";
+  }
+  cookies = document.cookie;
+  document.cookie =
+    key +
+    "=" +
+    value +
+    "; SameSite=None; Secure; expires=" +
+    date.toUTCString() +
+    ";";
+}
+
+function cookie_get(key) {
+  let cookies = document.cookie;
+  let split = cookies.split(";");
+  for (var cookie of split) {
+    let cook = cookie.trim().split("=");
+    if (cook[0] == key) {
+      return cook[1];
+    }
+  }
 }
 
 },{"./pogoots_grpc_web_pb.js":4,"./pogoots_pb.js":5}],2:[function(require,module,exports){
@@ -2824,7 +2882,12 @@ proto.pogootRefactoredRefactored.NotecardListUploadRequest.prototype.toObject = 
 proto.pogootRefactoredRefactored.NotecardListUploadRequest.toObject = function(includeInstance, msg) {
   var f, obj = {
     notecards: (f = msg.getNotecards()) && proto.pogootRefactoredRefactored.NotecardList.toObject(includeInstance, f),
-    authToken: jspb.Message.getFieldWithDefault(msg, 3, "")
+    authToken: jspb.Message.getFieldWithDefault(msg, 3, ""),
+    title: jspb.Message.getFieldWithDefault(msg, 4, ""),
+    description: jspb.Message.getFieldWithDefault(msg, 5, ""),
+    tags: jspb.Message.getFieldWithDefault(msg, 6, ""),
+    school: jspb.Message.getFieldWithDefault(msg, 7, ""),
+    username: jspb.Message.getFieldWithDefault(msg, 8, "")
   };
 
   if (includeInstance) {
@@ -2870,6 +2933,26 @@ proto.pogootRefactoredRefactored.NotecardListUploadRequest.deserializeBinaryFrom
       var value = /** @type {string} */ (reader.readString());
       msg.setAuthToken(value);
       break;
+    case 4:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setTitle(value);
+      break;
+    case 5:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setDescription(value);
+      break;
+    case 6:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setTags(value);
+      break;
+    case 7:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setSchool(value);
+      break;
+    case 8:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setUsername(value);
+      break;
     default:
       reader.skipField();
       break;
@@ -2911,6 +2994,41 @@ proto.pogootRefactoredRefactored.NotecardListUploadRequest.serializeBinaryToWrit
   if (f.length > 0) {
     writer.writeString(
       3,
+      f
+    );
+  }
+  f = message.getTitle();
+  if (f.length > 0) {
+    writer.writeString(
+      4,
+      f
+    );
+  }
+  f = message.getDescription();
+  if (f.length > 0) {
+    writer.writeString(
+      5,
+      f
+    );
+  }
+  f = message.getTags();
+  if (f.length > 0) {
+    writer.writeString(
+      6,
+      f
+    );
+  }
+  f = message.getSchool();
+  if (f.length > 0) {
+    writer.writeString(
+      7,
+      f
+    );
+  }
+  f = message.getUsername();
+  if (f.length > 0) {
+    writer.writeString(
+      8,
       f
     );
   }
@@ -2969,6 +3087,96 @@ proto.pogootRefactoredRefactored.NotecardListUploadRequest.prototype.getAuthToke
  */
 proto.pogootRefactoredRefactored.NotecardListUploadRequest.prototype.setAuthToken = function(value) {
   return jspb.Message.setProto3StringField(this, 3, value);
+};
+
+
+/**
+ * optional string title = 4;
+ * @return {string}
+ */
+proto.pogootRefactoredRefactored.NotecardListUploadRequest.prototype.getTitle = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 4, ""));
+};
+
+
+/**
+ * @param {string} value
+ * @return {!proto.pogootRefactoredRefactored.NotecardListUploadRequest} returns this
+ */
+proto.pogootRefactoredRefactored.NotecardListUploadRequest.prototype.setTitle = function(value) {
+  return jspb.Message.setProto3StringField(this, 4, value);
+};
+
+
+/**
+ * optional string description = 5;
+ * @return {string}
+ */
+proto.pogootRefactoredRefactored.NotecardListUploadRequest.prototype.getDescription = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 5, ""));
+};
+
+
+/**
+ * @param {string} value
+ * @return {!proto.pogootRefactoredRefactored.NotecardListUploadRequest} returns this
+ */
+proto.pogootRefactoredRefactored.NotecardListUploadRequest.prototype.setDescription = function(value) {
+  return jspb.Message.setProto3StringField(this, 5, value);
+};
+
+
+/**
+ * optional string tags = 6;
+ * @return {string}
+ */
+proto.pogootRefactoredRefactored.NotecardListUploadRequest.prototype.getTags = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 6, ""));
+};
+
+
+/**
+ * @param {string} value
+ * @return {!proto.pogootRefactoredRefactored.NotecardListUploadRequest} returns this
+ */
+proto.pogootRefactoredRefactored.NotecardListUploadRequest.prototype.setTags = function(value) {
+  return jspb.Message.setProto3StringField(this, 6, value);
+};
+
+
+/**
+ * optional string school = 7;
+ * @return {string}
+ */
+proto.pogootRefactoredRefactored.NotecardListUploadRequest.prototype.getSchool = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 7, ""));
+};
+
+
+/**
+ * @param {string} value
+ * @return {!proto.pogootRefactoredRefactored.NotecardListUploadRequest} returns this
+ */
+proto.pogootRefactoredRefactored.NotecardListUploadRequest.prototype.setSchool = function(value) {
+  return jspb.Message.setProto3StringField(this, 7, value);
+};
+
+
+/**
+ * optional string username = 8;
+ * @return {string}
+ */
+proto.pogootRefactoredRefactored.NotecardListUploadRequest.prototype.getUsername = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 8, ""));
+};
+
+
+/**
+ * @param {string} value
+ * @return {!proto.pogootRefactoredRefactored.NotecardListUploadRequest} returns this
+ */
+proto.pogootRefactoredRefactored.NotecardListUploadRequest.prototype.setUsername = function(value) {
+  return jspb.Message.setProto3StringField(this, 8, value);
 };
 
 

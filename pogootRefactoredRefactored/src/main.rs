@@ -10,6 +10,9 @@ struct AwsSecrets {
     auth_email: String,
     cloudflare_cert: String,
     cloudflare_key: String,
+    r2accountid: String,
+    r2accesskeyid: String,
+    r2secretaccesskey: String,
 }
 
 #[tokio::main]

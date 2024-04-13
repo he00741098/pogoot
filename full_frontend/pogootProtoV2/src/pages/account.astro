@@ -9,26 +9,31 @@ import NavBar from "../components/NavBar.astro";
     <!--  LOGIN TIME -->
     <div id="register">
       <form id="registerForm">
-        <input id="email" placeholder="Email" />
-        <input id="emailConfirm" placeholder="Confirm Email" />
-        <input id="password" placeholder="Password" />
+        <input id="emailRegister" placeholder="Email" type="email" />
+        <input
+          id="emailRegisterConfirm"
+          placeholder="Confirm Email"
+          type="email"
+        />
+        <input id="passwordRegister" placeholder="Password" type="password" />
+        <input
+          id="passwordRegisterConfirm"
+          placeholder="Confirm Password"
+          type="password"
+        />
         <input id="RegisterButton" type="submit" value="Submit" />
       </form>
     </div>
 
     <div id="login">
       <form id="login">
-        <input id="email" placeholder="Email" />
-        <input id="password" placeholder="Password" />
+        <input id="emailLogin" placeholder="Email" type="email" />
+        <input id="passwordLogin" placeholder="Password" type="password" />
         <input id="LoginButton" type="submit" value="Submit" />
       </form>
     </div>
   </main>
 </Layout>
-
-<script>
-  // let register
-</script>
 
 <style>
   body {

@@ -1,4 +1,4 @@
-mod cfstorage {
+pub mod cfstorage {
 
     use aws_config::{BehaviorVersion, Region};
     use aws_sdk_s3::types::{
@@ -22,44 +22,11 @@ mod cfstorage {
         path::Path,
     };
 
-    async fn fetch_aws_secrets() -> Result<Option<String>, aws_sdk_s3::Error> {
-        let region = Region::new("us-west-2");
-
-        let config = aws_config::defaults(BehaviorVersion::v2023_11_09())
-            .region(region)
-            .endpoint_url(
-                "https://60140a99f7c7c4232fe54ee74112198b.r2.cloudflarestorage.com/pogootdata",
-            )
-            .load()
-            .await;
-
-        let asm = aws_sdk_secretsmanager::Client::new(&config);
-
-        // let response = asm
-        // .await?;
-        // For a list of exceptions thrown, see
-        // https://docs.aws.amazon.com/secretsmanager/latest/apireference/API_GetSecretValue.html
-
-        // let secret_string = response.secret_string();
-        // match secret_string{
-        //     Some(s)=>{
-        //         Ok(Some(s.to_string()))
-        //     },
-        //     _=>{
-        //         Ok(None)
-        //     }
-        // }
-
-        // Your code goes here
-        unimplemented!()
-    }
+    use crate::services::notecard::ReMapNotecard;
+    use crate::services::server::pogoots::NotecardList;
+    use crate::AwsSecrets;
 
     async fn get_object(client: Client, key: &str) -> Result<Vec<u8>, ()> {
-        // trace!("bucket:      {}", opt.bucket);
-        // trace!("object:      {}", opt.object);
-        // trace!("destination: {}", opt.destination.display());
-
-        // let destination = format!("./temp/{}", input);
         let object = client
             .get_object()
             .bucket("pogootdata")
@@ -94,41 +61,66 @@ mod cfstorage {
         Ok(buffer)
         // unimplemented!()
     }
-    pub async fn upload_object(
+    async fn upload_object(
         client: &Client,
-        bucket_name: &str,
-        text: &str,
+        body: Vec<u8>,
         key: &str,
     ) -> Result<PutObjectOutput, SdkError<PutObjectError>> {
-        let body = ByteStream::from(text.as_bytes().to_vec());
+        let body = ByteStream::from(body);
         client
             .put_object()
-            .bucket(bucket_name)
+            .bucket("pogootdata")
             .key(key)
             .body(body)
             .send()
             .await
     }
-    #[tokio::test]
-    async fn get_object_test() {
+
+    //TODO: potentially figure out how to do bulk uploads
+    pub async fn upload_notecard_to_cloudflare(
+        secrets: &mut AwsSecrets,
+        notes: Vec<u8>,
+        id: &str,
+    ) -> Result<(), ()> {
         let region = Region::new("auto");
         let credentials_provider = Credentials::new(
-            "e41ea0be751835c45af3bc71b15bb336",
-            "5f453dce6234a0443733aa79cb5f21b576654d4259a5ca71da0534e9140089ba",
+            std::mem::take(&mut secrets.r2accesskeyid),
+            std::mem::take(&mut secrets.r2secretaccesskey),
             None,
             None,
             "cloudflare",
         );
+        let endpointurl = format!(
+            "https://{}.r2.cloudflarestorage.com/pogootdata",
+            secrets.r2accountid
+        );
         let config = aws_config::defaults(BehaviorVersion::v2023_11_09())
             .region(region)
-            .endpoint_url(
-                "https://60140a99f7c7c4232fe54ee74112198b.r2.cloudflarestorage.com/pogootdata",
-            )
+            .endpoint_url(&endpointurl)
             .credentials_provider(credentials_provider)
             .load()
             .await;
         let client = aws_sdk_s3::Client::new(&config);
-        let object_store_result = upload_object(&client, "pogootdata", "weeeweee", "test")
+        let object_store_result = upload_object(&client, notes, id).await;
+        if object_store_result.is_err() {
+            Err(())
+        } else {
+            Ok(())
+        }
+    }
+
+    #[tokio::test]
+    async fn get_object_test() {
+        let region = Region::new("auto");
+        let credentials_provider = Credentials::new("", "", None, None, "cloudflare");
+        let config = aws_config::defaults(BehaviorVersion::v2023_11_09())
+            .region(region)
+            .endpoint_url("")
+            .credentials_provider(credentials_provider)
+            .load()
+            .await;
+        let client = aws_sdk_s3::Client::new(&config);
+        let object_store_result = upload_object(&client, "weeeweee".as_bytes().to_vec(), "test")
             .await
             .expect("Upload failed");
         let object_result = get_object(client, "test").await;

@@ -1,3 +1,5 @@
+use std::fmt::format;
+
 //A database system that needs to accomplish a few key tasks
 //1. Store notecards in a Database
 //2. Retreive notecards from a Database
@@ -10,8 +12,9 @@ use argon2::password_hash::{
 };
 use argon2::Argon2;
 use libsql::{params, Connection};
+use uuid::Uuid;
 
-use super::notecard::ReMapNotecard;
+use super::notecard::{NotecardData, ReMapNotecard};
 //NOTECARD STUFF----------------------------------------
 
 pub async fn new_connection(secrets: AwsSecrets) -> Option<Connection> {
@@ -82,7 +85,10 @@ async fn turso_init(secrets: &AwsSecrets) -> Result<Connection, ()> {
             OWNER text,
             NAME text,
             BODY BLOB,
-            PERMISSIONS_JSON text
+            PERMISSIONS_JSON text,
+            DESCRIPTION text,
+            TAGS text,
+            SCHOOL text
         );",
             (),
         )
@@ -99,8 +105,12 @@ async fn turso_init(secrets: &AwsSecrets) -> Result<Connection, ()> {
 /// Assigns a unique ID to the Notecard Sequence
 /// TODO: Redundancy
 ///
-async fn store_string_notecard(conn: Connection, notes: Vec<ReMapNotecard>) -> Result<(), ()> {
-    // let id = Uuid::new_v4();
+pub async fn store_notecards(
+    conn: Connection,
+    notes: Vec<ReMapNotecard>,
+    mut secrets: &mut AwsSecrets,
+    data: NotecardData,
+) -> Result<String, ()> {
     let json = serde_json::to_string(&notes);
     if json.is_err() {
         println!("Serde To String Error");
@@ -112,8 +122,38 @@ async fn store_string_notecard(conn: Connection, notes: Vec<ReMapNotecard>) -> R
         return Err(());
     }
     let compressed = compressed.unwrap();
+    let id = Uuid::new_v4();
+    let id = format!("{}{}", data.username, id);
+    let result = conn
+        .execute(
+            "INSERT INTO NOTECARDS VALUES (?,?,?,?,?,?,?);",
+            //username, email, password, ips
+            params![
+                data.username,
+                data.title,
+                "".as_bytes(),
+                "",
+                data.desc,
+                data.tags,
+                data.school
+            ],
+        )
+        .await;
+    if result.is_err() {
+        return Err(());
+    }
 
-    todo!()
+    let result = crate::services::CFStorage::cfstorage::upload_notecard_to_cloudflare(
+        &mut secrets,
+        compressed,
+        &id,
+    )
+    .await;
+    if result.is_err() {
+        println!("Notecard Store in Cloudflare Failed");
+        return Err(());
+    }
+    Ok(id)
 }
 pub async fn store_user_info(email: String, password: String, conn: &Connection) -> Result<(), ()> {
     //     CREATE TABLE IF NOT EXISTS USERS(
@@ -129,21 +169,19 @@ pub async fn store_user_info(email: String, password: String, conn: &Connection)
     // Hash password to PHC string ($argon2id$v=19$...)
     let password_hash = argon2.hash_password(password.as_bytes(), &salt);
     if password_hash.is_err() {
-        println!("Password hasing failed: {:?}", password_hash);
+        println!("Password hashing failed: {:?}", password_hash);
         return Err(());
     }
-    // let password_hash = password_hash.unwrap().to_string();
-
-    // Verify password against PHC string.
-    //
-    // NOTE: hash params from `parsed_hash` are used instead of what is configured in the
-    // `Argon2` instance.
-
     let result = conn
         .execute(
             "INSERT INTO USERS VALUES (?,?,?,?);",
             //username, email, password, ips
-            params![email.as_str(), email.as_str(), password.as_str(), ""],
+            params![
+                email.as_str(),
+                email.as_str(),
+                password_hash.unwrap().to_string().as_str(),
+                ""
+            ],
         )
         .await;
     if result.is_err() {
@@ -159,7 +197,7 @@ pub async fn store_user_info(email: String, password: String, conn: &Connection)
 pub async fn check_email_exists(conn: &Connection, email: &str) -> Result<Option<String>, ()> {
     let result = conn
         .query(
-            "SELECT PASSWORD FROM USERS WHERE EMAIL = ?1 OR USERNAME = ?1",
+            "SELECT PASSWORD FROM USERS WHERE EMAIL = ?1 OR USERNAME = ?1;",
             params![email],
         )
         .await;
@@ -169,7 +207,7 @@ pub async fn check_email_exists(conn: &Connection, email: &str) -> Result<Option
     let mut rows = result.unwrap();
     match rows.next().await {
         Ok(Some(row)) => {
-            let password = row.get_str(2);
+            let password = row.get_str(0);
             if password.is_err() {
                 println!("row index is not TEXT");
                 return Err(());
