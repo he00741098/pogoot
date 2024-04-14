@@ -1,129 +1,137 @@
 (function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
-const {
-  GameStartInfoResponse,
-  LoginResponse,
-  ManagerPlayerRequest,
-  Notecard,
-  NotecardFetchRequest,
-  NotecardList,
-  NotecardListUploadRequest,
-  NotecardModifyRequest,
-  NotecardUploadResponse,
-  PogootAnswerRequest,
-  PogootCreationRequest,
-  PogootCreationResponse,
-  PogootJoinCode,
-  PogootQuestion,
-  PogootQuestionList,
-  PogootRequest,
-  PogootResultsResponse,
-  Progress,
-  RoundResultResponse,
-  UserLoginRequest,
-  UserPasswordUpdateRequest,
-  UserRegisterWithEmailRequest,
-} = require("./pogoots_pb.js");
-const {
-  NotecardServiceClient,
-  LoginServerClient,
-  PogootPlayerServerClient,
-} = require("./pogoots_grpc_web_pb.js");
-
-let register_button = document.getElementById("RegisterButton");
-let login_button = document.getElementById("LoginButton");
-
-register_button.addEventListener("click", function(event) {
-  event.preventDefault();
-  let email = document.getElementById("emailRegister").value;
-  let emailConfirm = document.getElementById("emailRegisterConfirm").value;
-  let password = document.getElementById("passwordRegister").value;
-  let passwordConfirm = document.getElementById(
-    "passwordRegisterConfirm",
-  ).value;
-
-  if (email != emailConfirm) {
-    alert("emails do not match");
+document.addEventListener("astro:page-load", () => {
+  if (document.URL.indexOf("account") < 1) {
     return;
   }
-  if (password != passwordConfirm) {
-    alert("passwords do not match");
-    return;
-  }
+  const {
+    GameStartInfoResponse,
+    LoginResponse,
+    ManagerPlayerRequest,
+    Notecard,
+    NotecardFetchRequest,
+    NotecardList,
+    NotecardListUploadRequest,
+    NotecardModifyRequest,
+    NotecardUploadResponse,
+    PogootAnswerRequest,
+    PogootCreationRequest,
+    PogootCreationResponse,
+    PogootJoinCode,
+    PogootQuestion,
+    PogootQuestionList,
+    PogootRequest,
+    PogootResultsResponse,
+    Progress,
+    RoundResultResponse,
+    UserLoginRequest,
+    UserPasswordUpdateRequest,
+    UserRegisterWithEmailRequest,
+  } = require("./pogoots_pb.js");
+  const {
+    NotecardServiceClient,
+    LoginServerClient,
+    PogootPlayerServerClient,
+  } = require("./pogoots_grpc_web_pb.js");
 
-  let client = new LoginServerClient("https://bigpogoot.sweep.rs");
-  let regReq = new UserRegisterWithEmailRequest();
-  regReq.setEmail(email);
-  regReq.setPassword(password);
-  client.register(regReq, {}, (err, response) => {
-    console.log(response);
-  });
-});
+  let register_button = document.getElementById("RegisterButton");
+  let login_button = document.getElementById("LoginButton");
 
-login_button.addEventListener("click", function(event) {
-  event.preventDefault();
+  register_button.addEventListener("click", function(event) {
+    event.preventDefault();
+    let email = document.getElementById("emailRegister").value;
+    let emailConfirm = document.getElementById("emailRegisterConfirm").value;
+    let password = document.getElementById("passwordRegister").value;
+    let passwordConfirm = document.getElementById(
+      "passwordRegisterConfirm",
+    ).value;
 
-  let email = document.getElementById("emailLogin").value;
-  let password = document.getElementById("passwordLogin").value;
-
-  let client = new LoginServerClient("https://bigpogoot.sweep.rs");
-  let regReq = new UserLoginRequest();
-  regReq.setEmail(email);
-  regReq.setPassword(password);
-  client.login(regReq, {}, (err, response) => {
-    console.log(response);
-    if (response.array[0]) {
-      cookie_set("auth", response.array[1]);
-      cookie_set("username", email);
-    } else {
-      alert("Incorrect credentials");
+    if (email != emailConfirm) {
+      alert("emails do not match");
+      document
+        .getElementById("emailRegister")
+        .setCustomValidity("Emails Do Not Match");
+      return;
     }
-  });
-});
-
-function cookie_set(key, value) {
-  var date = new Date();
-  date.setTime(date.getTime() + 3 * 24 * 60 * 60 * 1000);
-  let cookies = document.cookie;
-  let split = cookies.split(";");
-  let validCookies = false;
-  for (var cookie of split) {
-    if (cookie.trim().split("=")[0] == "validCookies") {
-      validCookies = true;
-      break;
+    if (password != passwordConfirm) {
+      alert("passwords do not match");
+      return;
     }
-  }
 
-  if (!validCookies) {
-    console.log("no cookies");
+    let client = new LoginServerClient("https://bigpogoot.sweep.rs");
+    let regReq = new UserRegisterWithEmailRequest();
+    regReq.setEmail(email);
+    regReq.setPassword(password);
+    client.register(regReq, {}, (err, response) => {
+      console.log(response);
+    });
+  });
+
+  login_button.addEventListener("click", function(event) {
+    event.preventDefault();
+
+    let email = document.getElementById("emailLogin").value;
+    let password = document.getElementById("passwordLogin").value;
+
+    let client = new LoginServerClient("https://bigpogoot.sweep.rs");
+    let regReq = new UserLoginRequest();
+    regReq.setEmail(email);
+    regReq.setPassword(password);
+    client.login(regReq, {}, (err, response) => {
+      console.log(response);
+      if (response.array[0]) {
+        cookie_set("auth", response.array[1]);
+        cookie_set("username", email);
+      } else {
+        alert("Incorrect credentials");
+      }
+    });
+  });
+
+  function cookie_set(key, value) {
+    var date = new Date();
+    date.setTime(date.getTime() + 3 * 24 * 60 * 60 * 1000);
+    let cookies = document.cookie;
+    let split = cookies.split(";");
+    let validCookies = false;
+    for (var cookie of split) {
+      if (cookie.trim().split("=")[0] == "validCookies") {
+        validCookies = true;
+        break;
+      }
+    }
+
+    if (!validCookies) {
+      console.log("no cookies");
+      document.cookie =
+        "auth=; SameSite=None; Secure; expires=" + date.toUTCString() + ";";
+      document.cookie =
+        "username=; SameSite=None; Secure; expires=" + date.toUTCString() + ";";
+      document.cookie =
+        "validCookies=; SameSite=None; Secure; expires=" +
+        date.toUTCString() +
+        ";";
+    }
+    cookies = document.cookie;
     document.cookie =
-      "auth=; SameSite=None; Secure; expires=" + date.toUTCString() + ";";
-    document.cookie =
-      "username=; SameSite=None; Secure; expires=" + date.toUTCString() + ";";
-    document.cookie =
-      "validCookies=; SameSite=None; Secure; expires=" +
+      key +
+      "=" +
+      value +
+      "; SameSite=None; Secure; expires=" +
       date.toUTCString() +
       ";";
   }
-  cookies = document.cookie;
-  document.cookie =
-    key +
-    "=" +
-    value +
-    "; SameSite=None; Secure; expires=" +
-    date.toUTCString() +
-    ";";
-}
 
-function cookie_get(key) {
-  let cookies = document.cookie;
-  let split = cookies.split(";");
-  for (var cookie of split) {
-    let cook = cookie.trim().split("=");
-    if (cook[0] == key) {
-      return cook[1];
+  function cookie_get(key) {
+    let cookies = document.cookie;
+    let split = cookies.split(";");
+    for (var cookie of split) {
+      let cook = cookie.trim().split("=");
+      if (cook[0] == key) {
+        return cook[1];
+      }
     }
   }
-}
+});
 
 },{"./pogoots_grpc_web_pb.js":4,"./pogoots_pb.js":5}],2:[function(require,module,exports){
 (function (global){(function (){

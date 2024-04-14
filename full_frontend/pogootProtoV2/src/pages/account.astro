@@ -5,47 +5,85 @@ import NavBar from "../components/NavBar.astro";
 
 <Layout title="Home | Pogoot">
   <NavBar />
+  <canvas id="canvas" width="1000px" height="500px" role="presentation"
+  ></canvas>
   <main class="LibraryMain">
+    <div id="top">
+      <h1>Welcome to Pogoot</h1>
+    </div>
     <!--  LOGIN TIME -->
     <div id="register">
       <form id="registerForm">
-        <input id="emailRegister" placeholder="Email" type="email" />
+        <h2 class="formHeader">Register</h2>
+        <input
+          id="emailRegister"
+          placeholder="Email"
+          type="email"
+          size="30"
+          required
+        />
         <input
           id="emailRegisterConfirm"
           placeholder="Confirm Email"
           type="email"
+          size="30"
+          required
         />
-        <input id="passwordRegister" placeholder="Password" type="password" />
+        <input
+          id="passwordRegister"
+          placeholder="Password"
+          type="password"
+          required
+        />
         <input
           id="passwordRegisterConfirm"
           placeholder="Confirm Password"
           type="password"
+          required
         />
-        <input id="RegisterButton" type="submit" value="Submit" />
+        <input
+          id="RegisterButton"
+          type="submit"
+          value="Submit"
+          class="submit"
+        />
       </form>
     </div>
 
     <div id="login">
-      <form id="login">
-        <input id="emailLogin" placeholder="Email" type="email" />
-        <input id="passwordLogin" placeholder="Password" type="password" />
-        <input id="LoginButton" type="submit" value="Submit" />
+      <form id="loginForm">
+        <h2 class="formHeader">Login</h2>
+        <input id="emailLogin" placeholder="Email" type="email" required />
+        <input
+          id="passwordLogin"
+          placeholder="Password"
+          type="password"
+          required
+        />
+        <input id="LoginButton" type="submit" value="Submit" class="submit" />
       </form>
     </div>
   </main>
 </Layout>
 
 <style>
+  .formHeader {
+    justify-self: center;
+  }
+  html {
+    /* background-color: rgb(25, 25, 25); */
+  }
   body {
     display: grid;
     width: 100%;
     height: 100%;
-    /* background-color: rgb(253, 249, 241); */
+    /* background-color: rgb(37, 37, 37); */
     margin: 0;
     background-color: var(--blue);
     color: white;
     font-family: LeagueSpartan;
     font-size: 20px;
+    /* ba */
     /* outline: 2px solid red; */
     /* margin:-8px; */
   }
@@ -53,35 +91,187 @@ import NavBar from "../components/NavBar.astro";
   main {
     display: grid;
     position: absolute;
-    width: 50%;
+    max-width: 50%;
+    width: 300px;
     /* outline: 2px solid red; */
-    top: 50px;
-    left: 25%;
-    /* padding-left:50px; */
-    /* background-image: linear-gradient(to bottom right, #F5E3B8, #F5DD67); */
-    /* outline: 2px solid red; */
+    top: calc(50% - 350px);
+    height: 600px;
+    background-image: linear-gradient(180deg, rgb(37, 37, 37), black);
+    background-color: white;
+    justify-self: center;
+    padding: 80px;
+    border-radius: 20px 20px 20px 20px;
+    box-shadow: 5px 5px 5px 5px black;
   }
-  #sidebar {
-    /* outline: 2px solid red; */
+  #registerForm,
+  #loginForm {
+    width: 100%;
+    display: grid;
+    row-gap: 2px;
+    /* height:1 */
   }
-  .notecardplaceholder {
-    width: 500px;
-    height: 300px;
-    border-radius: 10px 10px 10px 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+  input {
+    max-width: 80%;
+    width: 60%;
+    justify-self: center;
+    height: 25px;
+    background-color: transparent;
+    border-color: transparent;
+    color: white;
+    border-bottom: 2px solid white;
+    margin-bottom: 2px;
+  }
+
+  #top {
+    justify-self: center;
     text-align: center;
   }
-  #notecard1 {
-    background-color: var(--green);
-  }
-  #notecard2 {
+  .submit {
+    background-color: white;
+    box-flex: 1px 1px 1px 1px white;
+    color: black;
+    /* background-image: linear-gradient(to bottom right, gray, navy); */
+    border-bottom: transparent;
     margin-top: 10px;
-    background-color: var(--pink);
-    /* position:absolute; */
-    /* left:100px; */
-    float: right;
+    /* padding: 10px; */
+    border-radius: 3px 3px 3px 3px;
   }
 </style>
 <script src="../proto/result_login.js"></script>
+<script>
+  document.addEventListener("astro:page-load", function () {
+    if (document.URL.indexOf("account") < 1) {
+      return;
+    }
+    let resize_events = 0;
+    function draw() {
+      console.log("Drawing");
+      const canvas = document.getElementById("canvas");
+      let height = (canvas.height = window.innerHeight);
+      let width = (canvas.width = window.innerWidth);
+      if (canvas.getContext) {
+        const ctx = canvas.getContext("2d");
+        // for (var i = 0; i < width; i += 50) {
+        //   let distance_from_center = Math.abs(width / 2 - i) / (width / 2);
+        //   ctx.fillRect(
+        //     i,
+        //     converterY(0, Math.floor(height * distance_from_center)),
+        //     25,
+        //     Math.floor(height * distance_from_center),
+        //   );
+        //   ctx.beginPath();
+        //   ctx.arc(i, converterY(i, 0), 10, 0, Math.PI * 2, false);
+        //   ctx.fill();
+        // }
+
+        window.onresize = function () {
+          if (resize_events > 10) {
+            let height = (canvas.height = window.innerHeight);
+            let width = (canvas.width = window.innerWidth);
+            return;
+          }
+          resize_events++;
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          draw();
+        };
+        for (var i = 0; i < 1000; i += 1) {
+          let randomY = Math.floor(Math.random() * height);
+          let randomX = Math.floor(Math.random() * width);
+          let randomChoice = Math.floor(Math.random() * 6);
+          let additionalRandomness = random(100);
+          switch (randomChoice) {
+            case 1:
+              ctx.beginPath();
+              ctx.moveTo(randomX, randomY);
+              ctx.fillStyle =
+                "rgb(" +
+                random(255) +
+                " " +
+                random(255) +
+                " " +
+                random(255) +
+                ")";
+              ctx.shadowOffsetX = random(20) * Math.pow(-1, random(2) + 1);
+              ctx.shadowOffsetY = random(20) * Math.pow(-1, random(2) + 1);
+              ctx.shadowBlur = 2;
+              ctx.shadowColor = "black";
+
+              ctx.arc(
+                randomX,
+                randomY,
+                Math.floor(Math.random() * 50),
+                0,
+                Math.PI * 2,
+                false,
+              );
+
+              ctx.fill();
+              ctx.closePath();
+              break;
+            case 2:
+              if (additionalRandomness > 5) {
+                break;
+              }
+              ctx.beginPath();
+              ctx.moveTo(randomX, randomY);
+              let randompoint1X =
+                randomX + random(200) * Math.pow(-1, random(2) + 1);
+              let randompoint1Y =
+                randomY + random(200) * Math.pow(-1, random(2) + 1);
+              let randompoint2X =
+                randomX + random(200) * Math.pow(-1, random(2) + 1);
+              let randompoint2Y =
+                randomY + random(200) * Math.pow(-1, random(2) + 1);
+              let randomYdest = Math.floor(Math.random() * height);
+              let randomXdest = Math.floor(Math.random() * width);
+              ctx.bezierCurveTo(
+                randompoint1X,
+                randompoint1Y,
+                randompoint2X,
+                randompoint2Y,
+                randomXdest,
+                randomYdest,
+              );
+              // ctx.moveTo(randomXdest, randomYdest);
+
+              let randompoint3X =
+                randomXdest + random(20) * Math.pow(-1, random(2) + 1);
+              let randompoint3Y =
+                randomYdest + random(20) * Math.pow(-1, random(2) + 1);
+              let randompoint4X =
+                randomXdest + random(20) * Math.pow(-1, random(2) + 1);
+              let randompoint4Y =
+                randomYdest + random(20) * Math.pow(-1, random(2) + 1);
+              ctx.bezierCurveTo(
+                randompoint3X,
+                randompoint3Y,
+                randompoint4X,
+                randompoint4Y,
+                randomX,
+                randomY,
+              );
+              ctx.closePath();
+              ctx.fill();
+              break;
+            case 3:
+              ctx.fillRect(randomX, randomY, random(30), random(30));
+              break;
+          }
+          //draw circle
+          //draw curved thing
+          //draw box
+          //draw lines
+          //draw curves
+        }
+      }
+    }
+    function random(max) {
+      return Math.floor(Math.random() * max);
+    }
+    function converterY(y, height) {
+      return canvas.height - y - height;
+    }
+
+    draw();
+  });
+</script>
