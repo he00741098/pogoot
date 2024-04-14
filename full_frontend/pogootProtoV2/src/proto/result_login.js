@@ -50,7 +50,7 @@ register_button.addEventListener("click", function(event) {
     return;
   }
 
-  let client = new LoginServerClient("http://localhost:80");
+  let client = new LoginServerClient("https://bigpogoot.sweep.rs");
   let regReq = new UserRegisterWithEmailRequest();
   regReq.setEmail(email);
   regReq.setPassword(password);
@@ -65,7 +65,7 @@ login_button.addEventListener("click", function(event) {
   let email = document.getElementById("emailLogin").value;
   let password = document.getElementById("passwordLogin").value;
 
-  let client = new LoginServerClient("http://localhost:80");
+  let client = new LoginServerClient("https://bigpogoot.sweep.rs");
   let regReq = new UserLoginRequest();
   regReq.setEmail(email);
   regReq.setPassword(password);

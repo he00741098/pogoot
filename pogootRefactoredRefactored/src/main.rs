@@ -41,7 +41,6 @@ pub struct Meta {
 }
 
 use aws_config::{self, BehaviorVersion, Region};
-// use aws_sdk_secretsmanager;
 use services::server;
 
 async fn fetch_aws_secrets() -> Result<Option<String>, aws_sdk_secretsmanager::Error> {

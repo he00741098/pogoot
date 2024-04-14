@@ -1,2 +1,8 @@
 [target.aarch64-unknown-linux-gnu]
-pre-build = ["apt update -y", "apt install -y libsqlite3-dev", "apt install -y build-essential"]
+pre-build = [
+  "apt update -y",
+  "apt install -y libsqlite3-dev",
+  "apt install -y build-essential",
+  "apt install -y unzip",
+  "curl -LO https://github.com/protocolbuffers/protobuf/releases/download/v26.1/protoc-26.1-linux-x86_64.zip && unzip protoc-26.1-linux-x86_64.zip -d /usr/ && chmod 755 /usr/bin/protoc",
+]

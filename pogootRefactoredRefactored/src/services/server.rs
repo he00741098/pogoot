@@ -1,7 +1,8 @@
 use crate::services::user_manage::UserManager;
 use crate::AwsSecrets;
-
+use base64::prelude::*;
 use tokio::sync::Mutex;
+use tonic::transport::ServerTlsConfig;
 pub mod pogoots {
     include!("../pogoot_refactored_refactored.rs");
 }
@@ -17,13 +18,21 @@ use std::time::Duration;
 use std::{collections::HashMap, sync::Arc};
 use tokio::sync::mpsc;
 use tokio_stream::{wrappers::ReceiverStream, Stream};
-use tonic::{transport::Server, Request, Response, Status, Streaming};
+use tonic::{
+    transport::{Identity, Server},
+    Request, Response, Status, Streaming,
+};
 
 type Callback<C> = tokio::sync::oneshot::Sender<C>;
 ///Entry point into starting the service.
-pub async fn start_serving(secrets: AwsSecrets) {
-    let addr = "0.0.0.0:80".parse().unwrap();
-
+pub async fn start_serving(mut secrets: AwsSecrets) {
+    let addr = "[::]:443".parse().unwrap();
+    let cert = BASE64_STANDARD
+        .decode(std::mem::take(&mut secrets.cloudflare_cert))
+        .unwrap();
+    let key = BASE64_STANDARD
+        .decode(std::mem::take(&mut secrets.cloudflare_key))
+        .unwrap();
     // let greeter = MyGreeter::default();
     // let greeter = GreeterServer::new(greeter);
     let mut con = crate::services::database::new_connection(secrets.clone()).await;
@@ -60,6 +69,8 @@ pub async fn start_serving(secrets: AwsSecrets) {
 
     println!("Server listening on {}", addr);
     let result = Server::builder()
+        .tls_config(ServerTlsConfig::new().identity(Identity::from_pem(&cert, &key)))
+        .unwrap()
         // GrpcWeb is over http1 so we must enable it.
         .accept_http1(true)
         .add_service(tonic_web::enable(notecard_server))

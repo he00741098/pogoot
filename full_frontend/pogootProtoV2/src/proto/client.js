@@ -31,7 +31,7 @@ const {
   PogootPlayerServerClient,
 } = require("./pogoots_grpc_web_pb.js");
 
-var client = new NotecardServiceClient("http://localhost:80");
+var client = new NotecardServiceClient("https://bigpogoot.sweep.rs");
 
 let clone_count = 0;
 let cards = document.getElementById("cards");
