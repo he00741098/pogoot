@@ -58,7 +58,7 @@ document.addEventListener("astro:page-load", () => {
   let last_value_length = 0;
   let entered_rows = 0;
   let last_line_count = 1;
-  front_input.oninput = function(ev) {
+  front_input.oninput = function (ev) {
     let input1 = front_input.value.split("\n");
     let rows = 0;
     for (var index = input1.length - 1; index >= 0; index--) {
@@ -72,7 +72,7 @@ document.addEventListener("astro:page-load", () => {
 
     front_input.rows = rows;
   };
-  back_input.oninput = function(ev) {
+  back_input.oninput = function (ev) {
     let input1 = back_input.value.split("\n");
     let rows = 0;
     for (var index = input1.length - 1; index >= 0; index--) {
@@ -86,7 +86,7 @@ document.addEventListener("astro:page-load", () => {
 
     back_input.rows = rows;
   };
-  end_cap.onclick = function(ev) {
+  end_cap.onclick = function (ev) {
     skip_front_input = true;
     skip_back_input = true;
     new_card(ev);
@@ -114,7 +114,7 @@ document.addEventListener("astro:page-load", () => {
 
     cloned_right_header.value = cloned_right_header.value + ":" + clone_count;
     let current_clone = clone_count;
-    cloned_right_header.childNodes[1].onclick = function(ev) {
+    cloned_right_header.childNodes[1].onclick = function (ev) {
       console.log(ev);
       let node = document.getElementById("created:" + current_clone);
       cards.removeChild(node);
@@ -159,7 +159,7 @@ document.addEventListener("astro:page-load", () => {
       node_entry.childNodes[0].childNodes[1].value =
         nodes.length - 2 - node + 1;
       let current_clone = node - 1;
-      node_entry.childNodes[1].childNodes[1].onclick = function(ev) {
+      node_entry.childNodes[1].childNodes[1].onclick = function (ev) {
         let noder = document.getElementById("created:" + current_clone);
         cards.removeChild(noder);
         reorder_all_entries();
@@ -174,7 +174,7 @@ document.addEventListener("astro:page-load", () => {
     }
   }
 
-  save_button.onclick = function(ev) {
+  save_button.onclick = function (ev) {
     var fronts = document.getElementsByClassName("frontNotecardInput");
     var backs = document.getElementsByClassName("backNotecardInput");
     if (titleInput.value.length < 1) {
@@ -224,9 +224,7 @@ document.addEventListener("astro:page-load", () => {
 
   function send_alert(color, header, text) {
     let box = alertBox.cloneNode(true);
-    box.style.outline = color + " solid 1px";
-    box.style.backgroundColor = "white";
-    // box.style
+    box.style.outline = color + " solid 3px";
     console.log(box.childNodes);
     box.childNodes[1].innerText = header;
     box.childNodes[3].innerText = text;
@@ -235,6 +233,9 @@ document.addEventListener("astro:page-load", () => {
     setTimeout(() => {
       alerts.removeChild(box);
     }, 5000);
+  }
+  function redirect() {
+    window.location.href = "/library";
   }
 
   function cookie_set(key, value) {

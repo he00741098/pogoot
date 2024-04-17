@@ -2,6 +2,7 @@
 export const prerender = true;
 import Layout from "../layouts/Layout.astro";
 import NavBar from "../components/NavBar.astro";
+import AlertBox from "../components/AlertBox.astro";
 ---
 
 <Layout title="Home | Pogoot">
@@ -65,6 +66,7 @@ import NavBar from "../components/NavBar.astro";
       </form>
     </div>
   </main>
+  <AlertBox />
 </Layout>
 
 <style>
@@ -136,5 +138,8 @@ import NavBar from "../components/NavBar.astro";
     margin-top: 10px;
     /* padding: 10px; */
     border-radius: 3px 3px 3px 3px;
+  }
+  input:invalid {
+    outline: red solid 2px;
   }
 </style>
