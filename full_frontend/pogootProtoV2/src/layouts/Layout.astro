@@ -73,5 +73,146 @@ const { title } = Astro.props;
 				text-decoration: none;
 			}
 		</style>
+
+		<script src="../proto/result.js"></script>
+
+		<script src="../proto/result_login.js"></script>
+		<script>
+			document.addEventListener("astro:page-load", function () {
+				if (document.URL.indexOf("account") < 1) {
+					return;
+				}
+				let resize_events = 0;
+				function draw() {
+					console.log("Drawing");
+					const canvas = document.getElementById("canvas");
+					let height = (canvas.height = window.innerHeight);
+					let width = (canvas.width = window.innerWidth);
+					if (canvas.getContext) {
+						const ctx = canvas.getContext("2d");
+						// for (var i = 0; i < width; i += 50) {
+						//   let distance_from_center = Math.abs(width / 2 - i) / (width / 2);
+						//   ctx.fillRect(
+						//     i,
+						//     converterY(0, Math.floor(height * distance_from_center)),
+						//     25,
+						//     Math.floor(height * distance_from_center),
+						//   );
+						//   ctx.beginPath();
+						//   ctx.arc(i, converterY(i, 0), 10, 0, Math.PI * 2, false);
+						//   ctx.fill();
+						// }
+
+						window.onresize = function () {
+							if (resize_events > 10) {
+								let height = (canvas.height = window.innerHeight);
+								let width = (canvas.width = window.innerWidth);
+								return;
+							}
+							resize_events++;
+							ctx.clearRect(0, 0, canvas.width, canvas.height);
+							draw();
+						};
+						for (var i = 0; i < 1000; i += 1) {
+							let randomY = Math.floor(Math.random() * height);
+							let randomX = Math.floor(Math.random() * width);
+							let randomChoice = Math.floor(Math.random() * 6);
+							let additionalRandomness = random(100);
+							switch (randomChoice) {
+								case 1:
+									ctx.beginPath();
+									ctx.moveTo(randomX, randomY);
+									ctx.fillStyle =
+										"rgb(" +
+										random(255) +
+										" " +
+										random(255) +
+										" " +
+										random(255) +
+										")";
+									ctx.shadowOffsetX = random(20) * Math.pow(-1, random(2) + 1);
+									ctx.shadowOffsetY = random(20) * Math.pow(-1, random(2) + 1);
+									ctx.shadowBlur = 2;
+									ctx.shadowColor = "black";
+
+									ctx.arc(
+										randomX,
+										randomY,
+										Math.floor(Math.random() * 50),
+										0,
+										Math.PI * 2,
+										false,
+									);
+
+									ctx.fill();
+									ctx.closePath();
+									break;
+								case 2:
+									if (additionalRandomness > 5) {
+										break;
+									}
+									ctx.beginPath();
+									ctx.moveTo(randomX, randomY);
+									let randompoint1X =
+										randomX + random(200) * Math.pow(-1, random(2) + 1);
+									let randompoint1Y =
+										randomY + random(200) * Math.pow(-1, random(2) + 1);
+									let randompoint2X =
+										randomX + random(200) * Math.pow(-1, random(2) + 1);
+									let randompoint2Y =
+										randomY + random(200) * Math.pow(-1, random(2) + 1);
+									let randomYdest = Math.floor(Math.random() * height);
+									let randomXdest = Math.floor(Math.random() * width);
+									ctx.bezierCurveTo(
+										randompoint1X,
+										randompoint1Y,
+										randompoint2X,
+										randompoint2Y,
+										randomXdest,
+										randomYdest,
+									);
+									// ctx.moveTo(randomXdest, randomYdest);
+
+									let randompoint3X =
+										randomXdest + random(20) * Math.pow(-1, random(2) + 1);
+									let randompoint3Y =
+										randomYdest + random(20) * Math.pow(-1, random(2) + 1);
+									let randompoint4X =
+										randomXdest + random(20) * Math.pow(-1, random(2) + 1);
+									let randompoint4Y =
+										randomYdest + random(20) * Math.pow(-1, random(2) + 1);
+									ctx.bezierCurveTo(
+										randompoint3X,
+										randompoint3Y,
+										randompoint4X,
+										randompoint4Y,
+										randomX,
+										randomY,
+									);
+									ctx.closePath();
+									ctx.fill();
+									break;
+								case 3:
+									ctx.fillRect(randomX, randomY, random(30), random(30));
+									break;
+							}
+							//draw circle
+							//draw curved thing
+							//draw box
+							//draw lines
+							//draw curves
+						}
+					}
+				}
+				function random(max) {
+					return Math.floor(Math.random() * max);
+				}
+				function converterY(y, height) {
+					return canvas.height - y - height;
+				}
+
+				draw();
+			});
+		</script>
 	</body>
 </html>
