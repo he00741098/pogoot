@@ -83,7 +83,8 @@ async fn turso_init(secrets: &AwsSecrets) -> Result<Connection, ()> {
             PERMISSIONS_JSON text,
             DESCRIPTION text,
             TAGS text,
-            SCHOOL text
+            SCHOOL text,
+            CFID text
         );",
             (),
         )
@@ -121,7 +122,7 @@ pub async fn store_notecards(
     let id = format!("{}{}", data.username, id);
     let result = conn
         .execute(
-            "INSERT INTO NOTECARDS VALUES (?,?,?,?,?,?,?);",
+            "INSERT INTO NOTECARDS VALUES (?,?,?,?,?,?,?,?);",
             //username, email, password, ips
             params![
                 data.username,
@@ -130,7 +131,8 @@ pub async fn store_notecards(
                 "",
                 data.desc,
                 data.tags,
-                data.school
+                data.school,
+                id.clone()
             ],
         )
         .await;
@@ -142,6 +144,7 @@ pub async fn store_notecards(
         crate::services::cfstorage::upload_notecard_to_cloudflare(secrets, compressed, &id).await;
     if result.is_err() {
         println!("Notecard Store in Cloudflare Failed");
+        //TODO: Handle failure
         return Err(());
     }
     Ok(id)
@@ -194,6 +197,7 @@ pub async fn check_email_exists(conn: &Connection, email: &str) -> Result<Option
         .await;
     if result.is_err() {
         println!("Database Query was error");
+        return Err(());
     }
     let mut rows = result.unwrap();
     match rows.next().await {

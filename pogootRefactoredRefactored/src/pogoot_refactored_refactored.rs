@@ -9,12 +9,14 @@ pub struct NotecardModifyRequest {
     #[prost(string, tag = "3")]
     pub auth_token: ::prost::alloc::string::String,
 }
+/// Notecard Library Request -
+/// Fetch the list of notecards owned by a user
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
-pub struct NotecardFetchRequest {
+pub struct NotecardLibraryRequest {
     #[prost(string, tag = "1")]
-    pub id: ::prost::alloc::string::String,
-    #[prost(string, tag = "3")]
+    pub username: ::prost::alloc::string::String,
+    #[prost(string, tag = "2")]
     pub auth_token: ::prost::alloc::string::String,
 }
 #[allow(clippy::derive_partial_eq_without_eq)]
@@ -298,7 +300,7 @@ pub mod notecard_service_client {
         }
         pub async fn fetch(
             &mut self,
-            request: impl tonic::IntoRequest<super::NotecardFetchRequest>,
+            request: impl tonic::IntoRequest<super::NotecardLibraryRequest>,
         ) -> std::result::Result<tonic::Response<super::NotecardList>, tonic::Status> {
             self.inner
                 .ready()
@@ -934,7 +936,7 @@ pub mod notecard_service_server {
         >;
         async fn fetch(
             &self,
-            request: tonic::Request<super::NotecardFetchRequest>,
+            request: tonic::Request<super::NotecardLibraryRequest>,
         ) -> std::result::Result<tonic::Response<super::NotecardList>, tonic::Status>;
         async fn modify(
             &self,
@@ -1075,7 +1077,7 @@ pub mod notecard_service_server {
                     struct FetchSvc<T: NotecardService>(pub Arc<T>);
                     impl<
                         T: NotecardService,
-                    > tonic::server::UnaryService<super::NotecardFetchRequest>
+                    > tonic::server::UnaryService<super::NotecardLibraryRequest>
                     for FetchSvc<T> {
                         type Response = super::NotecardList;
                         type Future = BoxFuture<
@@ -1084,7 +1086,7 @@ pub mod notecard_service_server {
                         >;
                         fn call(
                             &mut self,
-                            request: tonic::Request<super::NotecardFetchRequest>,
+                            request: tonic::Request<super::NotecardLibraryRequest>,
                         ) -> Self::Future {
                             let inner = Arc::clone(&self.0);
                             let fut = async move {

@@ -44,7 +44,7 @@ impl UserManager {
                 }
                 //update account information
                 LoginDBRequest::Update(req, callback) => {
-                    todo!()
+                    continue;
                 }
                 LoginDBRequest::VerifyToken(token, username, callback) => {
                     let temp_manager = self.clone();

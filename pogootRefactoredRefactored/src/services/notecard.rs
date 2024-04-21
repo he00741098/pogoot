@@ -77,8 +77,11 @@ pub async fn upload_proccessor(
                     }
                 }
             }
-            NotecardDBRequest::Fetch(id, callback) => {
-                todo!()
+            NotecardDBRequest::List(request, callback) => {
+                println!("Fetch request recieved: {:?}", request);
+                //TODO: Implement permissions system
+                let auth = request.auth_token;
+                let username = request.username;
             }
             NotecardDBRequest::Modify(request, callback) => {
                 todo!()
@@ -103,13 +106,35 @@ async fn store_with_sql(
     mut secrets: AwsSecrets,
 ) -> Result<String, ()> {
     //TODO:Verify login
+    let verified = verify_credentials(
+        verifyer,
+        std::mem::take(&mut data.auth),
+        std::mem::take(&mut data.username),
+    )
+    .await;
+    if verified.is_err() {
+        println!("Verification failed");
+        return Err(());
+    }
+    if !verified.unwrap() {
+        println!("Invalid Credentials");
+        return Err(());
+    }
+    database::store_notecards(conn, list, &mut secrets, data).await
+}
+
+// async fn get_library_with_sql{
+//
+// }
+
+async fn verify_credentials(
+    verifyer: tokio::sync::mpsc::Sender<LoginDBRequest>,
+    auth: String,
+    username: String,
+) -> Result<bool, ()> {
     let (tx, rx) = tokio::sync::oneshot::channel();
     let result = verifyer
-        .send(LoginDBRequest::VerifyToken(
-            std::mem::take(&mut data.auth),
-            data.username.clone(),
-            tx,
-        ))
+        .send(LoginDBRequest::VerifyToken(auth, username, tx))
         .await;
     if result.is_err() {
         println!("Verifyer channel failed somehow!!!");
@@ -121,11 +146,10 @@ async fn store_with_sql(
         return Err(());
     }
     if !result.unwrap() {
-        println!("Not Logged In");
+        println!("Invalid Credentials");
         return Err(());
     }
-
-    database::store_notecards(conn, list, &mut secrets, data).await
+    Ok(true)
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]

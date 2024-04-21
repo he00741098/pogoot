@@ -85,7 +85,7 @@ pub enum NotecardDBRequest {
     ///Stores a notecard
     Store(NotecardListUploadRequest, Callback<NotecardUploadResponse>),
     ///Takes an ID and a callback
-    Fetch(String, Callback<NotecardList>),
+    List(NotecardLibraryRequest, Callback<NotecardList>),
     ///Takes an ID and a callback
     Modify(NotecardModifyRequest, Callback<NotecardUploadResponse>),
 }
@@ -175,9 +175,29 @@ impl NotecardService for NotecardServer {
     }
     async fn fetch(
         &self,
-        request: tonic::Request<NotecardFetchRequest>,
+        request: tonic::Request<NotecardLibraryRequest>,
     ) -> Result<tonic::Response<NotecardList>, Status> {
-        unimplemented!()
+        let (tx, rx) = tokio::sync::oneshot::channel();
+        let send_result = self
+            .send_channel
+            .send(NotecardDBRequest::List(request.into_inner(), tx))
+            .await;
+        if send_result.is_err() {
+            return Err(Status::new(
+                tonic::Code::Internal,
+                "Fetch request failed when send channel failed to send",
+            ));
+        }
+
+        let result = rx.await;
+        if result.is_ok() {
+            let result = result.unwrap();
+            //Print for testing
+            println!("Note Card Fetch processed: {:?}", result);
+            return Ok(Response::new(result));
+        }
+        //TODO:Better debug info
+        Err(Status::new(tonic::Code::Internal, "Something went wrong"))
     }
 }
 
