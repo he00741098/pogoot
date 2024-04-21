@@ -70,6 +70,28 @@ impl UserManager {
         callback: Sender<LoginResponse>,
     ) {
         let email = std::mem::take(&mut req.email);
+        let password = std::mem::take(&mut req.password);
+        if !email.contains('.') || !email.contains('@') || email.len() <= 5 {
+            let result = callback.send(LoginResponse {
+                success: false,
+                mystery: "Invalid Email".to_string(),
+            });
+            if result.is_err() {
+                println!("Callback errored when invalid email");
+            }
+            return;
+        }
+        if password.len() < 6 {
+            let result = callback.send(LoginResponse {
+                success: false,
+                mystery: "Invalid Password".to_string(),
+            });
+            if result.is_err() {
+                println!("Callback errored when invalid password");
+            }
+            return;
+        }
+
         if self.users.lock().await.get(&email).is_some() {
             let result = callback.send(LoginResponse {
                 success: false,
@@ -80,7 +102,6 @@ impl UserManager {
             }
             return;
         }
-        let password = std::mem::take(&mut req.password);
         let database_query = database::check_email_exists(&self.connection, &email).await;
         //Checks have been completed, User can log in possibly
         if let Ok(None) = database_query {

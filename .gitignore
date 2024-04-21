@@ -17,3 +17,4 @@ compression_test/target
 frontend_beta/node_modules
 full_frontend/node_modules
 full_frontend/pogootProtoV2/.wrangler/tmp
+qdrantTest/qdrantTest/target
