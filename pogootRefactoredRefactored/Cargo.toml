@@ -24,9 +24,9 @@ uuid = { version = "1.8.0", features = [
   "macro-diagnostics",
   "fast-rng",
 ] }
-reqwest = { version = "0.11.27", features = ["json"] }
+reqwest = { version = "0.12.4", features = ["json"] }
 openssl = { version = "0.10.64" } #, features=["vendored"]
-rusqlite = { version = "0.28.0", features = ["bundled"] }
+rusqlite = { version = "0.31.0", features = ["bundled"] }
 public-ip = "0.2.2"
 enum-as-inner = "0.6.0"
 axum-server = { version = "0.6.0", features = ["tls-rustls"] }
