@@ -1,6 +1,7 @@
 .vscode/settings.json
 pogoot_notecard_algorithm_basic/target
 pogootRefactoredRefactored/target
+qdrantTest/qdrantTest/target
 pogootRefactoredRefactored/src/DBSecrets.toml
 pogootRefactoredRefactored/src/CloudflareSecrets.toml
 pogootRefactoredRefactored/src/ca.cer
