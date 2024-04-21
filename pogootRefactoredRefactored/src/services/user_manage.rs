@@ -1,8 +1,8 @@
 use argon2::{Argon2, PasswordHash, PasswordVerifier};
-use libsql::Connection;
-use tokio::sync::Mutex;
 use core::hash;
+use libsql::Connection;
 use std::{collections::HashMap, sync::Arc, time::Duration};
+use tokio::sync::Mutex;
 use uuid::uuid;
 
 use chrono::Utc;
@@ -22,7 +22,6 @@ pub struct User_Manager {
     pub connection: Connection,
 }
 impl User_Manager {
-
     pub async fn proccess_user_auth(
         &self,
         mut reciever: tokio::sync::mpsc::Receiver<LoginDBRequest>,
@@ -46,13 +45,41 @@ impl User_Manager {
                         continue;
                     }
                     let password = std::mem::take(&mut req.password);
+                    if password.len() < 6 {
+                        let result = callback
+                            .send(LoginResponse {
+                                success: false,
+                                mystery: "Password too short".to_string(),
+                            })
+                            .await;
+                        //The callback failed, TODO: add error management
+                        if result.is_err() {
+                            println!("Callback errored when sending password message");
+                        }
+                        continue;
+                    }
+                    //proccess email
+                    if !email.contains('@') || email.len() < 5 || !email.contains('.') {
+                        let result = callback
+                            .send(LoginResponse {
+                                success: false,
+                                mystery: "Invalid Email".to_string(),
+                            })
+                            .await;
+                        //The callback failed, TODO: add error management
+                        if result.is_err() {
+                            println!("Callback errored when sending email message");
+                        }
+                        continue;
+                    }
                     let database_query =
                         database::check_email_exists(&self.connection, &email).await;
                     //Checks have been completed, User can log in possibly
                     if let Ok(None) = database_query {
                         //User is not in the database, registering...
                         let database_store_result =
-                            database::store_user_info(email.clone(), password, &self.connection).await;
+                            database::store_user_info(email.clone(), password, &self.connection)
+                                .await;
                         //Stored data, checking if store succeeded
                         //TODO: add failure management
                         if database_store_result.is_err() {
@@ -66,7 +93,6 @@ impl User_Manager {
                             if result.is_err() {
                                 println!("Callback errored when user already logged in");
                             }
-                            
                         } else {
                             //Callback was sent successfully
                             //Generate a new session token for them.
@@ -78,18 +104,15 @@ impl User_Manager {
                                 ips: vec![],
                                 auth_tokens: vec![AuthToken {
                                     body: random_auth_token.clone(),
-                                    expiry: Utc::now()+Duration::from_secs(60*60*24),
+                                    expiry: Utc::now() + Duration::from_secs(60 * 60 * 24),
                                 }],
                             }));
-                            self.users.lock().await.insert(
-                                email.clone(),
-                                user.clone(),
-                            );
+                            self.users.lock().await.insert(email.clone(), user.clone());
                             //Map token to user
-                            self.tokens.lock().await.insert(
-                                random_auth_token.clone(),
-                                user.clone(),
-                            );
+                            self.tokens
+                                .lock()
+                                .await
+                                .insert(random_auth_token.clone(), user.clone());
 
                             //User inserted, Callback with the token
                             let result = callback
@@ -115,88 +138,92 @@ impl User_Manager {
                     let temp_user = self.users.lock().await;
                     let user = temp_user.get(&email);
                     // let mut exists = false;
-                    let user = if user.is_none(){
-                        Arc::new(Mutex::new(User{
+                    let user = if let Some(user) = user {
+                        user.clone()
+                    } else {
+                        // exists = true;
+                        Arc::new(Mutex::new(User {
                             username: email.clone(),
                             login_time: Utc::now(),
                             ips: vec![],
                             auth_tokens: vec![],
                         }))
-                    }else{
-                        // exists = true;
-                        user.unwrap().clone()
                     };
                     drop(temp_user);
 
                     //Check if user exists in database
-                        let database_query = database::check_email_exists(&self.connection, &email).await;
-                        if database_query.is_err(){
-                            let result = callback
-                                .send(LoginResponse {
-                                    success: false,
-                                    mystery: "Database Query Failed".to_string(),
-                                })
-                                .await;
-                            if result.is_err() {
-                                println!("Callback errored when user already logged in");
-                            }
-                            //The database could not be queried, continuing
-                            continue;
+                    let database_query =
+                        database::check_email_exists(&self.connection, &email).await;
+                    if database_query.is_err() {
+                        let result = callback
+                            .send(LoginResponse {
+                                success: false,
+                                mystery: "Database Query Failed".to_string(),
+                            })
+                            .await;
+                        if result.is_err() {
+                            println!("Callback errored when user already logged in");
                         }
-                        //The database query went through successfully
-                        let database_query = database_query.unwrap();
-                        
-                        if database_query.is_none(){
-                            //The user does not exist in the database
-                            let result = callback
-                                .send(LoginResponse {
-                                    success: false,
-                                    mystery: "User Not Found".to_string(),
-                                })
-                                .await;
-                            //Callback sent
-                            if result.is_err() {
-                                //Callback failed
-                                println!("Callback errored when user already logged in");
-                            }
-                            //Continuing
-                            continue;
+                        //The database could not be queried, continuing
+                        continue;
+                    }
+                    //The database query went through successfully
+                    let database_query = database_query.unwrap();
+
+                    if database_query.is_none() {
+                        //The user does not exist in the database
+                        let result = callback
+                            .send(LoginResponse {
+                                success: false,
+                                mystery: "User Not Found".to_string(),
+                            })
+                            .await;
+                        //Callback sent
+                        if result.is_err() {
+                            //Callback failed
+                            println!("Callback errored when user already logged in");
                         }
-                        //Since the user exists in the database, the query will grant us a password
-                        let hashed_password_correct = database_query.unwrap();
-                        let argon2 = Argon2::default();
-                        let parsed_hash = PasswordHash::new(&hashed_password_correct);
-                        if parsed_hash.is_err() {
-                            println!("Hashed password is not a valid hash");
-                            //TODO: Better error handling
-                            continue;
-                        }
-                        let parsed_hash = parsed_hash.unwrap();
-                        let correct = argon2.verify_password( password.as_bytes(), &parsed_hash);      
-                        if correct.is_err() {
-                            //The password is wrong
-                            println!("Wrong password");
-                            let _ = callback.send(LoginResponse{
+                        //Continuing
+                        continue;
+                    }
+                    //Since the user exists in the database, the query will grant us a password
+                    let hashed_password_correct = database_query.unwrap();
+                    let argon2 = Argon2::default();
+                    let parsed_hash = PasswordHash::new(&hashed_password_correct);
+                    if parsed_hash.is_err() {
+                        println!("Hashed password is not a valid hash");
+                        //TODO: Better error handling
+                        continue;
+                    }
+                    let parsed_hash = parsed_hash.unwrap();
+                    let correct = argon2.verify_password(password.as_bytes(), &parsed_hash);
+                    if correct.is_err() {
+                        //The password is wrong
+                        println!("Wrong password");
+                        let _ = callback
+                            .send(LoginResponse {
                                 success: false,
                                 mystery: "Wrong Password".to_string(),
-                            }).await;
-                            continue;
-                        } 
-                        //Generating tokens and adding them to the user
-                        let token = uuid::Uuid::new_v4().to_string();
-                        user.lock().await.auth_tokens.push(AuthToken{
-                            body: token.clone(),
-                            expiry: Utc::now()+Duration::from_secs(60*60*24),
-                        });       
-                        //Send the token to the User through callback          
-                        let _ =callback.send(LoginResponse {
+                            })
+                            .await;
+                        continue;
+                    }
+                    //Generating tokens and adding them to the user
+                    let token = uuid::Uuid::new_v4().to_string();
+                    user.lock().await.auth_tokens.push(AuthToken {
+                        body: token.clone(),
+                        expiry: Utc::now() + Duration::from_secs(60 * 60 * 24),
+                    });
+                    //Send the token to the User through callback
+                    let _ = callback
+                        .send(LoginResponse {
                             success: true,
                             mystery: token.clone(),
-                        }).await;
-                        //Add the users to the maps
-                        self.tokens.lock().await.insert(token.clone(), user.clone());
-                        self.users.lock().await.insert(email.clone(), user.clone());
-                    
+                        })
+                        .await;
+                    //Add the users to the maps
+                    self.tokens.lock().await.insert(token.clone(), user.clone());
+                    self.users.lock().await.insert(email.clone(), user.clone());
                 }
                 //update account information
                 LoginDBRequest::Update(req, callback) => {
