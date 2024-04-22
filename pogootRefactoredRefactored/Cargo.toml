@@ -6,43 +6,42 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+tonic = { version = "0.11.0", features = ["tls", "transport"] }
 argon2 = "0.5.3"
-# axum = {version="0.7.4", features=["ws","tokio"]}
 futures = "0.3.30"
 futures-util = "0.3.30"
-# rand = "0.8.5"
-serde = {version="1.0.197", features=["derive", "rc"]}
-serde_json = "1.0.114"
-tokio = {version="1.36.0", features=["full"]}
-# toml = "0.7.8"
-tracing = {version="0.1.40"}
+serde = { version = "1.0.198", features = ["derive", "rc"] }
+serde_json = "1.0.116"
+tokio = { version = "1.37.0", features = ["full"] }
+tracing = { version = "0.1.40" }
 async-std = "1.12.0"
-tracing-subscriber = {version="0.3.18", features=["env-filter"]}
-chrono = {version="0.4.35", features=["serde"]}
-tower-http = {version="0.5.2", features=["cors","trace"]}
-# nanoid = "0.4.0"
-# axum-client-ip = "0.5.1"
-uuid = {version="1.7.0", features=["v4", "serde", "macro-diagnostics", "fast-rng"]}
-reqwest = { version = "0.11.24", features=["json"]}
-openssl = { version = "0.10.64"}#, features=["vendored"]
-# libsql-client = "0.31.11"
-rusqlite = { version = "0.28.0", features = ["bundled"] }
+tracing-subscriber = { version = "0.3.18", features = ["env-filter"] }
+chrono = { version = "0.4.38", features = ["serde"] }
+tower-http = { version = "0.5.2", features = ["util", "add-extension"] }
+uuid = { version = "1.8.0", features = [
+  "v4",
+  "serde",
+  "macro-diagnostics",
+  "fast-rng",
+] }
+reqwest = { version = "0.12.4", features = ["json"] }
+openssl = { version = "0.10.64" } #, features=["vendored"]
+rusqlite = { version = "0.31.0", features = ["bundled"] }
 public-ip = "0.2.2"
 enum-as-inner = "0.6.0"
 axum-server = { version = "0.6.0", features = ["tls-rustls"] }
-aws-config = "1.1.7"
-aws-sdk-secretsmanager = "1.17.0"
+aws-config = "1.2.0"
+aws-sdk-secretsmanager = "1.22.0"
 base64 = "0.22.0"
-tonic = "0.11.0"
-tonic-reflection = "0.11.0"
-prost = "0.12.3"
+tonic-reflection = { version = "0.11.0" }
+prost = "0.12.4"
 tokio-stream = "0.1.15"
 async-stream = "0.3.5"
-aws-sdk-s3 = "1.19.1"
-# flate2 = { version = "1.0.17", features = ["zlib-ng"], default-features = false }
+aws-sdk-s3 = "1.23.0"
 tonic-web = "0.11.0"
-libsql = "0.3.2"
-zstd = {version="0.13.0", features=["zdict_builder"]}
+libsql = "0.3.5"
+zstd = { version = "0.13.1", features = ["zdict_builder"] }
+tokio-rustls = "0.26.0"
 
 [build-dependencies]
 tonic-build = "0.11"

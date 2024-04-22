@@ -16,53 +16,203 @@ const { title } = Astro.props;
 		/>
 		<meta name="viewport" content="width=device-width" />
 		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<!-- <link -->
+		<!-- 	rel="preload" -->
+		<!-- 	href="/fonts/LeagueSpartan-2.220/variable/WOFF2/LeagueSpartan-VF.woff2" -->
+		<!-- 	as="font" -->
+		<!-- 	type="font/woff2" -->
+		<!-- 	crossorigin -->
+		<!-- /> -->
 		<meta name="generator" content={Astro.generator} />
 		<title>{title}</title>
-		<ViewTransitions />
+		<ViewTransitions fallback="swap" />
 	</head>
 	<body>
 		<slot />
-	</body><style is:global>
-		:root {
-			--green: #00ff5f;
-			--blue: #0a0163;
-			--orange: #ff5f00;
-			--purple: #3c0163;
-			--pink: #630159;
-		}
-		html {
-			/* width:100%; */
-			/* outline: 2px solid red; */
-			margin: 0;
-		}
-		code {
-			font-family:
-				Menlo,
-				Monaco,
-				Lucida Console,
-				Liberation Mono,
-				DejaVu Sans Mono,
-				Bitstream Vera Sans Mono,
-				Courier New,
-				monospace;
-		}
-		@font-face {
-			font-family: "LeagueGothic";
-			src: url("/fonts/LeagueGothic-1.601/static/WOFF/LeagueGothic-Regular.woff")
-				format("WOFF");
-			font-weight: normal;
-			font-style: normal;
-			font-display: swap;
-		}
-		@font-face {
-			font-family: "LeagueSpartan";
-			src: url("/fonts/LeagueSpartan-2.220/variable/WOFF2/LeagueSpartan-VF.woff2")
-				format("woff2-variations");
-			font-weight: 200 900;
-		}
-		a {
-			color: white;
-			text-decoration: none;
-		}
-	</style>
+		<style is:global>
+			:root {
+				--green: #00ff5f;
+				--blue: #0a0163;
+				--orange: #ff5f00;
+				--purple: #3c0163;
+				--pink: #630159;
+			}
+			html {
+				/* width:100%; */
+				/* outline: 2px solid red; */
+				margin: 0;
+			}
+			code {
+				font-family:
+					Menlo,
+					Monaco,
+					Lucida Console,
+					Liberation Mono,
+					DejaVu Sans Mono,
+					Bitstream Vera Sans Mono,
+					Courier New,
+					monospace;
+			}
+			@font-face {
+				font-family: "LeagueGothic";
+				/* src: url("/fonts/LeagueGothic-1.601/static/WOFF/LeagueGothic-Regular.woff") */
+				/* 	format("WOFF"); */
+				font-weight: normal;
+				font-style: normal;
+				font-display: block;
+			}
+			@font-face {
+				font-family: "LeagueSpartan";
+				font-display: block;
+				src: url("/fonts/LeagueSpartan-2.220/variable/WOFF2/LeagueSpartan-VF.woff2")
+					format("woff2-variations");
+				font-weight: 200 900;
+			}
+			a {
+				color: white;
+				text-decoration: none;
+			}
+		</style>
+
+		<script src="../proto/result.js"></script>
+
+		<script src="../proto/result_login.js"></script>
+		<script>
+			document.addEventListener("astro:page-load", function () {
+				if (document.URL.indexOf("account") < 1) {
+					return;
+				}
+				let resize_events = 0;
+				function draw() {
+					console.log("Drawing");
+					const canvas = document.getElementById("canvas");
+					let height = (canvas.height = window.innerHeight);
+					let width = (canvas.width = window.innerWidth);
+					if (canvas.getContext) {
+						const ctx = canvas.getContext("2d");
+						// for (var i = 0; i < width; i += 50) {
+						//   let distance_from_center = Math.abs(width / 2 - i) / (width / 2);
+						//   ctx.fillRect(
+						//     i,
+						//     converterY(0, Math.floor(height * distance_from_center)),
+						//     25,
+						//     Math.floor(height * distance_from_center),
+						//   );
+						//   ctx.beginPath();
+						//   ctx.arc(i, converterY(i, 0), 10, 0, Math.PI * 2, false);
+						//   ctx.fill();
+						// }
+
+						window.onresize = function () {
+							if (resize_events > 10) {
+								let height = (canvas.height = window.innerHeight);
+								let width = (canvas.width = window.innerWidth);
+								return;
+							}
+							resize_events++;
+							ctx.clearRect(0, 0, canvas.width, canvas.height);
+							draw();
+						};
+						for (var i = 0; i < 1000; i += 1) {
+							let randomY = Math.floor(Math.random() * height);
+							let randomX = Math.floor(Math.random() * width);
+							let randomChoice = Math.floor(Math.random() * 6);
+							let additionalRandomness = random(100);
+							switch (randomChoice) {
+								case 1:
+									ctx.beginPath();
+									ctx.moveTo(randomX, randomY);
+									ctx.fillStyle =
+										"rgb(" +
+										random(255) +
+										" " +
+										random(255) +
+										" " +
+										random(255) +
+										")";
+									ctx.shadowOffsetX = random(20) * Math.pow(-1, random(2) + 1);
+									ctx.shadowOffsetY = random(20) * Math.pow(-1, random(2) + 1);
+									ctx.shadowBlur = 2;
+									ctx.shadowColor = "black";
+
+									ctx.arc(
+										randomX,
+										randomY,
+										Math.floor(Math.random() * 50),
+										0,
+										Math.PI * 2,
+										false,
+									);
+
+									ctx.fill();
+									ctx.closePath();
+									break;
+								case 2:
+									if (additionalRandomness > 5) {
+										break;
+									}
+									ctx.beginPath();
+									ctx.moveTo(randomX, randomY);
+									let randompoint1X =
+										randomX + random(200) * Math.pow(-1, random(2) + 1);
+									let randompoint1Y =
+										randomY + random(200) * Math.pow(-1, random(2) + 1);
+									let randompoint2X =
+										randomX + random(200) * Math.pow(-1, random(2) + 1);
+									let randompoint2Y =
+										randomY + random(200) * Math.pow(-1, random(2) + 1);
+									let randomYdest = Math.floor(Math.random() * height);
+									let randomXdest = Math.floor(Math.random() * width);
+									ctx.bezierCurveTo(
+										randompoint1X,
+										randompoint1Y,
+										randompoint2X,
+										randompoint2Y,
+										randomXdest,
+										randomYdest,
+									);
+									// ctx.moveTo(randomXdest, randomYdest);
+
+									let randompoint3X =
+										randomXdest + random(20) * Math.pow(-1, random(2) + 1);
+									let randompoint3Y =
+										randomYdest + random(20) * Math.pow(-1, random(2) + 1);
+									let randompoint4X =
+										randomXdest + random(20) * Math.pow(-1, random(2) + 1);
+									let randompoint4Y =
+										randomYdest + random(20) * Math.pow(-1, random(2) + 1);
+									ctx.bezierCurveTo(
+										randompoint3X,
+										randompoint3Y,
+										randompoint4X,
+										randompoint4Y,
+										randomX,
+										randomY,
+									);
+									ctx.closePath();
+									ctx.fill();
+									break;
+								case 3:
+									ctx.fillRect(randomX, randomY, random(30), random(30));
+									break;
+							}
+							//draw circle
+							//draw curved thing
+							//draw box
+							//draw lines
+							//draw curves
+						}
+					}
+				}
+				function random(max) {
+					return Math.floor(Math.random() * max);
+				}
+				function converterY(y, height) {
+					return canvas.height - y - height;
+				}
+
+				draw();
+			});
+		</script>
+	</body>
 </html>

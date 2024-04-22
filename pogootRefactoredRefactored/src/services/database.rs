@@ -3,20 +3,20 @@
 //2. Retreive notecards from a Database
 //3. Store user data
 //4. Retreive user data
-use crate::services::server::NotecardDBRequest;
 use crate::AwsSecrets;
-use argon2::password_hash::{
-    rand_core::OsRng, PasswordHash, PasswordHasher, PasswordVerifier, SaltString,
-};
+use argon2::password_hash::{rand_core::OsRng, PasswordHasher, SaltString};
 use argon2::Argon2;
 use libsql::{params, Connection};
+use uuid::Uuid;
 
-use super::notecard::ReMapNotecard;
+use super::notecard::{NotecardData, ReMapNotecard};
+use super::server::pogoots::NotecardLibraryData;
 //NOTECARD STUFF----------------------------------------
 
 pub async fn new_connection(secrets: AwsSecrets) -> Option<Connection> {
     let client_result = turso_init(&secrets).await;
     if client_result.is_err() {
+        println!("Turso init failed");
         return None;
     }
     let client = client_result.unwrap();
@@ -25,6 +25,7 @@ pub async fn new_connection(secrets: AwsSecrets) -> Option<Connection> {
 }
 
 async fn turso_init(secrets: &AwsSecrets) -> Result<Connection, ()> {
+    let dev_build_mode = true;
     let url = secrets.turso_url.as_str();
     let url = url.to_string();
     // let config = Config {
@@ -40,8 +41,14 @@ async fn turso_init(secrets: &AwsSecrets) -> Result<Connection, ()> {
         .build()
         .await;
     if client.is_err() {
+        println!("Client build failed: {:?}", client);
         return Err(());
     }
+    let client = if dev_build_mode {
+        libsql::Builder::new_local(":memory:").build().await
+    } else {
+        client
+    };
     let client = client.unwrap();
     let client = client.connect().unwrap();
     //tracks the users username, password, most recently used ip, and stores more data as
@@ -60,6 +67,10 @@ async fn turso_init(secrets: &AwsSecrets) -> Result<Connection, ()> {
         .await;
 
     if create_table_result.is_err() {
+        println!(
+            "Turso table creation failed for USERS: {:?}",
+            create_table_result
+        );
         return Err(());
     }
 
@@ -70,13 +81,18 @@ async fn turso_init(secrets: &AwsSecrets) -> Result<Connection, ()> {
             OWNER text,
             NAME text,
             BODY BLOB,
-            PERMISSIONS_JSON text
+            PERMISSIONS_JSON text,
+            DESCRIPTION text,
+            TAGS text,
+            SCHOOL text,
+            CFID text
         );",
             (),
         )
         .await;
 
     if create_table_result.is_err() {
+        println!("Turso table creation failed for NOTECARDS");
         return Err(());
     }
     // client.clone();
@@ -86,8 +102,12 @@ async fn turso_init(secrets: &AwsSecrets) -> Result<Connection, ()> {
 /// Assigns a unique ID to the Notecard Sequence
 /// TODO: Redundancy
 ///
-async fn store_string_notecard(conn: Connection, notes: Vec<ReMapNotecard>) -> Result<(), ()> {
-    // let id = Uuid::new_v4();
+pub async fn store_notecards(
+    conn: Connection,
+    notes: Vec<ReMapNotecard>,
+    secrets: &mut AwsSecrets,
+    data: NotecardData,
+) -> Result<String, ()> {
     let json = serde_json::to_string(&notes);
     if json.is_err() {
         println!("Serde To String Error");
@@ -99,8 +119,36 @@ async fn store_string_notecard(conn: Connection, notes: Vec<ReMapNotecard>) -> R
         return Err(());
     }
     let compressed = compressed.unwrap();
+    let id = Uuid::new_v4();
+    let id = format!("{}{}", data.username, id);
+    let result = conn
+        .execute(
+            "INSERT INTO NOTECARDS VALUES (?,?,?,?,?,?,?,?);",
+            //username, email, password, ips
+            params![
+                data.username,
+                data.title,
+                "".as_bytes(),
+                "",
+                data.desc,
+                data.tags,
+                data.school,
+                id.clone()
+            ],
+        )
+        .await;
+    if result.is_err() {
+        return Err(());
+    }
 
-    todo!()
+    let result =
+        crate::services::cfstorage::upload_notecard_to_cloudflare(secrets, compressed, &id).await;
+    if result.is_err() {
+        println!("Notecard Store in Cloudflare Failed");
+        //TODO: Handle failure
+        return Err(());
+    }
+    Ok(id)
 }
 pub async fn store_user_info(email: String, password: String, conn: &Connection) -> Result<(), ()> {
     //     CREATE TABLE IF NOT EXISTS USERS(
@@ -116,22 +164,23 @@ pub async fn store_user_info(email: String, password: String, conn: &Connection)
     // Hash password to PHC string ($argon2id$v=19$...)
     let password_hash = argon2.hash_password(password.as_bytes(), &salt);
     if password_hash.is_err() {
+        println!("Password hashing failed: {:?}", password_hash);
         return Err(());
     }
-    let password_hash = password_hash.unwrap().to_string();
-
-    // Verify password against PHC string.
-    //
-    // NOTE: hash params from `parsed_hash` are used instead of what is configured in the
-    // `Argon2` instance.
-
     let result = conn
         .execute(
-            "INSERT INTO USERS VALUES (?,?,?);",
-            params![email.as_str(), password.as_str(), ""],
+            "INSERT INTO USERS VALUES (?,?,?,?);",
+            //username, email, password, ips
+            params![
+                email.as_str(),
+                email.as_str(),
+                password_hash.unwrap().to_string().as_str(),
+                ""
+            ],
         )
         .await;
     if result.is_err() {
+        println!("Database Insertion failed: {:?}", result);
         return Err(());
     }
     let result = result.unwrap();
@@ -143,17 +192,18 @@ pub async fn store_user_info(email: String, password: String, conn: &Connection)
 pub async fn check_email_exists(conn: &Connection, email: &str) -> Result<Option<String>, ()> {
     let result = conn
         .query(
-            "SELECT PASSWORD FROM USERS WHERE EMAIL = ?1 OR USERNAME = ?1",
+            "SELECT PASSWORD FROM USERS WHERE EMAIL = ?1 OR USERNAME = ?1;",
             params![email],
         )
         .await;
     if result.is_err() {
         println!("Database Query was error");
+        return Err(());
     }
     let mut rows = result.unwrap();
     match rows.next().await {
         Ok(Some(row)) => {
-            let password = row.get_str(2);
+            let password = row.get_str(0);
             if password.is_err() {
                 println!("row index is not TEXT");
                 return Err(());
@@ -167,4 +217,61 @@ pub async fn check_email_exists(conn: &Connection, email: &str) -> Result<Option
         }
     }
     // Ok(None)
+}
+pub async fn fetch_user_library(
+    conn: &Connection,
+    username: &str,
+) -> Result<Vec<NotecardLibraryData>, ()> {
+    // OWNER text,
+    // NAME text,
+    // BODY BLOB,
+    // PERMISSIONS_JSON text,
+    // DESCRIPTION text,
+    // TAGS text,
+    // SCHOOL text,
+    // CFID text
+    let result = conn
+        .query(
+            "SELECT NAME, DESCRIPTION, TAGS, SCHOOL, CFID FROM USERS WHERE EMAIL = ?1 OR USERNAME = ?1;",
+            params![username],
+        )
+        .await;
+    if result.is_err() {
+        println!("Database Query was error");
+        return Err(());
+    }
+    let mut rows = result.unwrap();
+    let mut accumulate = vec![];
+    //loops until empty and returns accumulate
+    //If an error occurs, everything is over
+    while let Ok(rows) = rows.next().await {
+        match rows {
+            Some(row) => {
+                let name = row.get_str(0);
+                let desc = row.get_str(1);
+                let tags = row.get_str(2);
+                let school = row.get_str(3);
+                let cfid = row.get_str(3);
+                if name.is_err()
+                    || desc.is_err()
+                    || tags.is_err()
+                    || school.is_err()
+                    || cfid.is_err()
+                {
+                    println!("row index is not TEXT");
+                    return Err(());
+                }
+                accumulate.push(NotecardLibraryData {
+                    title: name.unwrap().to_string(),
+                    school: school.unwrap().to_string(),
+                    tags: tags.unwrap().to_string(),
+                    desc: desc.unwrap().to_string(),
+                    cfid: cfid.unwrap().to_string(),
+                })
+            }
+            None => return Ok(accumulate),
+        }
+    }
+    println!("Rows errored");
+    Err(())
 }

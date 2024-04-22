@@ -1,7 +1,8 @@
-use crate::services::user_manage::{self, User_Manager};
+use crate::services::user_manage::UserManager;
 use crate::AwsSecrets;
-
+use base64::prelude::*;
 use tokio::sync::Mutex;
+use tonic::transport::ServerTlsConfig;
 pub mod pogoots {
     include!("../pogoot_refactored_refactored.rs");
 }
@@ -12,31 +13,29 @@ use self::{
 use pogoots::login_server_server::LoginServerServer;
 use pogoots::notecard_service_server::NotecardServiceServer;
 use pogoots::*;
-use std::collections::HashMap;
 use std::pin::Pin;
 use std::time::Duration;
+use std::{collections::HashMap, sync::Arc};
 use tokio::sync::mpsc;
-use tokio::sync::mpsc::{Receiver, Sender};
 use tokio_stream::{wrappers::ReceiverStream, Stream};
-use tonic::{transport::Server, Request, Response, Status, Streaming};
+use tonic::{
+    transport::{Identity, Server},
+    Request, Response, Status, Streaming,
+};
 
 type Callback<C> = tokio::sync::oneshot::Sender<C>;
 ///Entry point into starting the service.
-pub async fn start_serving(secrets: AwsSecrets) {
-    let addr = "0.0.0.0:80".parse().unwrap();
-
+pub async fn start_serving(mut secrets: AwsSecrets) {
+    let addr = "[::]:443".parse().unwrap();
+    let cert = BASE64_STANDARD
+        .decode(std::mem::take(&mut secrets.cloudflare_cert))
+        .unwrap();
+    let key = BASE64_STANDARD
+        .decode(std::mem::take(&mut secrets.cloudflare_key))
+        .unwrap();
     // let greeter = MyGreeter::default();
     // let greeter = GreeterServer::new(greeter);
-    let (tx, rx) = tokio::sync::mpsc::channel(100);
-    let clone_secret = secrets.clone();
-    tokio::spawn(async move {
-        crate::services::notecard::upload_proccessor(rx, clone_secret).await;
-    });
-    let notecardServer = NotecardServer { send_channel: tx };
-    let notecardServer = NotecardServiceServer::new(notecardServer);
     let mut con = crate::services::database::new_connection(secrets.clone()).await;
-
-    //repeat connection attempts every 5 seconds
     while con.is_none() {
         println!("Turso connection failed, Trying again");
         tokio::time::sleep(Duration::new(5, 0)).await;
@@ -44,24 +43,38 @@ pub async fn start_serving(secrets: AwsSecrets) {
     }
 
     let con = con.unwrap();
-    let user_manager = User_Manager {
-        tokens: Mutex::new(HashMap::new()),
-        users: Mutex::new(HashMap::new()),
+    let clonecon = con.clone();
+
+    //repeat connection attempts every 5 seconds
+    let user_manager = UserManager {
+        tokens: Arc::new(Mutex::new(HashMap::new())),
+        users: Arc::new(Mutex::new(HashMap::new())),
         connection: con,
     };
     let (ltx, lrx) = tokio::sync::mpsc::channel(100);
     tokio::spawn(async move {
-        user_manager.proccess_user_auth(lrx, secrets.clone()).await;
+        user_manager.proccess_user_auth(lrx).await;
     });
-    let loginServer = LoginService { send_channel: ltx };
-    let loginServer = LoginServerServer::new(loginServer);
+    let login_server = LoginService {
+        send_channel: ltx.clone(),
+    };
+    let login_server = LoginServerServer::new(login_server);
+
+    let (tx, rx) = tokio::sync::mpsc::channel(100);
+    tokio::spawn(async move {
+        crate::services::notecard::upload_proccessor(clonecon, rx, ltx, secrets).await;
+    });
+    let notecard_server = NotecardServer { send_channel: tx };
+    let notecard_server = NotecardServiceServer::new(notecard_server);
 
     println!("Server listening on {}", addr);
     let result = Server::builder()
+        .tls_config(ServerTlsConfig::new().identity(Identity::from_pem(&cert, &key)))
+        .unwrap()
         // GrpcWeb is over http1 so we must enable it.
         .accept_http1(true)
-        .add_service(tonic_web::enable(notecardServer))
-        .add_service(tonic_web::enable(loginServer))
+        .add_service(tonic_web::enable(notecard_server))
+        .add_service(tonic_web::enable(login_server))
         .serve(addr)
         .await;
     println!("Result: {:?}", result);
@@ -72,7 +85,7 @@ pub enum NotecardDBRequest {
     ///Stores a notecard
     Store(NotecardListUploadRequest, Callback<NotecardUploadResponse>),
     ///Takes an ID and a callback
-    Fetch(String, Callback<NotecardList>),
+    List(NotecardLibraryRequest, Callback<NotecardLibraryList>),
     ///Takes an ID and a callback
     Modify(NotecardModifyRequest, Callback<NotecardUploadResponse>),
 }
@@ -83,9 +96,11 @@ struct NotecardServer {
 }
 
 pub enum LoginDBRequest {
-    Register(UserRegisterWithEmailRequest, Sender<LoginResponse>),
-    Login(UserLoginRequest, Sender<LoginResponse>),
-    Update(UserPasswordUpdateRequest, Sender<LoginResponse>),
+    Register(UserRegisterWithEmailRequest, Callback<LoginResponse>),
+    Login(UserLoginRequest, Callback<LoginResponse>),
+    Update(UserPasswordUpdateRequest, Callback<LoginResponse>),
+    ///Token, Username
+    VerifyToken(String, String, Callback<bool>),
 }
 
 #[derive(Debug)]
@@ -118,6 +133,10 @@ impl NotecardService for NotecardServer {
             .send_channel
             .send(NotecardDBRequest::Store(request.into_inner(), tx))
             .await;
+        if send_result.is_err() {
+            println!("Upload Channel Failed");
+            return Err(Status::new(tonic::Code::Internal, "Channel send failed"));
+        }
         let result = rx.await;
         if result.is_ok() {
             let result = result.unwrap();
@@ -137,6 +156,12 @@ impl NotecardService for NotecardServer {
             .send_channel
             .send(NotecardDBRequest::Modify(request.into_inner(), tx))
             .await;
+        if send_result.is_err() {
+            return Err(Status::new(
+                tonic::Code::Internal,
+                "Modify request failed when send channel failed to send",
+            ));
+        }
 
         let result = rx.await;
         if result.is_ok() {
@@ -150,9 +175,29 @@ impl NotecardService for NotecardServer {
     }
     async fn fetch(
         &self,
-        request: tonic::Request<NotecardFetchRequest>,
-    ) -> Result<tonic::Response<NotecardList>, Status> {
-        unimplemented!()
+        request: tonic::Request<NotecardLibraryRequest>,
+    ) -> Result<tonic::Response<NotecardLibraryList>, Status> {
+        let (tx, rx) = tokio::sync::oneshot::channel();
+        let send_result = self
+            .send_channel
+            .send(NotecardDBRequest::List(request.into_inner(), tx))
+            .await;
+        if send_result.is_err() {
+            return Err(Status::new(
+                tonic::Code::Internal,
+                "Fetch request failed when send channel failed to send",
+            ));
+        }
+
+        let result = rx.await;
+        if result.is_ok() {
+            let result = result.unwrap();
+            //Print for testing
+            println!("Note Card Fetch processed: {:?}", result);
+            return Ok(Response::new(result));
+        }
+        //TODO:Better debug info
+        Err(Status::new(tonic::Code::Internal, "Something went wrong"))
     }
 }
 
@@ -165,13 +210,47 @@ impl LoginServer for LoginService {
         &self,
         userlogin: Request<UserLoginRequest>,
     ) -> Result<Response<LoginResponse>, Status> {
-        unimplemented!()
+        let userlogin = userlogin.into_inner();
+        let (tx, rx) = tokio::sync::oneshot::channel();
+        let login_dbrequest = LoginDBRequest::Login(userlogin, tx);
+        let send_result = self.send_channel.send(login_dbrequest).await;
+        if send_result.is_err() {
+            println!("Login Send Channel Failed");
+            return Err(Status::new(tonic::Code::Internal, "Login Channel Failed"));
+        }
+        let callback_result = rx.await;
+        if callback_result.is_err() {
+            println!("Callback Channel failed");
+            return Err(Status::new(
+                tonic::Code::Internal,
+                "Callback Channel failed",
+            ));
+        }
+        let callback_result = callback_result.unwrap();
+        Ok(Response::new(callback_result))
     }
     async fn register(
         &self,
-        userRegisterWithEmail: Request<UserRegisterWithEmailRequest>,
+        user_register_with_email: Request<UserRegisterWithEmailRequest>,
     ) -> Result<Response<LoginResponse>, Status> {
-        unimplemented!()
+        let user_register = user_register_with_email.into_inner();
+        let (tx, rx) = tokio::sync::oneshot::channel();
+        let register_dbrequest = LoginDBRequest::Register(user_register, tx);
+        let send_result = self.send_channel.send(register_dbrequest).await;
+        if send_result.is_err() {
+            println!("Login Send Channel Failed");
+            return Err(Status::new(tonic::Code::Internal, "Login Channel Failed"));
+        }
+        let callback_result = rx.await;
+        if callback_result.is_err() {
+            println!("Callback Channel failed");
+            return Err(Status::new(
+                tonic::Code::Internal,
+                "Callback Channel failed",
+            ));
+        }
+        let callback_result = callback_result.unwrap();
+        Ok(Response::new(callback_result))
     }
     async fn update(
         &self,

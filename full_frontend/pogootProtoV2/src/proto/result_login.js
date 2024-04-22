@@ -1,8 +1,11 @@
 (function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
 document.addEventListener("astro:page-load", () => {
-  if (document.URL.indexOf("create") < 0) {
+  if (document.URL.indexOf("account") < 1) {
     return;
   }
+
+  var alertBox = document.getElementById("exampleAlert");
+  alertBox.style.display = "none";
   const {
     GameStartInfoResponse,
     LoginResponse,
@@ -33,210 +36,124 @@ document.addEventListener("astro:page-load", () => {
     PogootPlayerServerClient,
   } = require("./pogoots_grpc_web_pb.js");
 
-  var client = new NotecardServiceClient("https://bigpogoot.sweep.rs");
+  let register_button = document.getElementById("RegisterButton");
+  let login_button = document.getElementById("LoginButton");
 
-  let clone_count = 0;
-  let cards = document.getElementById("cards");
-  let example_created = document.getElementById("created");
-  example_created.style.display = "none";
-  notecardHeaderLeft.style.display = "none";
-  notecardHeaderRight.style.display = "none";
-  var creates = document.getElementById("create");
-  var alertBox = document.getElementById("exampleAlert");
-  var titleInput = document.getElementById("titleInput");
-  alertBox.style.display = "none";
-  var alerts = document.getElementById("Alerts");
-  var front_input = document.getElementById("createFrontInput");
-  var back_input = document.getElementById("createBackInput");
-  var end_cap = document.getElementById("end_cap");
-  var save_button = document.getElementById("save");
-  var skip_back_input = false;
-  var skip_front_input = false;
-  let rows = 1;
+  register_button.addEventListener("click", function (event) {
+    event.preventDefault();
+    let email = document.getElementById("emailRegister").value;
+    let emailConfirm = document.getElementById("emailRegisterConfirm").value;
+    let password = document.getElementById("passwordRegister").value;
+    let passwordConfirm = document.getElementById(
+      "passwordRegisterConfirm",
+    ).value;
 
-  let immediate_line_add = false;
-  let last_value_length = 0;
-  let entered_rows = 0;
-  let last_line_count = 1;
-  front_input.oninput = function (ev) {
-    let input1 = front_input.value.split("\n");
-    let rows = 0;
-    for (var index = input1.length - 1; index >= 0; index--) {
-      rows += 1;
-      let length_temp = input1[index].length;
-      while (length_temp > 34) {
-        rows += 1;
-        length_temp -= 34;
-      }
-    }
+    if (email != emailConfirm) {
+      send_alert("red", "Emails do not match", "Please try again");
+      document
+        .getElementById("emailRegister")
+        .setCustomValidity("Emails do not match");
 
-    front_input.rows = rows;
-  };
-  back_input.oninput = function (ev) {
-    let input1 = back_input.value.split("\n");
-    let rows = 0;
-    for (var index = input1.length - 1; index >= 0; index--) {
-      rows += 1;
-      let length_temp = input1[index].length;
-      while (length_temp > 34) {
-        rows += 1;
-        length_temp -= 34;
-      }
-    }
+      // document.getElementById("emailRegister").innerHTML =
+      //   "Emails do not match";
+      document
+        .getElementById("emailRegisterConfirm")
+        .setCustomValidity("Emails do not match");
 
-    back_input.rows = rows;
-  };
-  end_cap.onclick = function (ev) {
-    skip_front_input = true;
-    skip_back_input = true;
-    new_card(ev);
-  };
-  front_input.onblur = back_input.onblur = new_card;
-
-  function new_card(ev) {
-    if (
-      (front_input.value == "" && !skip_front_input) ||
-      (back_input.value == "" && !skip_back_input)
-    ) {
       return;
-    }
-    let cloned_created = example_created.cloneNode();
-    cloned_created.id = "created:" + clone_count;
-    let cloned_front_input = front_input.cloneNode();
-    let cloned_back_input = back_input.cloneNode();
-    let cloned_left_header = document
-      .getElementById("notecardHeaderLeft")
-      .cloneNode(true);
-    cloned_left_header.value = cloned_left_header.value + ":" + clone_count;
-    let cloned_right_header = document
-      .getElementById("notecardHeaderRight")
-      .cloneNode(true);
-
-    cloned_right_header.value = cloned_right_header.value + ":" + clone_count;
-    let current_clone = clone_count;
-    cloned_right_header.childNodes[1].onclick = function (ev) {
-      console.log(ev);
-      let node = document.getElementById("created:" + current_clone);
-      cards.removeChild(node);
-      reorder_all_entries();
-    };
-    cloned_left_header.childNodes[1].value = clone_count + 1;
-    cloned_left_header.style.display = cloned_right_header.style.display =
-      "grid";
-    front_input.value = "";
-    back_input.value = "";
-    cloned_front_input.id = "front:" + clone_count;
-    cloned_back_input.id = "back:" + clone_count;
-    clone_count++;
-    cloned_created.appendChild(cloned_left_header);
-    cloned_created.appendChild(cloned_right_header);
-    cloned_created.appendChild(cloned_front_input);
-    cloned_created.appendChild(cloned_back_input);
-    cloned_created.style.display = "grid";
-    cards.insertBefore(cloned_created, creates.nextSibling);
-    skip_back_input = false;
-    skip_front_input = false;
-    front_input.rows = 1;
-    back_input.rows = 1;
-    rows = 1;
-    front_input.focus();
-    console.log(cards.childNodes);
-  }
-
-  function reorder_all_entries() {
-    let nodes = document.getElementsByClassName("notecardContainer");
-    for (var node = nodes.length - 2; node > 0; node--) {
-      let node_entry = nodes[node];
-      node_entry.id = "temp_node:" + (node - 1);
-      node_entry.childNodes[2].id = "temp_front:" + (node - 1);
-      node_entry.childNodes[3].id = "temp_back:" + (node - 1);
-    }
-
-    for (var node = nodes.length - 2; node > 0; node--) {
-      let node_entry = nodes[node];
-      console.log(node);
-      node_entry.id = "created:" + (node - 1);
-      node_entry.childNodes[0].childNodes[1].value =
-        nodes.length - 2 - node + 1;
-      let current_clone = node - 1;
-      node_entry.childNodes[1].childNodes[1].onclick = function (ev) {
-        let noder = document.getElementById("created:" + current_clone);
-        cards.removeChild(noder);
-        reorder_all_entries();
-      };
-      node_entry.childNodes[2].id = "front:" + (node - 1);
-      node_entry.childNodes[3].id = "back:" + (node - 1);
-    }
-    if (nodes.length == 2) {
-      clone_count = 0;
     } else {
-      clone_count = nodes.length - 2;
-    }
-  }
+      document.getElementById("emailRegister").setCustomValidity("");
 
-  save_button.onclick = function (ev) {
-    var fronts = document.getElementsByClassName("frontNotecardInput");
-    var backs = document.getElementsByClassName("backNotecardInput");
-    if (titleInput.value.length < 1) {
-      send_alert("red", "No Title", "Please add a title");
+      document.getElementById("emailRegisterConfirm").setCustomValidity("");
+    }
+    if (
+      document.getElementById("emailRegister").validity.typeMismatch ||
+      document.getElementById("emailRegister").validity.valueMissing
+    ) {
+      send_alert("red", "Invalid email", "Please enter a valid email");
+      console.log("Invalid email");
+      document
+        .getElementById("emailRegister")
+        .setCustomValidity("Please Enter a valid email");
+      document
+        .getElementById("emailRegisterConfirm")
+        .setCustomValidity("Please Enter a valid email");
+      return;
+    } else {
+      document.getElementById("emailRegister").setCustomValidity("");
+      document.getElementById("emailRegisterConfirm").setCustomValidity("");
+    }
+
+    if (password != passwordConfirm) {
+      send_alert("red", "Passwords do not match", "Re-input if needed!");
+      document
+        .getElementById("passwordRegister")
+        .setCustomValidity("Passwords do not match");
+      document
+        .getElementById("passwordRegisterConfirm")
+        .setCustomValidity("Passwords do not match");
+      return;
+    } else {
+      document.getElementById("passwordRegister").setCustomValidity("");
+      document.getElementById("passwordRegisterConfirm").setCustomValidity("");
+    }
+    if (document.getElementById("passwordRegister").validity.valueMissing) {
+      send_alert(
+        "red",
+        "Please enter a password",
+        "Use a new password for every account!",
+      );
       return;
     }
-    if (fronts.length < 2) {
-      // console.log("no content");
-      send_alert("red", "No Content", "Please add at least 1 card");
+
+    let client = new LoginServerClient("https://bigpogoot.sweep.rs");
+    let regReq = new UserRegisterWithEmailRequest();
+    regReq.setEmail(email);
+    regReq.setPassword(password);
+    if (document.getElementById("RegisterButton").disabled) {
       return;
     }
-    if (cookie_get("auth").length < 2 || cookie_get("username").length < 2) {
-      send_alert("red", "Login", "Please Login before uploading");
-    }
+    document.getElementById("RegisterButton").disabled = true;
+    setTimeout(
+      'document.getElementById("RegisterButton").disabled=false;',
+      5000,
+    );
 
-    var list = [];
-    for (var i = 1; i < fronts.length; i++) {
-      var notecard = new Notecard();
-      // console.log(fronts[i].value);
-      notecard.setFrontList([fronts[i].value]);
-      notecard.setBackList([backs[i].value]);
-      // console.log(notecard);
-      list.push(notecard);
-    }
-    var notecardList = new NotecardList();
-    notecardList.setNotecardsList(list);
-
-    console.log(notecardList);
-
-    var request = new NotecardListUploadRequest();
-    request.setNotecards(notecardList);
-    request.setAuthToken(cookie_get("auth"));
-    request.setTitle(document.getElementById("titleInput").value);
-    request.setDescription(document.getElementById("description").value);
-    request.setTags(document.getElementById("tags").value);
-    request.setSchool(document.getElementById("school"));
-    request.setUsername(cookie_get("username"));
-    console.log(request);
-    uploader(request);
-  };
-
-  function uploader(request) {
-    client.upload(request, {}, (err, response) => {
-      console.log(response.array[1]);
+    client.register(regReq, {}, (err, response) => {
+      console.log(response);
+      if (response.array[1] == "User Logged In Already") {
+        send_alert("red", "User already exists", "Try logging in");
+      } else if (response.array[0]) {
+        send_alert("green", "Login Success", "Redirecting...");
+        cookie_set("auth", response.array[1]);
+        cookie_set("username", email);
+        redirect();
+      }
     });
-  }
+  });
 
-  function send_alert(color, header, text) {
-    let box = alertBox.cloneNode(true);
-    box.style.outline = color + " solid 3px";
-    console.log(box.childNodes);
-    box.childNodes[1].innerText = header;
-    box.childNodes[3].innerText = text;
-    box.style.display = "grid";
-    alerts.appendChild(box);
-    setTimeout(() => {
-      alerts.removeChild(box);
-    }, 5000);
-  }
-  function redirect() {
-    window.location.href = "/library";
-  }
+  login_button.addEventListener("click", function (event) {
+    event.preventDefault();
+
+    let email = document.getElementById("emailLogin").value;
+    let password = document.getElementById("passwordLogin").value;
+
+    let client = new LoginServerClient("https://bigpogoot.sweep.rs");
+    let regReq = new UserLoginRequest();
+    regReq.setEmail(email);
+    regReq.setPassword(password);
+    client.login(regReq, {}, (err, response) => {
+      console.log(response);
+      if (response.array[0]) {
+        send_alert("green", "Login Success", "Redirecting...");
+        cookie_set("auth", response.array[1]);
+        cookie_set("username", email);
+        redirect();
+      } else {
+        send_alert("red", "Incorrect credentials", "");
+      }
+    });
+  });
 
   function cookie_set(key, value) {
     var date = new Date();
@@ -281,6 +198,24 @@ document.addEventListener("astro:page-load", () => {
         return cook[1];
       }
     }
+  }
+
+  function send_alert(color, header, text) {
+    var alertBox = document.getElementById("exampleAlert");
+    var alerts = document.getElementById("Alerts");
+    let box = alertBox.cloneNode(true);
+    box.style.outline = color + " solid 3px";
+    console.log(box.childNodes);
+    box.childNodes[1].innerText = header;
+    box.childNodes[3].innerText = text;
+    box.style.display = "grid";
+    alerts.appendChild(box);
+    setTimeout(() => {
+      alerts.removeChild(box);
+    }, 5000);
+  }
+  function redirect() {
+    window.location.href = "/library";
   }
 });
 

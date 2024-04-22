@@ -1,23 +1,26 @@
 ---
-import Layout from '../layouts/Layout.astro';
-import Card from '../components/Card.astro';
-import NavBar from '../components/NavBar.astro';
+export const prerender = true;
+import Layout from "../layouts/Layout.astro";
+import Card from "../components/Card.astro";
+import NavBar from "../components/NavBar.astro";
 ---
 
 <Layout title="Home | Pogoot">
   <NavBar />
   <main class="FirstGlance">
     <!-- <img src="../../public/placeholderimage.jpg" class="bannerImage"> -->
-    <div id="firstrow"><h1>
-      Header One
-    </h1></div>
+    <div id="firstrow"><h1>Header One</h1></div>
     <!-- Note card theme -->
     <!-- <div></div> -->
     <div id="secondrow">
-      <div id="notecard1" class="notecardplaceholder"><h1><strong>Experience a new era of learning</strong></h1></div>
+      <div id="notecard1" class="notecardplaceholder">
+        <h1><strong>Experience a new era of learning</strong></h1>
+      </div>
     </div>
     <div id="thirdrow">
-      <div id="notecard2" class="notecardplaceholder"><h1><strong>Bubble</strong></h1></div>
+      <div id="notecard2" class="notecardplaceholder">
+        <h1><strong>Bubble</strong></h1>
+      </div>
     </div>
     <!-- <div>Bubble</div> -->
     <!-- <div>Bubble</div> -->
@@ -28,52 +31,51 @@ import NavBar from '../components/NavBar.astro';
 </Layout>
 
 <style>
-  body{
-    display:grid;
-    width:100%;
-    height:100%;
+  body {
+    display: grid;
+    width: 100%;
+    height: 100%;
     /* background-color: rgb(253, 249, 241); */
     margin: 0;
-    background-color:var(--blue);
-    color:white;
+    background-color: var(--blue);
+    color: white;
     font-family: LeagueSpartan;
-    font-size:20px;
+    font-size: 20px;
     /* outline: 2px solid red; */
     /* margin:-8px; */
   }
 
-  main{
-    display:grid;
-    position:absolute;
-    width:50%;
+  main {
+    display: grid;
+    position: absolute;
+    width: 50%;
     /* outline: 2px solid red; */
-    top:50px;
-    left:25%;
+    top: 50px;
+    left: 25%;
     /* padding-left:50px; */
     /* background-image: linear-gradient(to bottom right, #F5E3B8, #F5DD67); */
     /* outline: 2px solid red; */
   }
-  #sidebar{
+  #sidebar {
     /* outline: 2px solid red; */
   }
-  .notecardplaceholder{
-    width:500px;
-    height:300px;
-    border-radius:10px 10px 10px 10px;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    text-align:center;
+  .notecardplaceholder {
+    width: 500px;
+    height: 300px;
+    border-radius: 10px 10px 10px 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
   }
-  #notecard1{
-    background-color:var(--green);
+  #notecard1 {
+    background-color: var(--green);
   }
-  #notecard2{
-    margin-top:10px;
-    background-color:var(--pink);
+  #notecard2 {
+    margin-top: 10px;
+    background-color: var(--pink);
     /* position:absolute; */
     /* left:100px; */
-    float:right;
+    float: right;
   }
-  
 </style>

@@ -1,31 +1,80 @@
 use crate::{
-    server::NotecardDBRequest, services::server::pogoots::NotecardUploadResponse, AwsSecrets,
+    server::NotecardDBRequest,
+    services::server::pogoots::{NotecardLibraryList, NotecardList, NotecardUploadResponse},
+    AwsSecrets,
 };
+use libsql::Connection;
 use serde::{Deserialize, Serialize};
-use tokio::sync::mpsc::{Receiver, Sender};
 
-use super::server::pogoots::Notecard;
+use super::{
+    database::{self, fetch_user_library},
+    server::{
+        pogoots::{Notecard, NotecardLibraryData},
+        LoginDBRequest,
+    },
+};
 
 pub async fn upload_proccessor(
+    conn: Connection,
     mut reciever: tokio::sync::mpsc::Receiver<NotecardDBRequest>,
+    verifyer: tokio::sync::mpsc::Sender<LoginDBRequest>,
     secrets: AwsSecrets,
 ) {
     while let Some(request) = reciever.recv().await {
         match request {
-            NotecardDBRequest::Store(Request, callback) => {
-                println!("Store Request Recieved: {:?}", Request);
-                let auth = Request.auth_token;
-                if let Some(set) = Request.notecards {
+            NotecardDBRequest::Store(request, callback) => {
+                println!("Store Request Recieved: {:?}", request);
+
+                let auth = request.auth_token;
+                let title = request.title;
+                let school = request.school;
+                let tags = request.tags;
+                let description = request.description;
+                let data = NotecardData {
+                    auth,
+                    title,
+                    school,
+                    tags,
+                    desc: description,
+                    username: request.username,
+                };
+
+                if let Some(set) = request.notecards {
                     let notes = set.notecards;
                     let notes = notes
                         .into_iter()
                         .map(ReMapNotecard::remap)
                         .collect::<Vec<ReMapNotecard>>();
-                    store_with_sql(notes, auth).await;
+
+                    println!("{:?}", notes);
+                    let clonecon = conn.clone();
+                    let verifyerclone = verifyer.clone();
+                    let secret_clone = secrets.clone();
+                    tokio::spawn(async move {
+                        let store_result =
+                            store_with_sql(clonecon, notes, data, verifyerclone, secret_clone)
+                                .await;
+
+                        let callback_result = if let Ok(result) = store_result {
+                            callback.send(NotecardUploadResponse {
+                                success: true,
+                                id: result,
+                            })
+                        } else {
+                            callback.send(NotecardUploadResponse {
+                                success: false,
+                                id: "Upload failed".to_string(),
+                            })
+                        };
+
+                        if callback_result.is_err() {
+                            println!("Callback failed");
+                        }
+                    });
                 } else {
                     let response = NotecardUploadResponse {
                         success: false,
-                        id: "placeholder".to_string(),
+                        id: "Upload Failed, No Notecards Provided".to_string(),
                     };
                     let callback_result = callback.send(response);
                     if callback_result.is_err() {
@@ -33,19 +82,117 @@ pub async fn upload_proccessor(
                     }
                 }
             }
-            NotecardDBRequest::Fetch(ID, callback) => {
-                todo!()
+            NotecardDBRequest::List(request, callback) => {
+                println!("Fetch request recieved: {:?}", request);
+                //TODO: Implement permissions system
+                let auth = request.auth_token;
+                let username = request.username;
+
+                let clonecon = conn.clone();
+                let verifyerclone = verifyer.clone();
+                // let secret_clone = secrets.clone();
+                tokio::spawn(async move {
+                    let list_result =
+                        get_library_with_sql(clonecon, auth, verifyerclone, username).await;
+
+                    let callback_result = if let Ok(result) = list_result {
+                        callback.send(NotecardLibraryList {
+                            library: result,
+                            success: true,
+                        })
+                    } else {
+                        callback.send(NotecardLibraryList {
+                            library: Vec::with_capacity(0),
+                            success: false,
+                        })
+                    };
+
+                    if callback_result.is_err() {
+                        println!("Callback failed");
+                    }
+                });
             }
-            NotecardDBRequest::Modify(Request, callback) => {
+            NotecardDBRequest::Modify(request, callback) => {
                 todo!()
             }
         }
     }
 }
+pub struct NotecardData {
+    pub auth: String,
+    pub title: String,
+    pub school: String,
+    pub tags: String,
+    pub desc: String,
+    pub username: String,
+}
 
-async fn store_with_sql(list: Vec<ReMapNotecard>, auth: String) {
-    // let json = serde_json::to_string(&list);
-    todo!()
+async fn store_with_sql(
+    conn: Connection,
+    list: Vec<ReMapNotecard>,
+    mut data: NotecardData,
+    verifyer: tokio::sync::mpsc::Sender<LoginDBRequest>,
+    mut secrets: AwsSecrets,
+) -> Result<String, ()> {
+    //TODO:Verify login
+    let verified = verify_credentials(
+        verifyer,
+        std::mem::take(&mut data.auth),
+        std::mem::take(&mut data.username),
+    )
+    .await;
+    if verified.is_err() {
+        println!("Verification failed");
+        return Err(());
+    }
+    if !verified.unwrap() {
+        println!("Invalid Credentials");
+        return Err(());
+    }
+    database::store_notecards(conn, list, &mut secrets, data).await
+}
+
+async fn get_library_with_sql(
+    conn: Connection,
+    auth: String,
+    verifyer: tokio::sync::mpsc::Sender<LoginDBRequest>,
+    username: String,
+) -> Result<Vec<NotecardLibraryData>, ()> {
+    let verified = verify_credentials(verifyer, auth, username.clone()).await;
+    if verified.is_err() {
+        println!("Verification failed");
+        return Err(());
+    }
+    if !verified.unwrap() {
+        println!("Invalid Credentials");
+        return Err(());
+    }
+    fetch_user_library(&conn, &username).await
+}
+
+async fn verify_credentials(
+    verifyer: tokio::sync::mpsc::Sender<LoginDBRequest>,
+    auth: String,
+    username: String,
+) -> Result<bool, ()> {
+    let (tx, rx) = tokio::sync::oneshot::channel();
+    let result = verifyer
+        .send(LoginDBRequest::VerifyToken(auth, username, tx))
+        .await;
+    if result.is_err() {
+        println!("Verifyer channel failed somehow!!!");
+        return Err(());
+    }
+    let result = rx.await;
+    if result.is_err() {
+        println!("Callback Channel Failed to recieve, verifier dropped the channel");
+        return Err(());
+    }
+    if !result.unwrap() {
+        println!("Invalid Credentials");
+        return Err(());
+    }
+    Ok(true)
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]

@@ -1,4 +1,5 @@
 ---
+export const prerender = true;
 import Layout from "../layouts/Layout.astro";
 import Card from "../components/Card.astro";
 import NavBar from "../components/NavBar.astro";
@@ -13,7 +14,7 @@ import SearchBar from "../components/SearchBar.astro";
     <SearchBar id="accountSearchBar" />
   </div>
   <main class="LibraryMain">
-    <div class="placeholderLibraryEntry">
+    <div class="placeholderLibraryEntry" style="display: none;">
       <div class="header">
         <p class="titlePlaceholder"><strong>Title</strong></p><p
           class="authorPlaceholder"
@@ -106,36 +107,13 @@ import SearchBar from "../components/SearchBar.astro";
 </style>
 
 <script>
-  {
-    /* <div class="placeholderLibraryEntry"> */
-  }
-  {
-    /*   <div class="header"> */
-  }
-  {
-    /*     <p class="titlePlaceholder"><strong>Title</strong></p><p */
-  }
-  {
-    /*       class="authorPlaceholder" */
-  }
-  {
-    /*     > */
-  }
-  {
-    /*       <strong>Author: </strong> */
-  }
-  {
-    /*     </p><p class="datePlaceholder">Created:</p> */
-  }
-  {
-    /*   </div> */
-  }
-  {
-    /* </div> */
-  }
-
-  var placeholder = document.getElementsByClassName(
-    "placeholderLibraryEntry",
-  )[0];
-  placeholder.style.display = "none";
+  // document.addEventListener("astro:page-load", function () {
+  //   if (document.URL.indexOf("library") < 1) {
+  //     return;
+  //   }
+  //   var placeholder = document.getElementsByClassName(
+  //     "placeholderLibraryEntry",
+  //   )[0];
+  //   placeholder.style.display = "none";
+  // });
 </script>
