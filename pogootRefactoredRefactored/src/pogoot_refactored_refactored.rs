@@ -45,6 +45,33 @@ pub struct NotecardList {
 }
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
+pub struct NotecardLibraryList {
+    #[prost(message, repeated, tag = "1")]
+    pub library: ::prost::alloc::vec::Vec<NotecardLibraryData>,
+    #[prost(bool, tag = "2")]
+    pub success: bool,
+}
+/// pub title: String,
+/// pub school: String,
+/// pub tags: String,
+/// pub desc: String,
+/// pub CFID: String
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct NotecardLibraryData {
+    #[prost(string, tag = "1")]
+    pub title: ::prost::alloc::string::String,
+    #[prost(string, tag = "2")]
+    pub school: ::prost::alloc::string::String,
+    #[prost(string, tag = "3")]
+    pub tags: ::prost::alloc::string::String,
+    #[prost(string, tag = "4")]
+    pub desc: ::prost::alloc::string::String,
+    #[prost(string, tag = "5")]
+    pub cfid: ::prost::alloc::string::String,
+}
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct Notecard {
     #[prost(string, repeated, tag = "1")]
     pub front: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
@@ -301,7 +328,10 @@ pub mod notecard_service_client {
         pub async fn fetch(
             &mut self,
             request: impl tonic::IntoRequest<super::NotecardLibraryRequest>,
-        ) -> std::result::Result<tonic::Response<super::NotecardList>, tonic::Status> {
+        ) -> std::result::Result<
+            tonic::Response<super::NotecardLibraryList>,
+            tonic::Status,
+        > {
             self.inner
                 .ready()
                 .await
@@ -937,7 +967,10 @@ pub mod notecard_service_server {
         async fn fetch(
             &self,
             request: tonic::Request<super::NotecardLibraryRequest>,
-        ) -> std::result::Result<tonic::Response<super::NotecardList>, tonic::Status>;
+        ) -> std::result::Result<
+            tonic::Response<super::NotecardLibraryList>,
+            tonic::Status,
+        >;
         async fn modify(
             &self,
             request: tonic::Request<super::NotecardModifyRequest>,
@@ -1079,7 +1112,7 @@ pub mod notecard_service_server {
                         T: NotecardService,
                     > tonic::server::UnaryService<super::NotecardLibraryRequest>
                     for FetchSvc<T> {
-                        type Response = super::NotecardList;
+                        type Response = super::NotecardLibraryList;
                         type Future = BoxFuture<
                             tonic::Response<Self::Response>,
                             tonic::Status,

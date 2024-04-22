@@ -85,7 +85,7 @@ pub enum NotecardDBRequest {
     ///Stores a notecard
     Store(NotecardListUploadRequest, Callback<NotecardUploadResponse>),
     ///Takes an ID and a callback
-    List(NotecardLibraryRequest, Callback<NotecardList>),
+    List(NotecardLibraryRequest, Callback<NotecardLibraryList>),
     ///Takes an ID and a callback
     Modify(NotecardModifyRequest, Callback<NotecardUploadResponse>),
 }
@@ -176,7 +176,7 @@ impl NotecardService for NotecardServer {
     async fn fetch(
         &self,
         request: tonic::Request<NotecardLibraryRequest>,
-    ) -> Result<tonic::Response<NotecardList>, Status> {
+    ) -> Result<tonic::Response<NotecardLibraryList>, Status> {
         let (tx, rx) = tokio::sync::oneshot::channel();
         let send_result = self
             .send_channel

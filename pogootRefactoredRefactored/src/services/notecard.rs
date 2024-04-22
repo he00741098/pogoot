@@ -1,12 +1,17 @@
 use crate::{
-    server::NotecardDBRequest, services::server::pogoots::NotecardUploadResponse, AwsSecrets,
+    server::NotecardDBRequest,
+    services::server::pogoots::{NotecardLibraryList, NotecardList, NotecardUploadResponse},
+    AwsSecrets,
 };
 use libsql::Connection;
 use serde::{Deserialize, Serialize};
 
 use super::{
-    database,
-    server::{pogoots::Notecard, LoginDBRequest},
+    database::{self, fetch_user_library},
+    server::{
+        pogoots::{Notecard, NotecardLibraryData},
+        LoginDBRequest,
+    },
 };
 
 pub async fn upload_proccessor(
@@ -82,6 +87,30 @@ pub async fn upload_proccessor(
                 //TODO: Implement permissions system
                 let auth = request.auth_token;
                 let username = request.username;
+
+                let clonecon = conn.clone();
+                let verifyerclone = verifyer.clone();
+                // let secret_clone = secrets.clone();
+                tokio::spawn(async move {
+                    let list_result =
+                        get_library_with_sql(clonecon, auth, verifyerclone, username).await;
+
+                    let callback_result = if let Ok(result) = list_result {
+                        callback.send(NotecardLibraryList {
+                            library: result,
+                            success: true,
+                        })
+                    } else {
+                        callback.send(NotecardLibraryList {
+                            library: Vec::with_capacity(0),
+                            success: false,
+                        })
+                    };
+
+                    if callback_result.is_err() {
+                        println!("Callback failed");
+                    }
+                });
             }
             NotecardDBRequest::Modify(request, callback) => {
                 todo!()
@@ -123,9 +152,23 @@ async fn store_with_sql(
     database::store_notecards(conn, list, &mut secrets, data).await
 }
 
-// async fn get_library_with_sql{
-//
-// }
+async fn get_library_with_sql(
+    conn: Connection,
+    auth: String,
+    verifyer: tokio::sync::mpsc::Sender<LoginDBRequest>,
+    username: String,
+) -> Result<Vec<NotecardLibraryData>, ()> {
+    let verified = verify_credentials(verifyer, auth, username.clone()).await;
+    if verified.is_err() {
+        println!("Verification failed");
+        return Err(());
+    }
+    if !verified.unwrap() {
+        println!("Invalid Credentials");
+        return Err(());
+    }
+    fetch_user_library(&conn, &username).await
+}
 
 async fn verify_credentials(
     verifyer: tokio::sync::mpsc::Sender<LoginDBRequest>,

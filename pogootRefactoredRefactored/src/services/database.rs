@@ -10,6 +10,7 @@ use libsql::{params, Connection};
 use uuid::Uuid;
 
 use super::notecard::{NotecardData, ReMapNotecard};
+use super::server::pogoots::NotecardLibraryData;
 //NOTECARD STUFF----------------------------------------
 
 pub async fn new_connection(secrets: AwsSecrets) -> Option<Connection> {
@@ -216,4 +217,61 @@ pub async fn check_email_exists(conn: &Connection, email: &str) -> Result<Option
         }
     }
     // Ok(None)
+}
+pub async fn fetch_user_library(
+    conn: &Connection,
+    username: &str,
+) -> Result<Vec<NotecardLibraryData>, ()> {
+    // OWNER text,
+    // NAME text,
+    // BODY BLOB,
+    // PERMISSIONS_JSON text,
+    // DESCRIPTION text,
+    // TAGS text,
+    // SCHOOL text,
+    // CFID text
+    let result = conn
+        .query(
+            "SELECT NAME, DESCRIPTION, TAGS, SCHOOL, CFID FROM USERS WHERE EMAIL = ?1 OR USERNAME = ?1;",
+            params![username],
+        )
+        .await;
+    if result.is_err() {
+        println!("Database Query was error");
+        return Err(());
+    }
+    let mut rows = result.unwrap();
+    let mut accumulate = vec![];
+    //loops until empty and returns accumulate
+    //If an error occurs, everything is over
+    while let Ok(rows) = rows.next().await {
+        match rows {
+            Some(row) => {
+                let name = row.get_str(0);
+                let desc = row.get_str(1);
+                let tags = row.get_str(2);
+                let school = row.get_str(3);
+                let cfid = row.get_str(3);
+                if name.is_err()
+                    || desc.is_err()
+                    || tags.is_err()
+                    || school.is_err()
+                    || cfid.is_err()
+                {
+                    println!("row index is not TEXT");
+                    return Err(());
+                }
+                accumulate.push(NotecardLibraryData {
+                    title: name.unwrap().to_string(),
+                    school: school.unwrap().to_string(),
+                    tags: tags.unwrap().to_string(),
+                    desc: desc.unwrap().to_string(),
+                    cfid: cfid.unwrap().to_string(),
+                })
+            }
+            None => return Ok(accumulate),
+        }
+    }
+    println!("Rows errored");
+    Err(())
 }
