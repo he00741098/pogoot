@@ -5,4 +5,4 @@ const { users, id } = Astro.params;
 const data = await env.NOTECARDBUCKET.get(users+id);
 ---
 <h1>{users}: {id}</h1>
-<h3>{data.body}</h3>
+<h3>{data}</h3>
