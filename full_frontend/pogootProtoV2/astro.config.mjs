@@ -4,6 +4,7 @@ import cloudflare from "@astrojs/cloudflare";
 
 // https://astro.build/config
 export default defineConfig({
-  output: "server",
-  adapter: cloudflare()
+  output: "hybrid",
+  adapter: cloudflare({imageService:"compile"}),
+  prefetch:true
 });

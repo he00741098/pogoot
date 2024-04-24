@@ -5,7 +5,7 @@ package pogootRefactoredRefactored;
 //Note card stuff
 service NotecardService{
   rpc Upload(NotecardListUploadRequest) returns (NotecardUploadResponse);
-  rpc Fetch(NotecardFetchRequest) returns (NotecardList);
+  rpc Fetch(NotecardLibraryRequest) returns (NotecardLibraryList);
   rpc Modify(NotecardModifyRequest) returns (NotecardUploadResponse);
 }
 
@@ -14,10 +14,11 @@ message NotecardModifyRequest{
   repeated int32 modified = 2;
   string auth_token = 3;
 }
-
-message NotecardFetchRequest{
-  string id = 1;
-  string auth_token = 3;
+//Notecard Library Request -
+//Fetch the list of notecards owned by a user
+message NotecardLibraryRequest{
+  string username = 1;
+  string auth_token = 2;
 }
 
 message NotecardListUploadRequest{
@@ -32,6 +33,24 @@ message NotecardListUploadRequest{
 
 message NotecardList{
   repeated Notecard notecards = 1;
+}
+
+message NotecardLibraryList{
+  repeated NotecardLibraryData library = 1;
+  bool success = 2;
+}
+
+// pub title: String,
+// pub school: String,
+// pub tags: String,
+// pub desc: String,
+// pub CFID: String
+message NotecardLibraryData{
+  string title = 1;
+  string school = 2;
+  string tags = 3;
+  string desc = 4;
+  string CFID = 5;
 }
 
 message Notecard{
