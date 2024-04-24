@@ -5,8 +5,10 @@ package pogootRefactoredRefactored;
 //Note card stuff
 service NotecardService{
   rpc Upload(NotecardListUploadRequest) returns (NotecardUploadResponse);
+  //Due to mistakes, this function now returns a list of notecard titles and descriptions
   rpc Fetch(NotecardLibraryRequest) returns (NotecardLibraryList);
   rpc Modify(NotecardModifyRequest) returns (NotecardUploadResponse);
+  rpc GetNotecards(NotecardFetchRequest) returns (NotecardFetchResponse);
 }
 
 message NotecardModifyRequest{
@@ -38,6 +40,17 @@ message NotecardList{
 message NotecardLibraryList{
   repeated NotecardLibraryData library = 1;
   bool success = 2;
+}
+
+message NotecardFetchRequest{
+  string id = 1;
+  optional string auth = 2;
+  optional string username = 3;
+}
+
+message NotecardFetchResponse{
+  bool success = 1;
+  NotecardList notecards = 2;
 }
 
 // pub title: String,
@@ -74,18 +87,22 @@ service LoginServer{
 message UserRegisterWithEmailRequest{
   string email = 1;
   string password = 2;
+  string username = 3;
 }
 
+//Email counts as either username or email
 message UserLoginRequest{
   string email = 1;
   string password = 2;
 }
 
+//Email counts as either username or email
 message UserPasswordUpdateRequest{
   string email = 1;
   string password = 2;
 }
 
+//Mystery contains either an error message or the token
 message LoginResponse{
   bool success = 1;
   string mystery = 2;
@@ -103,7 +120,7 @@ service PogootPlayerServer{
 message PogootRequest{
   //the specific id of the game
   string gameid = 1;
-  //the tmp username assigned to the player(Non unique)
+  //the tmp username assigned to the player(Non unique). This username does not correspond to an account. E.g. Display name
   string username = 2;
 }
 
