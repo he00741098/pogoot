@@ -7,17 +7,18 @@ use chrono::Utc;
 
 use crate::services::{database, server::pogoots::LoginResponse};
 
-use super::server::{
-    pogoots::{UserLoginRequest, UserRegisterWithEmailRequest},
-    LoginDBRequest,
+use super::{
+    server::{
+        pogoots::{UserLoginRequest, UserRegisterWithEmailRequest},
+        LoginDBRequest,
+    },
+    special_key_type::UserManageMap,
 };
 
 #[derive(Clone)]
 pub struct UserManager {
     ///a map of tokens that lead to a user
-    pub tokens: Arc<Mutex<HashMap<String, Arc<Mutex<User>>>>>,
-    ///A map of usernames that lead to a user
-    pub users: Arc<Mutex<HashMap<String, Arc<Mutex<User>>>>>,
+    pub map: Arc<Mutex<UserManageMap>>,
     pub connection: Connection,
 }
 impl UserManager {
@@ -49,9 +50,10 @@ impl UserManager {
                 LoginDBRequest::VerifyToken(token, username, callback) => {
                     let temp_manager = self.clone();
                     tokio::spawn(async move {
-                        let lock = temp_manager.tokens.lock().await;
-                        if let Some(user) = lock.get(&token) {
-                            if user.lock().await.username == username {
+                        let lock = temp_manager.map.lock().await;
+                        if let Some(user) = lock.get_with_token(&token) {
+                            let retrieved = user.lock().await;
+                            if retrieved.username == username || retrieved.email == username {
                                 let _ = callback.send(true);
                             } else {
                                 let _ = callback.send(false);
@@ -71,6 +73,7 @@ impl UserManager {
     ) {
         let email = std::mem::take(&mut req.email);
         let password = std::mem::take(&mut req.password);
+        let username = std::mem::take(&mut req.username);
         if !email.contains('.') || !email.contains('@') || email.len() <= 5 {
             let result = callback.send(LoginResponse {
                 success: false,
@@ -92,7 +95,13 @@ impl UserManager {
             return;
         }
 
-        if self.users.lock().await.get(&email).is_some() {
+        if self
+            .map
+            .lock()
+            .await
+            .get_with_user_or_email(&email)
+            .is_some()
+        {
             let result = callback.send(LoginResponse {
                 success: false,
                 mystery: "User Logged In Already".to_string(),
@@ -102,13 +111,14 @@ impl UserManager {
             }
             return;
         }
-        let database_query = database::check_email_exists(&self.connection, &email).await;
+        let database_query =
+            database::check_email_exists(&self.connection, &email, &username).await;
         //Checks have been completed, User can log in possibly
         if let Ok(None) = database_query {
             println!("User not in database, Registering...");
             //User is not in the database, registering...
             let database_store_result =
-                database::store_user_info(email.clone(), password, &self.connection).await;
+                database::store_user_info(&username, &email, password, &self.connection).await;
             //Stored data, checking if store succeeded
             //TODO: add failure management
             if database_store_result.is_err() {
@@ -126,7 +136,8 @@ impl UserManager {
                 let random_auth_token = uuid::Uuid::new_v4().to_string();
                 //Map username to user
                 let user = Arc::new(Mutex::new(User {
-                    username: email.clone(),
+                    username: username.clone(),
+                    email: email.clone(),
                     login_time: Utc::now(),
                     ips: vec![],
                     auth_tokens: vec![AuthToken {
@@ -134,12 +145,17 @@ impl UserManager {
                         expiry: Utc::now() + Duration::from_secs(60 * 60 * 24),
                     }],
                 }));
-                self.users.lock().await.insert(email.clone(), user.clone());
+                self.map.lock().await.insert(
+                    email.clone(),
+                    random_auth_token.clone(),
+                    username.clone(),
+                    user.clone(),
+                );
                 //Map token to user
-                self.tokens
-                    .lock()
-                    .await
-                    .insert(random_auth_token.clone(), user.clone());
+                // self.tokens
+                //     .lock()
+                //     .await
+                //     .insert(random_auth_token.clone(), user.clone());
 
                 //User inserted, Callback with the token
                 let result = callback.send(LoginResponse {
@@ -159,9 +175,9 @@ impl UserManager {
         let email = std::mem::take(&mut req.email);
         let password = std::mem::take(&mut req.password);
         //Check if user exists in hashmap
-        let temp_user = self.users.lock().await;
+        let temp_user = self.map.lock().await;
         // println!("{:?}\n\n{:?}", *temp_user, email);
-        let user = temp_user.get(&email);
+        let user = temp_user.get_with_user_or_email(&email);
         // let mut exists = false;
         let user = if let Some(user) = user {
             // exists = true;
@@ -169,8 +185,10 @@ impl UserManager {
             user.clone()
         } else {
             println!("User does not exist in hashmap");
+            //Currently, the email field could be either the email or the password
             Arc::new(Mutex::new(User {
-                username: email.clone(),
+                username: String::with_capacity(0),
+                email: String::with_capacity(0),
                 login_time: Utc::now(),
                 ips: vec![],
                 auth_tokens: vec![],
@@ -180,7 +198,9 @@ impl UserManager {
         drop(temp_user);
 
         //Check if user exists in database
-        let database_query = database::check_email_exists(&self.connection, &email).await;
+        //Note: Login only takes a email parameter but this email could be a username or an email
+        let database_query =
+            database::check_email_or_username_exists(&self.connection, &email).await;
         if database_query.is_err() {
             let result = callback.send(LoginResponse {
                 success: false,
@@ -211,6 +231,13 @@ impl UserManager {
         }
         //Since the user exists in the database, the query will grant us a password
         let hashed_password_correct = database_query.unwrap();
+        let email = hashed_password_correct.2;
+        let username = hashed_password_correct.1;
+        let hashed_password_correct = hashed_password_correct.0;
+        let mut temp_user_lock = user.lock().await;
+        temp_user_lock.username = username.clone();
+        temp_user_lock.email = email.clone();
+        drop(temp_user_lock);
         let argon2 = Argon2::default();
         let parsed_hash = PasswordHash::new(&hashed_password_correct);
         if parsed_hash.is_err() {
@@ -245,13 +272,16 @@ impl UserManager {
             mystery: token.clone(),
         });
         //Add the users to the maps
-        self.tokens.lock().await.insert(token.clone(), user.clone());
-        self.users.lock().await.insert(email.clone(), user.clone());
+        self.map
+            .lock()
+            .await
+            .insert(email, token.clone(), username, user.clone());
     }
 }
 #[derive(Debug)]
 pub struct User {
     username: String,
+    email: String,
     login_time: chrono::DateTime<Utc>,
     ips: Vec<IpInfo>,
     auth_tokens: Vec<AuthToken>,

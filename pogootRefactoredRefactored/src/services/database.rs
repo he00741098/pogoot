@@ -150,7 +150,12 @@ pub async fn store_notecards(
     }
     Ok(id)
 }
-pub async fn store_user_info(email: String, password: String, conn: &Connection) -> Result<(), ()> {
+pub async fn store_user_info(
+    username: &str,
+    email: &str,
+    password: String,
+    conn: &Connection,
+) -> Result<(), ()> {
     //     CREATE TABLE IF NOT EXISTS USERS(
     //     USERNAME text,
     //     PASSWORD text,
@@ -172,8 +177,8 @@ pub async fn store_user_info(email: String, password: String, conn: &Connection)
             "INSERT INTO USERS VALUES (?,?,?,?);",
             //username, email, password, ips
             params![
-                email.as_str(),
-                email.as_str(),
+                username,
+                email,
                 password_hash.unwrap().to_string().as_str(),
                 ""
             ],
@@ -189,11 +194,55 @@ pub async fn store_user_info(email: String, password: String, conn: &Connection)
 }
 
 ///checks if an email exists in the database. If it does, it will return the password
-pub async fn check_email_exists(conn: &Connection, email: &str) -> Result<Option<String>, ()> {
+///Returns a tuple (Password, Username, email)
+pub async fn check_email_or_username_exists(
+    conn: &Connection,
+    email: &str,
+) -> Result<Option<(String, String, String)>, ()> {
     let result = conn
         .query(
-            "SELECT PASSWORD FROM USERS WHERE EMAIL = ?1 OR USERNAME = ?1;",
+            "SELECT PASSWORD, USERNAME, EMAIL FROM USERS WHERE EMAIL = ?1 OR USERNAME = ?1 LIMIT 1;",
             params![email],
+        )
+        .await;
+    if result.is_err() {
+        println!("Database Query was error");
+        return Err(());
+    }
+    let mut rows = result.unwrap();
+    match rows.next().await {
+        Ok(Some(row)) => {
+            let password = row.get_str(0);
+            let username = row.get_str(1);
+            let email = row.get_str(2);
+            if password.is_err() {
+                println!("row index is not TEXT");
+                return Err(());
+            }
+            Ok(Some((
+                password.unwrap().to_string(),
+                username.unwrap().to_string(),
+                email.unwrap().to_string(),
+            )))
+        }
+        Ok(None) => Ok(None),
+        Err(_) => {
+            println!("Rows errored");
+            Err(())
+        }
+    }
+    // Ok(None)
+}
+
+pub async fn check_email_exists(
+    conn: &Connection,
+    email: &str,
+    username: &str,
+) -> Result<Option<String>, ()> {
+    let result = conn
+        .query(
+            "SELECT PASSWORD FROM USERS WHERE EMAIL = ?1 OR USERNAME = ?2;",
+            params![email, username],
         )
         .await;
     if result.is_err() {
@@ -218,6 +267,7 @@ pub async fn check_email_exists(conn: &Connection, email: &str) -> Result<Option
     }
     // Ok(None)
 }
+
 pub async fn fetch_user_library(
     conn: &Connection,
     username: &str,

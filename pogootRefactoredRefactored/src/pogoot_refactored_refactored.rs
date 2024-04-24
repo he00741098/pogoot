@@ -51,6 +51,24 @@ pub struct NotecardLibraryList {
     #[prost(bool, tag = "2")]
     pub success: bool,
 }
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct NotecardFetchRequest {
+    #[prost(string, tag = "1")]
+    pub id: ::prost::alloc::string::String,
+    #[prost(string, optional, tag = "2")]
+    pub auth: ::core::option::Option<::prost::alloc::string::String>,
+    #[prost(string, optional, tag = "3")]
+    pub username: ::core::option::Option<::prost::alloc::string::String>,
+}
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct NotecardFetchResponse {
+    #[prost(bool, tag = "1")]
+    pub success: bool,
+    #[prost(message, optional, tag = "2")]
+    pub notecards: ::core::option::Option<NotecardList>,
+}
 /// pub title: String,
 /// pub school: String,
 /// pub tags: String,
@@ -93,7 +111,10 @@ pub struct UserRegisterWithEmailRequest {
     pub email: ::prost::alloc::string::String,
     #[prost(string, tag = "2")]
     pub password: ::prost::alloc::string::String,
+    #[prost(string, tag = "3")]
+    pub username: ::prost::alloc::string::String,
 }
+/// Email counts as either username or email
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct UserLoginRequest {
@@ -102,6 +123,7 @@ pub struct UserLoginRequest {
     #[prost(string, tag = "2")]
     pub password: ::prost::alloc::string::String,
 }
+/// Email counts as either username or email
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct UserPasswordUpdateRequest {
@@ -110,6 +132,7 @@ pub struct UserPasswordUpdateRequest {
     #[prost(string, tag = "2")]
     pub password: ::prost::alloc::string::String,
 }
+/// Mystery contains either an error message or the token
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct LoginResponse {
@@ -125,7 +148,7 @@ pub struct PogootRequest {
     /// the specific id of the game
     #[prost(string, tag = "1")]
     pub gameid: ::prost::alloc::string::String,
-    /// the tmp username assigned to the player(Non unique)
+    /// the tmp username assigned to the player(Non unique). This username does not correspond to an account. E.g. Display name
     #[prost(string, tag = "2")]
     pub username: ::prost::alloc::string::String,
 }
@@ -325,6 +348,7 @@ pub mod notecard_service_client {
                 );
             self.inner.unary(req, path, codec).await
         }
+        /// Due to mistakes, this function now returns a list of notecard titles and descriptions
         pub async fn fetch(
             &mut self,
             request: impl tonic::IntoRequest<super::NotecardLibraryRequest>,
@@ -381,6 +405,36 @@ pub mod notecard_service_client {
                     GrpcMethod::new(
                         "pogootRefactoredRefactored.NotecardService",
                         "Modify",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        pub async fn get_notecards(
+            &mut self,
+            request: impl tonic::IntoRequest<super::NotecardFetchRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::NotecardFetchResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/pogootRefactoredRefactored.NotecardService/GetNotecards",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "pogootRefactoredRefactored.NotecardService",
+                        "GetNotecards",
                     ),
                 );
             self.inner.unary(req, path, codec).await
@@ -964,6 +1018,7 @@ pub mod notecard_service_server {
             tonic::Response<super::NotecardUploadResponse>,
             tonic::Status,
         >;
+        /// Due to mistakes, this function now returns a list of notecard titles and descriptions
         async fn fetch(
             &self,
             request: tonic::Request<super::NotecardLibraryRequest>,
@@ -976,6 +1031,13 @@ pub mod notecard_service_server {
             request: tonic::Request<super::NotecardModifyRequest>,
         ) -> std::result::Result<
             tonic::Response<super::NotecardUploadResponse>,
+            tonic::Status,
+        >;
+        async fn get_notecards(
+            &self,
+            request: tonic::Request<super::NotecardFetchRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::NotecardFetchResponse>,
             tonic::Status,
         >;
     }
@@ -1182,6 +1244,52 @@ pub mod notecard_service_server {
                     let fut = async move {
                         let inner = inner.0;
                         let method = ModifySvc(inner);
+                        let codec = tonic::codec::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/pogootRefactoredRefactored.NotecardService/GetNotecards" => {
+                    #[allow(non_camel_case_types)]
+                    struct GetNotecardsSvc<T: NotecardService>(pub Arc<T>);
+                    impl<
+                        T: NotecardService,
+                    > tonic::server::UnaryService<super::NotecardFetchRequest>
+                    for GetNotecardsSvc<T> {
+                        type Response = super::NotecardFetchResponse;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::NotecardFetchRequest>,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                <T as NotecardService>::get_notecards(&inner, request).await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let inner = inner.0;
+                        let method = GetNotecardsSvc(inner);
                         let codec = tonic::codec::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
                             .apply_compression_config(

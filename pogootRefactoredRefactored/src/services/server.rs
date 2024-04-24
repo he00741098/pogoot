@@ -1,3 +1,4 @@
+use crate::services::special_key_type::UserManageMap;
 use crate::services::user_manage::UserManager;
 use crate::AwsSecrets;
 use base64::prelude::*;
@@ -14,8 +15,8 @@ use pogoots::login_server_server::LoginServerServer;
 use pogoots::notecard_service_server::NotecardServiceServer;
 use pogoots::*;
 use std::pin::Pin;
+use std::sync::Arc;
 use std::time::Duration;
-use std::{collections::HashMap, sync::Arc};
 use tokio::sync::mpsc;
 use tokio_stream::{wrappers::ReceiverStream, Stream};
 use tonic::{
@@ -47,8 +48,7 @@ pub async fn start_serving(mut secrets: AwsSecrets) {
 
     //repeat connection attempts every 5 seconds
     let user_manager = UserManager {
-        tokens: Arc::new(Mutex::new(HashMap::new())),
-        users: Arc::new(Mutex::new(HashMap::new())),
+        map: Arc::new(Mutex::new(UserManageMap::new())),
         connection: con,
     };
     let (ltx, lrx) = tokio::sync::mpsc::channel(100);
@@ -198,6 +198,12 @@ impl NotecardService for NotecardServer {
         }
         //TODO:Better debug info
         Err(Status::new(tonic::Code::Internal, "Something went wrong"))
+    }
+    async fn get_notecards(
+        &self,
+        request: tonic::Request<NotecardFetchRequest>,
+    ) -> Result<tonic::Response<NotecardFetchResponse>, Status> {
+        todo!()
     }
 }
 
