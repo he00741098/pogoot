@@ -2,7 +2,9 @@
 export const prerender = false;
 const { env } = Astro.locals.runtime;
 const { users, id } = Astro.params;
-const data = await env.NOTECARDBUCKET.get(users+id);
+const data = JSON.stringify(await env.NOTECARDBUCKET.get(users+id));
+const list = JSON.stringify(await env.NOTECARDBUCKET.list());
 ---
 <h1>{users}: {id}</h1>
+<h3>{list}</h3>
 <h3>{data}</h3>
