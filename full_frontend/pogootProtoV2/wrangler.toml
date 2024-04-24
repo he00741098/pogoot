@@ -1,0 +1,3 @@
+[[r2_buckets]]
+binding = 'NOTECARDBUCKET' # <~ valid JavaScript variable name
+bucket_name = 'pogootdata'
