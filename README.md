@@ -7,3 +7,7 @@ A WIP learning tool.
 - Forum
 - Question answer system
 - Educational games
+
+# File Structure
+- /full_frontend contains all the frontend stuff - written with the AstroJS framework
+- /pogootRefactoredRefactored contains the backend code - written with Rust
