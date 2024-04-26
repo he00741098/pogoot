@@ -2,21 +2,26 @@
 export const prerender = false;
 const { env } = Astro.locals.runtime;
 const { users, id } = Astro.params;
-let data = await env.NOTECARDBUCKET.get(users + id).then(
-  res => res.arrayBuffer()
-);
-
+const fzstd = require("fzstd");
+let data = await env.NOTECARDBUCKET.get(users + id);
 
 if (data == null) {
   data = "Nothing";
 } else {
   let utf8decoder = new TextDecoder();
-  const compressed = new Uint8Array(data);
+  if (utf8decoder == null) {
+    data = "Decoder is null";
+  }
+  const compressed = new Uint8Array(data.arrayBuffer());
+  if (compressed == null) {
+    data = "compressed is null";
+  }
   const decompressed = fzstd.decompress(compressed);
+
   const decoded = utf8decoder.decode(decompressed);
   data = decoded;
 }
 ---
 
 <h1>{users}: {id}</h1>
-<h3>{JSON.stringify(data)}</h3>
+<h3>{data}</h3>
