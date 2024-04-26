@@ -3,23 +3,39 @@ export const prerender = false;
 const { env } = Astro.locals.runtime;
 const { users, id } = Astro.params;
 const fzstd = require("fzstd");
-let data = await env.NOTECARDBUCKET.get(users + id);
 
+
+// let testdata = "Hi!";
+// let intArray = new Uint8Array((new TextDecoder()).encode(testdata));
+// let compressed = fzstd.compress(intArray);
+// await env.MY_BUCKET.put(key, request.body);
+
+
+let data = await env.NOTECARDBUCKET.get("pogootdata/"+(users + id));
 if (data == null) {
   data = "Nothing";
 } else {
+  let arrayBuffer = await data.arrayBuffer();
   let utf8decoder = new TextDecoder();
   if (utf8decoder == null) {
     data = "Decoder is null";
+    return;
   }
-  const compressed = new Uint8Array(data.arrayBuffer());
+  const compressed = new Uint8Array(arrayBuffer);
   if (compressed == null) {
     data = "compressed is null";
+    return;
   }
   const decompressed = fzstd.decompress(compressed);
-
+  if(decompressed==null){
+    data="decompressed is null";
+    return;
+  }
   const decoded = utf8decoder.decode(decompressed);
-  data = decoded;
+  if (decoded==null){
+    data = "decoded is null";
+  }
+  data = "succeeded";
 }
 ---
 
