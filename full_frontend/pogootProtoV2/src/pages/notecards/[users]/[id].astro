@@ -5,36 +5,30 @@ const { users, id } = Astro.params;
 import * as fzstd from 'fzstd';
 
 let data = "wee";
+console.log("Trying...");
 try{
+console.log("Getting...");
   data = await env.NOTECARDBUCKET.get("pogootdata/"+(users + id));
 if (data == null) {
+console.log("Null...");
   data = "Nothing";
 } else {
+    console.log("Into Buffer")
   let arrayBuffer = await data.arrayBuffer();
+    console.log("create text decoder");
   let utf8decoder = new TextDecoder();
-  if (utf8decoder == null) {
-    data = "Decoder is null";
-    return;
-  }
+    console.log("compressing");
   const compressed = new Uint8Array(arrayBuffer);
-  if (compressed == null) {
-    data = "compressed is null";
-    return;
-  }
+    console.log("decompressing");
   const decompressed = fzstd.decompress(compressed);
-  if(decompressed==null){
-    data="decompressed is null";
-    return;
-  }
+    console.log("decoding");
   const decoded = utf8decoder.decode(decompressed);
-  if (decoded==null){
-    data = "decoded is null";
-      return;
-  }
+    console.log("decoded", decoded);
   data = decoded;
 }
 }
 catch(error){
+  console.log(error);
   data = JSON.stringify(error);
 }
 ---
