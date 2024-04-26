@@ -15,11 +15,11 @@ console.log("Null...");
 } else {
     console.log("Into Buffer")
   let arrayBuffer = await data.arrayBuffer();
-    console.log("create text decoder");
+    console.log("create text decoder", arrayBuffer);
   let utf8decoder = new TextDecoder();
-    console.log("compressing");
+    console.log("into array");
   const compressed = new Uint8Array(arrayBuffer);
-    console.log("decompressing");
+    console.log("decompressing", compressed);
   const decompressed = fzstd.decompress(compressed);
     console.log("decoding");
   const decoded = utf8decoder.decode(decompressed);
