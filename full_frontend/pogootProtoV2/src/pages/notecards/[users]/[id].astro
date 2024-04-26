@@ -2,7 +2,7 @@
 export const prerender = false;
 const { env } = Astro.locals.runtime;
 const { users, id } = Astro.params;
-const fzstd = require("fzstd");
+import * as fzstd from 'fzstd';
 
 let data = "wee";
 try{
