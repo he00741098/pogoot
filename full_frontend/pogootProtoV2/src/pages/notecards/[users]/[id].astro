@@ -10,7 +10,7 @@ const fzstd = require("fzstd");
 // let compressed = fzstd.compress(intArray);
 // await env.MY_BUCKET.put(key, request.body);
 
-
+try{
 let data = await env.NOTECARDBUCKET.get("pogootdata/"+(users + id));
 if (data == null) {
   data = "Nothing";
@@ -34,8 +34,13 @@ if (data == null) {
   const decoded = utf8decoder.decode(decompressed);
   if (decoded==null){
     data = "decoded is null";
+      return;
   }
-  data = "succeeded";
+  data = decoded;
+}
+}
+catch(error){
+  data = JSON.stringify(error);
 }
 ---
 
