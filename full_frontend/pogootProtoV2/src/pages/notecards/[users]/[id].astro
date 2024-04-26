@@ -4,14 +4,9 @@ const { env } = Astro.locals.runtime;
 const { users, id } = Astro.params;
 const fzstd = require("fzstd");
 
-
-// let testdata = "Hi!";
-// let intArray = new Uint8Array((new TextDecoder()).encode(testdata));
-// let compressed = fzstd.compress(intArray);
-// await env.MY_BUCKET.put(key, request.body);
-
+let data = "wee";
 try{
-let data = await env.NOTECARDBUCKET.get("pogootdata/"+(users + id));
+  data = await env.NOTECARDBUCKET.get("pogootdata/"+(users + id));
 if (data == null) {
   data = "Nothing";
 } else {
