@@ -6,11 +6,11 @@
 use crate::AwsSecrets;
 use argon2::password_hash::{rand_core::OsRng, PasswordHasher, SaltString};
 use argon2::Argon2;
-use libsql::{params, Connection};
+use libsql::{params, params_from_iter, Connection};
 use uuid::Uuid;
 
 use super::notecard::{NotecardData, ReMapNotecard};
-use super::server::pogoots::NotecardLibraryData;
+use super::server::pogoots::{NotecardLibraryData, NotecardModifyRequest};
 //NOTECARD STUFF----------------------------------------
 
 pub async fn new_connection(secrets: AwsSecrets) -> Option<Connection> {
@@ -85,7 +85,8 @@ async fn turso_init(secrets: &AwsSecrets) -> Result<Connection, ()> {
             DESCRIPTION text,
             TAGS text,
             SCHOOL text,
-            CFID text
+            CFID text,
+            CREATION_DATE text
         );",
             (),
         )
@@ -120,10 +121,12 @@ pub async fn store_notecards(
     }
     let compressed = compressed.unwrap();
     let id = Uuid::new_v4();
-    let id = format!("{}{}", data.username, id);
+    let id = format!("{}", id);
+    let now = chrono::Utc::now();
+    let now = now.to_string();
     let result = conn
         .execute(
-            "INSERT INTO NOTECARDS VALUES (?,?,?,?,?,?,?,?);",
+            "INSERT INTO NOTECARDS VALUES (?,?,?,?,?,?,?,?,?);",
             //username, email, password, ips
             params![
                 data.username,
@@ -133,7 +136,8 @@ pub async fn store_notecards(
                 data.desc,
                 data.tags,
                 data.school,
-                id.clone()
+                id.clone(),
+                now
             ],
         )
         .await;
@@ -280,9 +284,10 @@ pub async fn fetch_user_library(
     // TAGS text,
     // SCHOOL text,
     // CFID text
+    //Grabbing ALL notecards that fit the criteria...
     let result = conn
         .query(
-            "SELECT NAME, DESCRIPTION, TAGS, SCHOOL, CFID FROM USERS WHERE EMAIL = ?1 OR USERNAME = ?1;",
+            "SELECT NAME, DESCRIPTION, TAGS, SCHOOL, CFID, CREATION_DATE FROM USERS WHERE EMAIL = ?1 OR USERNAME = ?1;",
             params![username],
         )
         .await;
@@ -297,16 +302,19 @@ pub async fn fetch_user_library(
     while let Ok(rows) = rows.next().await {
         match rows {
             Some(row) => {
+                println!("Row: {:?}", row);
                 let name = row.get_str(0);
                 let desc = row.get_str(1);
                 let tags = row.get_str(2);
                 let school = row.get_str(3);
-                let cfid = row.get_str(3);
+                let cfid = row.get_str(4);
+                let date = row.get_str(5);
                 if name.is_err()
                     || desc.is_err()
                     || tags.is_err()
                     || school.is_err()
                     || cfid.is_err()
+                    || date.is_err()
                 {
                     println!("row index is not TEXT");
                     return Err(());
@@ -317,6 +325,7 @@ pub async fn fetch_user_library(
                     tags: tags.unwrap().to_string(),
                     desc: desc.unwrap().to_string(),
                     cfid: cfid.unwrap().to_string(),
+                    date: date.unwrap().to_string(),
                 })
             }
             None => return Ok(accumulate),
@@ -324,4 +333,93 @@ pub async fn fetch_user_library(
     }
     println!("Rows errored");
     Err(())
+}
+
+// let notecards = request.notecards;
+// let title = request.title;
+// let description = request.description;
+// let tags = request.tags;
+// let school = request.school;
+pub async fn update_notecard_data(
+    conn: &Connection,
+    secrets: &mut AwsSecrets,
+    request: NotecardModifyRequest,
+) -> Result<(), ()> {
+    let notecards = request.notecards;
+    let title = request.title;
+    let description = request.description;
+    let tags = request.tags;
+    let school = request.school;
+    let cfid = request.cfid;
+    let query = "UPDATE NOTECARDS SET".to_string();
+    let ending = "WHERE CFID=?;";
+    let now = chrono::Utc::now();
+    let conversion = &["NAME", "DESCRIPTION", "TAGS", "SCHOOL"];
+    let strings = vec![title, description, tags, school];
+    let strings = strings
+        .into_iter()
+        .enumerate()
+        .filter(|x| x.1.is_some())
+        .map(|x| (x.0, x.1.unwrap()))
+        .collect::<Vec<(usize, String)>>();
+    let query = if strings.is_empty() {
+        format!("{} CREATION_DATE=? {}", query, ending)
+    } else if strings.len() == 1 {
+        format!(
+            "{} CREATION_DATE=?,{}=? {}",
+            query, conversion[strings[0].0], ending
+        )
+    } else if strings.len() == 2 {
+        format!(
+            "{} {}=?, {}=? {}",
+            query, conversion[strings[0].0], conversion[strings[1].0], ending
+        )
+    } else {
+        let mut temp_formatter =
+            format!("{} CREATION_DATE=?,{}=?,", query, conversion[strings[0].0]);
+        for b in 1..strings.len() - 1 {
+            temp_formatter = format!("{}{}=?,", temp_formatter, conversion[strings[b].0]);
+        }
+        temp_formatter = format!(
+            "{}{}=? {}",
+            temp_formatter,
+            conversion[strings[strings.len() - 1].0],
+            ending
+        );
+        temp_formatter
+    };
+    let strings = strings.into_iter().map(|x| x.1).collect::<Vec<String>>();
+    let result = conn.query(query.as_str(), params_from_iter(strings)).await;
+    if result.is_err() {
+        return Err(());
+    }
+
+    if notecards.is_none() {
+        return Ok(());
+    }
+    let notecards = notecards.unwrap();
+    let notes = notecards
+        .notecards
+        .into_iter()
+        .map(ReMapNotecard::remap)
+        .collect::<Vec<ReMapNotecard>>();
+    let json = serde_json::to_string(&notes);
+    if json.is_err() {
+        println!("Serde To String Error");
+        return Err(());
+    }
+    let json = json.unwrap();
+    let compressed = zstd::stream::encode_all(json.as_bytes(), 0);
+    if compressed.is_err() {
+        return Err(());
+    }
+    let compressed = compressed.unwrap();
+    let result =
+        crate::services::cfstorage::upload_notecard_to_cloudflare(secrets, compressed, &cfid).await;
+    if result.is_err() {
+        println!("Notecard Modify in Cloudflare Failed");
+        //TODO: Handle failure
+        return Err(());
+    }
+    Ok(())
 }

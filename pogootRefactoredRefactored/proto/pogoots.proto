@@ -11,10 +11,18 @@ service NotecardService{
   rpc GetNotecards(NotecardFetchRequest) returns (NotecardFetchResponse);
 }
 
+//A notecard modify request. ogTitle is the orginal title, other title field will change the title;
+//UPDATE: ogTitle will be used as the CFID field
+//Fields can be none - Those will not be modified
 message NotecardModifyRequest{
-  repeated Notecard notecards = 1;
-  repeated int32 modified = 2;
+  optional NotecardList notecards = 1;
   string auth_token = 3;
+  optional string title = 4;
+  optional string description = 5;
+  optional string tags = 6;
+  optional string school = 7;
+  string username = 8;
+  string cfid = 9;
 }
 //Notecard Library Request -
 //Fetch the list of notecards owned by a user
@@ -64,6 +72,7 @@ message NotecardLibraryData{
   string tags = 3;
   string desc = 4;
   string CFID = 5;
+  string date = 6;
 }
 
 message Notecard{

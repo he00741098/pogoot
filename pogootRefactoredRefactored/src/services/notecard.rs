@@ -1,15 +1,15 @@
 use crate::{
     server::NotecardDBRequest,
-    services::server::pogoots::{NotecardLibraryList, NotecardList, NotecardUploadResponse},
+    services::server::pogoots::{NotecardLibraryList, NotecardUploadResponse},
     AwsSecrets,
 };
 use libsql::Connection;
 use serde::{Deserialize, Serialize};
 
 use super::{
-    database::{self, fetch_user_library},
+    database::{self, fetch_user_library, update_notecard_data},
     server::{
-        pogoots::{Notecard, NotecardLibraryData},
+        pogoots::{Notecard, NotecardLibraryData, NotecardModifyRequest},
         LoginDBRequest,
     },
 };
@@ -113,6 +113,22 @@ pub async fn upload_proccessor(
                 });
             }
             NotecardDBRequest::Modify(request, callback) => {
+                println!("Modify request recieved: {:?}", request);
+                // optional NotecardList notecards = 1;
+                // optional string auth_token = 3;
+                // optional string title = 4;
+                // optional string description = 5;
+                // optional string tags = 6;
+                // optional string school = 7;
+                // string username = 8;
+                // string ogTitle = 9;
+                let clonecon = conn.clone();
+                let verifyerclone = verifyer.clone();
+                let secrets_clone = secrets.clone();
+                // let secret_clone = secrets.clone();
+                tokio::spawn(async move {
+                    modify_set(verifyerclone, clonecon, secrets_clone, request).await;
+                });
                 todo!()
             }
         }
@@ -201,10 +217,32 @@ pub struct ReMapNotecard {
     back: Vec<String>,
 }
 impl ReMapNotecard {
-    fn remap(note: Notecard) -> Self {
+    pub fn remap(note: Notecard) -> Self {
         ReMapNotecard {
             front: note.front,
             back: note.back,
         }
     }
+}
+
+async fn modify_set(
+    verifyer: tokio::sync::mpsc::Sender<LoginDBRequest>,
+    conn: Connection,
+    mut secrets: AwsSecrets,
+    mut request: NotecardModifyRequest,
+) -> Result<(), ()> {
+    let auth_token = std::mem::take(&mut request.auth_token);
+    let username = std::mem::take(&mut request.username);
+    let verified = verify_credentials(verifyer, auth_token, username).await;
+
+    if verified.is_err() {
+        println!("Verification failed");
+        return Err(());
+    }
+    if !verified.unwrap() {
+        println!("Invalid Credentials");
+        return Err(());
+    }
+
+    update_notecard_data(&conn, &mut secrets, request).await
 }

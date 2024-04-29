@@ -203,7 +203,7 @@ impl NotecardService for NotecardServer {
         &self,
         request: tonic::Request<NotecardFetchRequest>,
     ) -> Result<tonic::Response<NotecardFetchResponse>, Status> {
-        todo!()
+        Err(Status::new(tonic::Code::Unimplemented, "Not implemented"))
     }
 }
 
