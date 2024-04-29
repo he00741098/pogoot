@@ -1,0 +1,27 @@
+---
+const { front_text, back_text, idcount } = Astro.props;
+---
+
+<div class="notecardContainer" id={"notecardContainer" + idcount}>
+  <div class="front" id={"front" + idcount}>
+    <h1>{front_text}</h1>
+  </div>
+  <div class="back" id={"back" + idcount}>
+    <h1>{back_text}</h1>
+  </div>
+</div>
+
+<style>
+  #notecardContainer {
+    display: none;
+    width: 0px;
+    margin: 0px;
+    height: 0px;
+  }
+  .front {
+    display: none;
+  }
+  .back {
+    display: none;
+  }
+</style>

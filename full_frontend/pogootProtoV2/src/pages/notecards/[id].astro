@@ -1,0 +1,100 @@
+---
+export const prerender = false;
+import Layout from "../../layouts/Layout.astro";
+import NavBar from "../../components/NavBar.astro";
+import Notecard from "../../components/Notecard.astro";
+import AlertBox from "../../components/AlertBox.astro";
+const { env } = Astro.locals.runtime;
+const { id } = Astro.params;
+import * as fzstd from "fzstd";
+
+let data = "";
+console.log("Trying...");
+try {
+  console.log("Getting...");
+  data = await env.NOTECARDBUCKET.get("pogootdata/" + id);
+  if (data == null) {
+    console.log("Null...");
+    data = "Nothing";
+  } else {
+    console.log("Into Buffer");
+    let arrayBuffer = await data.arrayBuffer();
+    console.log("create text decoder", JSON.stringify(arrayBuffer));
+    let utf8decoder = new TextDecoder();
+    console.log("into array");
+    const compressed = new Uint8Array(arrayBuffer);
+    console.log("decompressing", JSON.stringify(compressed));
+    const decompressed = fzstd.decompress(compressed);
+    console.log("decoding");
+    const decoded = utf8decoder.decode(decompressed);
+    console.log("decoded", decoded);
+    data = decoded;
+  }
+} catch (error) {
+  console.log(error);
+  data = JSON.stringify(error);
+}
+
+data = JSON.parse(
+  '[{"front":["wevf"],"back":["owufvy"]},{"front":["weyvfo"],"back":["uweyvfou"]},{"front":["wvyefou"],"back":["wyevfo"]},{"front":["uweyvfo"],"back":["uweyvfou"]},{"front":["wuefyvo"],"back":["wuefvo"]},{"front":["wuefyvo"],"back":["wuefyvo"]},{"front":["uwyevfo"],"back":["wyevfo"]},{"front":["wuefvo"],"back":["uwyfvo"]},{"front":["uweyfvou"],"back":["wevfo"]},{"front":["uweyvfou"],"back":["wyevfo"]},{"front":["uweyfvo"],"back":["uweyvfo"]},{"front":["wueyfvo"],"back":["wueyvfo"]},{"front":["woeufyvo"],"back":["wuefvo"]},{"front":["wveofuyv"],"back":["weofuyv"]},{"front":["vefou"],"back":["vweofuy"]},{"front":["uweyvfou"],"back":["weyvfouwy"]},{"front":["weyvfo"],"back":["uwyefvo"]},{"front":["wevfou"],"back":["weyfvou"]},{"front":["uweyfvo"],"back":["uweyfvou"]},{"front":["wueyfvou"],"back":["weyfvo"]},{"front":["weyvfou"],"back":["wyevfo"]},{"front":["wvyefou"],"back":["wyevfou"]},{"front":["wyvefouwy"],"back":["evfou"]},{"front":["uwyevfou"],"back":["wvyefou"]},{"front":["weyvfou"],"back":["weyfvo"]},{"front":["wefvou"],"back":["weyfvou"]},{"front":["oweufyv"],"back":["ouweyfvou"]},{"front":["wveofuyv"],"back":["woefuyv"]},{"front":["wvyefouwy"],"back":["vefouy"]},{"front":["weyvfou"],"back":["wyvefou"]},{"front":["oweyfvo"],"back":["uweyvfou"]},{"front":["voufyv"],"back":["oweufyv"]},{"front":["eoucbwuebdcouwevofuyvweoufw"],"back":["vouy"]},{"front":["owuefvyo"],"back":["uweyvfouwvy"]},{"front":["weofuyv"],"back":["woeufvy"]},{"front":["wofifv"],"back":["ouwyvfouvy"]},{"front":["ovo"],"back":["wuvfouiv"]},{"front":["BLAHBSDFLJVBQOEIRUVBSLJHBLblakjvb"],"back":["olhvohavdflhvov"]},{"front":["JKBBlkabzlkjBlBLJBVSDBL;KJBlKJBlkjbB;Kb;kJBLjBL"],"back":["JBLAJKBLXKJBAVLKJBLbzldkjvblaksjbdlBPIUGOQ87TGW8E7FGOBlBLH"]},{"front":["iuadivjhbslkjdbp"],"back":["UIHLIVBSDLKJVBL"]},{"front":["sdlakfjhlasjdfhlkasjdhflkjbvlkjabsljkb"],"back":["oisfdvoiqbpibpibvlsdbp"]},{"front":["alskdjfh"],"back":["alsdjkfh"]},{"front":["alsdjkfh"],"back":["alsdkjfh"]},{"front":["alskdjfh"],"back":["aslkdfjh"]},{"front":["asldkfjh"],"back":["asldkfjh"]},{"front":["asldkjfh"],"back":["asldkfjh"]},{"front":["lsadkfjh"],"back":["asldkjfh"]},{"front":["alskdfjh"],"back":["lakdjfh"]},{"front":["asdf"],"back":["asl;dfkj"]},{"front":["sdfgq"],"back":["aa"]},{"front":["s"],"back":["d"]}]',
+);
+let counter = 1;
+---
+
+<Layout title="Notecard | Sweep.rs">
+  <NavBar />
+  <main>
+    {
+      data.map((item) => (
+        <Notecard
+          front_text={item.front}
+          back_text={item.back}
+          idcount={counter++}
+        />
+      ))
+    }
+  </main>
+</Layout>
+<style>
+  body {
+    display: grid;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    background-color: var(--blue);
+    color: white;
+    font-family: LeagueSpartan;
+    font-size: 20px;
+  }
+
+  main {
+    display: grid;
+    position: absolute;
+    width: 50%;
+    height: 50%;
+    top: 25%;
+    left: 25%;
+    text-align: center;
+  }
+  .notecardContainer {
+    height: 100%;
+    width: 100%;
+    align-content: center;
+  }
+</style>
+
+<script>
+  document.addEventListener("astro:page-load", function () {
+    if (document.URL.indexOf("notecards") < 1) {
+      return;
+    }
+    let current_index = 1;
+    document.getElementById("notecardContainer" + current_index).style.display =
+      "grid";
+    document.getElementById("front" + current_index).style.display = "grid";
+    document.getElementById("notecardContainer" + current_index).style.height = "100%";
+    document.getElementById("notecardContainer" + current_index).style.width = "100%";
+  });
+</script>
+});
+

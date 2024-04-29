@@ -170,13 +170,17 @@ document.addEventListener("astro:page-load", () => {
     if (!validCookies) {
       console.log("no cookies");
       document.cookie =
-        "auth=; SameSite=None; Secure; expires=" + date.toUTCString() + ";";
+        "auth=; SameSite=None; Secure; expires=" +
+        date.toUTCString() +
+        "; Path='/'";
       document.cookie =
-        "username=; SameSite=None; Secure; expires=" + date.toUTCString() + ";";
+        "username=; SameSite=None; Secure; expires=" +
+        date.toUTCString() +
+        "; Path='/'";
       document.cookie =
         "validCookies=; SameSite=None; Secure; expires=" +
         date.toUTCString() +
-        ";";
+        "; Path='/'";
     }
     cookies = document.cookie;
     document.cookie =
@@ -185,7 +189,7 @@ document.addEventListener("astro:page-load", () => {
       value +
       "; SameSite=None; Secure; expires=" +
       date.toUTCString() +
-      ";";
+      "; Path='/'";
   }
 
   function cookie_get(key) {
