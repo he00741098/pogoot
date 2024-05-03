@@ -16,7 +16,9 @@ try {
   data = await env.NOTECARDBUCKET.get("pogootdata/" + id);
   if (data == null) {
     console.log("Null...");
-    data = "Nothing";
+  data = JSON.parse(
+    '[{"front":["Error loading Notecards"],"back":["Error loading Notecards"]}]',
+  );
   } else {
     console.log("Into Buffer");
     let arrayBuffer = await data.arrayBuffer();
@@ -31,16 +33,15 @@ try {
     console.log("decoded", decoded);
     data = decoded;
     data = JSON.parse(data);
-    len = data.length;
+    // len = data.length;
   }
 } catch (error) {
   console.log(error);
-  data = JSON.stringify(error);
+  data = JSON.parse(
+    '[{"front":["Error loading Notecards"],"back":["Error loading Notecards"]}]',
+  );
 }
 
-data = JSON.parse(
-  '[{"front":["wevf"],"back":["owufvy"]},{"front":["weyvfo"],"back":["uweyvfou"]},{"front":["wvyefou"],"back":["wyevfo"]},{"front":["uweyvfo"],"back":["uweyvfou"]},{"front":["wuefyvo"],"back":["wuefvo"]},{"front":["wuefyvo"],"back":["wuefyvo"]},{"front":["uwyevfo"],"back":["wyevfo"]},{"front":["wuefvo"],"back":["uwyfvo"]},{"front":["uweyfvou"],"back":["wevfo"]},{"front":["uweyvfou"],"back":["wyevfo"]},{"front":["uweyfvo"],"back":["uweyvfo"]},{"front":["wueyfvo"],"back":["wueyvfo"]},{"front":["woeufyvo"],"back":["wuefvo"]},{"front":["wveofuyv"],"back":["weofuyv"]},{"front":["vefou"],"back":["vweofuy"]},{"front":["uweyvfou"],"back":["weyvfouwy"]},{"front":["weyvfo"],"back":["uwyefvo"]},{"front":["wevfou"],"back":["weyfvou"]},{"front":["uweyfvo"],"back":["uweyfvou"]},{"front":["wueyfvou"],"back":["weyfvo"]},{"front":["weyvfou"],"back":["wyevfo"]},{"front":["wvyefou"],"back":["wyevfou"]},{"front":["wyvefouwy"],"back":["evfou"]},{"front":["uwyevfou"],"back":["wvyefou"]},{"front":["weyvfou"],"back":["weyfvo"]},{"front":["wefvou"],"back":["weyfvou"]},{"front":["oweufyv"],"back":["ouweyfvou"]},{"front":["wveofuyv"],"back":["woefuyv"]},{"front":["wvyefouwy"],"back":["vefouy"]},{"front":["weyvfou"],"back":["wyvefou"]},{"front":["oweyfvo"],"back":["uweyvfou"]},{"front":["voufyv"],"back":["oweufyv"]},{"front":["eoucbwuebdcouwevofuyvweoufw"],"back":["vouy"]},{"front":["owuefvyo"],"back":["uweyvfouwvy"]},{"front":["weofuyv"],"back":["woeufvy"]},{"front":["wofifv"],"back":["ouwyvfouvy"]},{"front":["ovo"],"back":["wuvfouiv"]},{"front":["BLAHBSDFLJVBQOEIRUVBSLJHBLblakjvb"],"back":["olhvohavdflhvov"]},{"front":["JKBBlkabzlkjBlBLJBVSDBL;KJBlKJBlkjbB;Kb;kJBLjBL"],"back":["JBLAJKBLXKJBAVLKJBLbzldkjvblaksjbdlBPIUGOQ87TGW8E7FGOBlBLH"]},{"front":["iuadivjhbslkjdbp"],"back":["UIHLIVBSDLKJVBL"]},{"front":["sdlakfjhlasjdfhlkasjdhflkjbvlkjabsljkb"],"back":["oisfdvoiqbpibpibvlsdbp"]},{"front":["alskdjfh"],"back":["alsdjkfh"]},{"front":["alsdjkfh"],"back":["alsdkjfh"]},{"front":["alskdjfh"],"back":["aslkdfjh"]},{"front":["asldkfjh"],"back":["asldkfjh"]},{"front":["asldkjfh"],"back":["asldkfjh"]},{"front":["lsadkfjh"],"back":["asldkjfh"]},{"front":["alskdfjh"],"back":["lakdjfh"]},{"front":["asdf"],"back":["asl;dfkj"]},{"front":["sdfgq"],"back":["aa"]},{"front":["s"],"back":["d"]}]',
-);
 len = data.length;
 let counter = 1;
 ---
@@ -49,104 +50,90 @@ let counter = 1;
   <NavBar />
   <main id="main">
     {
-    data.map((item) => (
-      <Notecard
-        front_text={item.front}
-        back_text={item.back}
-        idcount={counter++}
-      />
-    ))
+      data.map((item) => (
+        <Notecard
+          front_text={item.front}
+          back_text={item.back}
+          idcount={counter++}
+        />
+      ))
     }
   </main>
-  <div id="controlbar"><div id="counter"><strong id="currentindex">1/</strong><strong id="maxlen">{len}</strong></div><div id="arrows"><img id="leftarrow" class="svg" src="/arrowleft.svg"><img id="rightarrow" class="svg" src="/arrowright.svg"></div></div>
+  <div id="controlbar">
+    <div id="counter">
+      <strong id="currentindex">1/</strong><strong id="maxlen">{len}</strong>
+    </div><div id="arrows">
+      <img id="leftarrow" class="svg" src="/arrowleft.svg" /><img
+        id="rightarrow"
+        class="svg"
+        src="/arrowright.svg"
+      />
+    </div>
+  </div>
 </Layout>
 <style>
-.svg{
-  top:20px;
-  width:20px;
-}
-body {
-  display: grid;
-  width: 100%;
-  height: 100%;
-  margin: 0;
-  background-color: var(--blue);
-  color: white;
-  font-family: LeagueSpartan;
-  font-size: 20px;
-}
+  .svg {
+    top: 20px;
+    width: 20px;
+  }
+  body {
+    display: grid;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    background-color: var(--blue);
+    color: white;
+    font-family: LeagueSpartan;
+    font-size: 20px;
+  }
 
-main {
-  position: absolute;
-  width: 50%;
-  height: 50%;
-  top: 25%;
-  left: 25%;
-  text-align: center;
-  outline: white solid 2px;
-}
-#controlbar{
-  position: absolute;
-  top:76%;
-  width:50%;
-  left:25%;
-  display:grid;
-  grid-template-columns:50% 50%;
-}
-#counter{
-  width:10%;
-}
-#arrows{
-  text-align:right;
-}
-
+  main {
+    position: absolute;
+    width: 50%;
+    height: 50%;
+    top: 25%;
+    left: 25%;
+    text-align: center;
+    outline: white solid 2px;
+  }
+  #controlbar {
+    position: absolute;
+    top: 76%;
+    width: 50%;
+    left: 25%;
+    display: grid;
+    grid-template-columns: 50% 50%;
+  }
+  #counter {
+    width: 10%;
+  }
+  #arrows {
+    text-align: right;
+  }
 </style>
 
 <script>
-document.addEventListener("astro:page-load", function () {
-  if (document.URL.indexOf("notecards") < 1) {
-    return;
-  }
-  let maxlen= document.getElementById("maxlen").innerHTML;
-  let main = document.getElementById("main");
-  let showing_front = true;
-  main.onclick = function(e){
-    if(showing_front){
-      //show back
-      document.getElementById("back"+current_index).style.display = "grid";
-      document.getElementById("front"+current_index).style.display = "none";
-      showing_front = false;
-    }else{
-      document.getElementById("back"+current_index).style.display = "none";
-      document.getElementById("front"+current_index).style.display = "grid";
-      showing_front = true;
+  document.addEventListener("astro:page-load", function () {
+    if (document.URL.indexOf("notecards") < 1) {
+      return;
     }
-  }
+    let maxlen = document.getElementById("maxlen").innerHTML;
+    let main = document.getElementById("main");
+    let showing_front = true;
+    main.onclick = function (e) {
+      if (showing_front) {
+        //show back
+        document.getElementById("back" + current_index).style.display = "grid";
+        document.getElementById("front" + current_index).style.display = "none";
+        showing_front = false;
+      } else {
+        document.getElementById("back" + current_index).style.display = "none";
+        document.getElementById("front" + current_index).style.display = "grid";
+        showing_front = true;
+      }
+    };
 
-  let current_index = 1;
-  document.getElementById("notecardContainer" + current_index).style.display =
-    "grid";
-  document.getElementById("front" + current_index).style.display = "grid";
-  document.getElementById("notecardContainer" + current_index).style.height =
-    "100%";
-  document.getElementById("notecardContainer" + current_index).style.width =
-    "100%";
-  let curdex = document.getElementById("currentindex");
-  let rightarrow = document.getElementById("rightarrow");
-  let leftarrow = document.getElementById("leftarrow");
-  leftarrow.onclick = function(e){
-    document.getElementById("notecardContainer" + current_index).style.display =
-      "none";
-    document.getElementById("front" + current_index).style.display = "none";
-    document.getElementById("back" + current_index).style.display = "none";
-    document.getElementById("notecardContainer" + current_index).style.height =
-      "0%";
-    document.getElementById("notecardContainer" + current_index).style.width =
-      "0%";
-    current_index--;
-    if(current_index<1){
-      current_index = maxlen;
-    }
+    let current_index = 1;
     document.getElementById("notecardContainer" + current_index).style.display =
       "grid";
     document.getElementById("front" + current_index).style.display = "grid";
@@ -154,33 +141,60 @@ document.addEventListener("astro:page-load", function () {
       "100%";
     document.getElementById("notecardContainer" + current_index).style.width =
       "100%";
-    curdex.innerHTML=current_index+"/";
-  }
-  rightarrow.onclick = function(e){
-    document.getElementById("notecardContainer" + current_index).style.display =
-      "none";
-    document.getElementById("front" + current_index).style.display = "none";
-    document.getElementById("back" + current_index).style.display = "none";
-    document.getElementById("notecardContainer" + current_index).style.height =
-      "0%";
-    document.getElementById("notecardContainer" + current_index).style.width =
-      "0%";
-    current_index++;
-    if(current_index>maxlen){
-      current_index=1;
-    }
-    document.getElementById("notecardContainer" + current_index).style.display =
-      "grid";
-    document.getElementById("front" + current_index).style.display = "grid";
-    document.getElementById("notecardContainer" + current_index).style.height =
-      "100%";
-    document.getElementById("notecardContainer" + current_index).style.width =
-      "100%";
-    curdex.innerHTML=current_index+"/";
-  }
-
-});
-
-
+    let curdex = document.getElementById("currentindex");
+    let rightarrow = document.getElementById("rightarrow");
+    let leftarrow = document.getElementById("leftarrow");
+    leftarrow.onclick = function (e) {
+      document.getElementById(
+        "notecardContainer" + current_index,
+      ).style.display = "none";
+      document.getElementById("front" + current_index).style.display = "none";
+      document.getElementById("back" + current_index).style.display = "none";
+      document.getElementById(
+        "notecardContainer" + current_index,
+      ).style.height = "0%";
+      document.getElementById("notecardContainer" + current_index).style.width =
+        "0%";
+      current_index--;
+      if (current_index < 1) {
+        current_index = maxlen;
+      }
+      document.getElementById(
+        "notecardContainer" + current_index,
+      ).style.display = "grid";
+      document.getElementById("front" + current_index).style.display = "grid";
+      document.getElementById(
+        "notecardContainer" + current_index,
+      ).style.height = "100%";
+      document.getElementById("notecardContainer" + current_index).style.width =
+        "100%";
+      curdex.innerHTML = current_index + "/";
+    };
+    rightarrow.onclick = function (e) {
+      document.getElementById(
+        "notecardContainer" + current_index,
+      ).style.display = "none";
+      document.getElementById("front" + current_index).style.display = "none";
+      document.getElementById("back" + current_index).style.display = "none";
+      document.getElementById(
+        "notecardContainer" + current_index,
+      ).style.height = "0%";
+      document.getElementById("notecardContainer" + current_index).style.width =
+        "0%";
+      current_index++;
+      if (current_index > maxlen) {
+        current_index = 1;
+      }
+      document.getElementById(
+        "notecardContainer" + current_index,
+      ).style.display = "grid";
+      document.getElementById("front" + current_index).style.display = "grid";
+      document.getElementById(
+        "notecardContainer" + current_index,
+      ).style.height = "100%";
+      document.getElementById("notecardContainer" + current_index).style.width =
+        "100%";
+      curdex.innerHTML = current_index + "/";
+    };
+  });
 </script>
-
