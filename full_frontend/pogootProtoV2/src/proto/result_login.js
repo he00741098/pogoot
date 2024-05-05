@@ -7,33 +7,13 @@ document.addEventListener("astro:page-load", () => {
   var alertBox = document.getElementById("exampleAlert");
   alertBox.style.display = "none";
   const {
-    GameStartInfoResponse,
     LoginResponse,
-    ManagerPlayerRequest,
-    Notecard,
-    NotecardFetchRequest,
-    NotecardList,
-    NotecardListUploadRequest,
-    NotecardModifyRequest,
-    NotecardUploadResponse,
-    PogootAnswerRequest,
-    PogootCreationRequest,
-    PogootCreationResponse,
-    PogootJoinCode,
-    PogootQuestion,
-    PogootQuestionList,
-    PogootRequest,
-    PogootResultsResponse,
-    Progress,
-    RoundResultResponse,
     UserLoginRequest,
     UserPasswordUpdateRequest,
     UserRegisterWithEmailRequest,
   } = require("./pogoots_pb.js");
   const {
-    NotecardServiceClient,
     LoginServerClient,
-    PogootPlayerServerClient,
   } = require("./pogoots_grpc_web_pb.js");
 
   let register_button = document.getElementById("RegisterButton");
@@ -171,13 +151,17 @@ document.addEventListener("astro:page-load", () => {
     if (!validCookies) {
       console.log("no cookies");
       document.cookie =
-        "auth=; SameSite=None; Secure; expires=" + date.toUTCString() + ";";
+        "auth=; SameSite=None; Secure; expires=" +
+        date.toUTCString() +
+        "; path=/";
       document.cookie =
-        "username=; SameSite=None; Secure; expires=" + date.toUTCString() + ";";
+        "username=; SameSite=None; Secure; expires=" +
+        date.toUTCString() +
+        "; path=/";
       document.cookie =
         "validCookies=; SameSite=None; Secure; expires=" +
         date.toUTCString() +
-        ";";
+        "; path=/";
     }
     cookies = document.cookie;
     document.cookie =
@@ -186,7 +170,7 @@ document.addEventListener("astro:page-load", () => {
       value +
       "; SameSite=None; Secure; expires=" +
       date.toUTCString() +
-      ";";
+      "; path=/";
   }
 
   function cookie_get(key) {
@@ -1002,33 +986,33 @@ proto.pogootRefactoredRefactored.NotecardServicePromiseClient.prototype.upload =
 /**
  * @const
  * @type {!grpc.web.MethodDescriptor<
- *   !proto.pogootRefactoredRefactored.NotecardFetchRequest,
- *   !proto.pogootRefactoredRefactored.NotecardList>}
+ *   !proto.pogootRefactoredRefactored.NotecardLibraryRequest,
+ *   !proto.pogootRefactoredRefactored.NotecardLibraryList>}
  */
 const methodDescriptor_NotecardService_Fetch = new grpc.web.MethodDescriptor(
   '/pogootRefactoredRefactored.NotecardService/Fetch',
   grpc.web.MethodType.UNARY,
-  proto.pogootRefactoredRefactored.NotecardFetchRequest,
-  proto.pogootRefactoredRefactored.NotecardList,
+  proto.pogootRefactoredRefactored.NotecardLibraryRequest,
+  proto.pogootRefactoredRefactored.NotecardLibraryList,
   /**
-   * @param {!proto.pogootRefactoredRefactored.NotecardFetchRequest} request
+   * @param {!proto.pogootRefactoredRefactored.NotecardLibraryRequest} request
    * @return {!Uint8Array}
    */
   function(request) {
     return request.serializeBinary();
   },
-  proto.pogootRefactoredRefactored.NotecardList.deserializeBinary
+  proto.pogootRefactoredRefactored.NotecardLibraryList.deserializeBinary
 );
 
 
 /**
- * @param {!proto.pogootRefactoredRefactored.NotecardFetchRequest} request The
+ * @param {!proto.pogootRefactoredRefactored.NotecardLibraryRequest} request The
  *     request proto
  * @param {?Object<string, string>} metadata User defined
  *     call metadata
- * @param {function(?grpc.web.RpcError, ?proto.pogootRefactoredRefactored.NotecardList)}
+ * @param {function(?grpc.web.RpcError, ?proto.pogootRefactoredRefactored.NotecardLibraryList)}
  *     callback The callback function(error, response)
- * @return {!grpc.web.ClientReadableStream<!proto.pogootRefactoredRefactored.NotecardList>|undefined}
+ * @return {!grpc.web.ClientReadableStream<!proto.pogootRefactoredRefactored.NotecardLibraryList>|undefined}
  *     The XHR Node Readable Stream
  */
 proto.pogootRefactoredRefactored.NotecardServiceClient.prototype.fetch =
@@ -1043,11 +1027,11 @@ proto.pogootRefactoredRefactored.NotecardServiceClient.prototype.fetch =
 
 
 /**
- * @param {!proto.pogootRefactoredRefactored.NotecardFetchRequest} request The
+ * @param {!proto.pogootRefactoredRefactored.NotecardLibraryRequest} request The
  *     request proto
  * @param {?Object<string, string>=} metadata User defined
  *     call metadata
- * @return {!Promise<!proto.pogootRefactoredRefactored.NotecardList>}
+ * @return {!Promise<!proto.pogootRefactoredRefactored.NotecardLibraryList>}
  *     Promise that resolves to the response
  */
 proto.pogootRefactoredRefactored.NotecardServicePromiseClient.prototype.fetch =
@@ -1118,6 +1102,67 @@ proto.pogootRefactoredRefactored.NotecardServicePromiseClient.prototype.modify =
       request,
       metadata || {},
       methodDescriptor_NotecardService_Modify);
+};
+
+
+/**
+ * @const
+ * @type {!grpc.web.MethodDescriptor<
+ *   !proto.pogootRefactoredRefactored.NotecardFetchRequest,
+ *   !proto.pogootRefactoredRefactored.NotecardFetchResponse>}
+ */
+const methodDescriptor_NotecardService_GetNotecards = new grpc.web.MethodDescriptor(
+  '/pogootRefactoredRefactored.NotecardService/GetNotecards',
+  grpc.web.MethodType.UNARY,
+  proto.pogootRefactoredRefactored.NotecardFetchRequest,
+  proto.pogootRefactoredRefactored.NotecardFetchResponse,
+  /**
+   * @param {!proto.pogootRefactoredRefactored.NotecardFetchRequest} request
+   * @return {!Uint8Array}
+   */
+  function(request) {
+    return request.serializeBinary();
+  },
+  proto.pogootRefactoredRefactored.NotecardFetchResponse.deserializeBinary
+);
+
+
+/**
+ * @param {!proto.pogootRefactoredRefactored.NotecardFetchRequest} request The
+ *     request proto
+ * @param {?Object<string, string>} metadata User defined
+ *     call metadata
+ * @param {function(?grpc.web.RpcError, ?proto.pogootRefactoredRefactored.NotecardFetchResponse)}
+ *     callback The callback function(error, response)
+ * @return {!grpc.web.ClientReadableStream<!proto.pogootRefactoredRefactored.NotecardFetchResponse>|undefined}
+ *     The XHR Node Readable Stream
+ */
+proto.pogootRefactoredRefactored.NotecardServiceClient.prototype.getNotecards =
+    function(request, metadata, callback) {
+  return this.client_.rpcCall(this.hostname_ +
+      '/pogootRefactoredRefactored.NotecardService/GetNotecards',
+      request,
+      metadata || {},
+      methodDescriptor_NotecardService_GetNotecards,
+      callback);
+};
+
+
+/**
+ * @param {!proto.pogootRefactoredRefactored.NotecardFetchRequest} request The
+ *     request proto
+ * @param {?Object<string, string>=} metadata User defined
+ *     call metadata
+ * @return {!Promise<!proto.pogootRefactoredRefactored.NotecardFetchResponse>}
+ *     Promise that resolves to the response
+ */
+proto.pogootRefactoredRefactored.NotecardServicePromiseClient.prototype.getNotecards =
+    function(request, metadata) {
+  return this.client_.unaryCall(this.hostname_ +
+      '/pogootRefactoredRefactored.NotecardService/GetNotecards',
+      request,
+      metadata || {},
+      methodDescriptor_NotecardService_GetNotecards);
 };
 
 
@@ -1909,6 +1954,10 @@ goog.exportSymbol('proto.pogootRefactoredRefactored.LoginResponse', null, global
 goog.exportSymbol('proto.pogootRefactoredRefactored.ManagerPlayerRequest', null, global);
 goog.exportSymbol('proto.pogootRefactoredRefactored.Notecard', null, global);
 goog.exportSymbol('proto.pogootRefactoredRefactored.NotecardFetchRequest', null, global);
+goog.exportSymbol('proto.pogootRefactoredRefactored.NotecardFetchResponse', null, global);
+goog.exportSymbol('proto.pogootRefactoredRefactored.NotecardLibraryData', null, global);
+goog.exportSymbol('proto.pogootRefactoredRefactored.NotecardLibraryList', null, global);
+goog.exportSymbol('proto.pogootRefactoredRefactored.NotecardLibraryRequest', null, global);
 goog.exportSymbol('proto.pogootRefactoredRefactored.NotecardList', null, global);
 goog.exportSymbol('proto.pogootRefactoredRefactored.NotecardListUploadRequest', null, global);
 goog.exportSymbol('proto.pogootRefactoredRefactored.NotecardModifyRequest', null, global);
@@ -1937,7 +1986,7 @@ goog.exportSymbol('proto.pogootRefactoredRefactored.UserRegisterWithEmailRequest
  * @constructor
  */
 proto.pogootRefactoredRefactored.NotecardModifyRequest = function(opt_data) {
-  jspb.Message.initialize(this, opt_data, 0, -1, proto.pogootRefactoredRefactored.NotecardModifyRequest.repeatedFields_, null);
+  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
 };
 goog.inherits(proto.pogootRefactoredRefactored.NotecardModifyRequest, jspb.Message);
 if (goog.DEBUG && !COMPILED) {
@@ -1957,16 +2006,16 @@ if (goog.DEBUG && !COMPILED) {
  * @extends {jspb.Message}
  * @constructor
  */
-proto.pogootRefactoredRefactored.NotecardFetchRequest = function(opt_data) {
+proto.pogootRefactoredRefactored.NotecardLibraryRequest = function(opt_data) {
   jspb.Message.initialize(this, opt_data, 0, -1, null, null);
 };
-goog.inherits(proto.pogootRefactoredRefactored.NotecardFetchRequest, jspb.Message);
+goog.inherits(proto.pogootRefactoredRefactored.NotecardLibraryRequest, jspb.Message);
 if (goog.DEBUG && !COMPILED) {
   /**
    * @public
    * @override
    */
-  proto.pogootRefactoredRefactored.NotecardFetchRequest.displayName = 'proto.pogootRefactoredRefactored.NotecardFetchRequest';
+  proto.pogootRefactoredRefactored.NotecardLibraryRequest.displayName = 'proto.pogootRefactoredRefactored.NotecardLibraryRequest';
 }
 /**
  * Generated by JsPbCodeGenerator.
@@ -2009,6 +2058,90 @@ if (goog.DEBUG && !COMPILED) {
    * @override
    */
   proto.pogootRefactoredRefactored.NotecardList.displayName = 'proto.pogootRefactoredRefactored.NotecardList';
+}
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.pogootRefactoredRefactored.NotecardLibraryList = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, proto.pogootRefactoredRefactored.NotecardLibraryList.repeatedFields_, null);
+};
+goog.inherits(proto.pogootRefactoredRefactored.NotecardLibraryList, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  /**
+   * @public
+   * @override
+   */
+  proto.pogootRefactoredRefactored.NotecardLibraryList.displayName = 'proto.pogootRefactoredRefactored.NotecardLibraryList';
+}
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.pogootRefactoredRefactored.NotecardFetchRequest = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+};
+goog.inherits(proto.pogootRefactoredRefactored.NotecardFetchRequest, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  /**
+   * @public
+   * @override
+   */
+  proto.pogootRefactoredRefactored.NotecardFetchRequest.displayName = 'proto.pogootRefactoredRefactored.NotecardFetchRequest';
+}
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.pogootRefactoredRefactored.NotecardFetchResponse = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+};
+goog.inherits(proto.pogootRefactoredRefactored.NotecardFetchResponse, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  /**
+   * @public
+   * @override
+   */
+  proto.pogootRefactoredRefactored.NotecardFetchResponse.displayName = 'proto.pogootRefactoredRefactored.NotecardFetchResponse';
+}
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.pogootRefactoredRefactored.NotecardLibraryData = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+};
+goog.inherits(proto.pogootRefactoredRefactored.NotecardLibraryData, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  /**
+   * @public
+   * @override
+   */
+  proto.pogootRefactoredRefactored.NotecardLibraryData.displayName = 'proto.pogootRefactoredRefactored.NotecardLibraryData';
 }
 /**
  * Generated by JsPbCodeGenerator.
@@ -2389,13 +2522,6 @@ if (goog.DEBUG && !COMPILED) {
   proto.pogootRefactoredRefactored.GameStartInfoResponse.displayName = 'proto.pogootRefactoredRefactored.GameStartInfoResponse';
 }
 
-/**
- * List of repeated fields within this message type.
- * @private {!Array<number>}
- * @const
- */
-proto.pogootRefactoredRefactored.NotecardModifyRequest.repeatedFields_ = [1,2];
-
 
 
 if (jspb.Message.GENERATE_TO_OBJECT) {
@@ -2427,10 +2553,14 @@ proto.pogootRefactoredRefactored.NotecardModifyRequest.prototype.toObject = func
  */
 proto.pogootRefactoredRefactored.NotecardModifyRequest.toObject = function(includeInstance, msg) {
   var f, obj = {
-    notecardsList: jspb.Message.toObjectList(msg.getNotecardsList(),
-    proto.pogootRefactoredRefactored.Notecard.toObject, includeInstance),
-    modifiedList: (f = jspb.Message.getRepeatedField(msg, 2)) == null ? undefined : f,
-    authToken: jspb.Message.getFieldWithDefault(msg, 3, "")
+    notecards: (f = msg.getNotecards()) && proto.pogootRefactoredRefactored.NotecardList.toObject(includeInstance, f),
+    authToken: jspb.Message.getFieldWithDefault(msg, 3, ""),
+    title: jspb.Message.getFieldWithDefault(msg, 4, ""),
+    description: jspb.Message.getFieldWithDefault(msg, 5, ""),
+    tags: jspb.Message.getFieldWithDefault(msg, 6, ""),
+    school: jspb.Message.getFieldWithDefault(msg, 7, ""),
+    username: jspb.Message.getFieldWithDefault(msg, 8, ""),
+    cfid: jspb.Message.getFieldWithDefault(msg, 9, "")
   };
 
   if (includeInstance) {
@@ -2468,19 +2598,37 @@ proto.pogootRefactoredRefactored.NotecardModifyRequest.deserializeBinaryFromRead
     var field = reader.getFieldNumber();
     switch (field) {
     case 1:
-      var value = new proto.pogootRefactoredRefactored.Notecard;
-      reader.readMessage(value,proto.pogootRefactoredRefactored.Notecard.deserializeBinaryFromReader);
-      msg.addNotecards(value);
-      break;
-    case 2:
-      var values = /** @type {!Array<number>} */ (reader.isDelimited() ? reader.readPackedInt32() : [reader.readInt32()]);
-      for (var i = 0; i < values.length; i++) {
-        msg.addModified(values[i]);
-      }
+      var value = new proto.pogootRefactoredRefactored.NotecardList;
+      reader.readMessage(value,proto.pogootRefactoredRefactored.NotecardList.deserializeBinaryFromReader);
+      msg.setNotecards(value);
       break;
     case 3:
       var value = /** @type {string} */ (reader.readString());
       msg.setAuthToken(value);
+      break;
+    case 4:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setTitle(value);
+      break;
+    case 5:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setDescription(value);
+      break;
+    case 6:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setTags(value);
+      break;
+    case 7:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setSchool(value);
+      break;
+    case 8:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setUsername(value);
+      break;
+    case 9:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setCfid(value);
       break;
     default:
       reader.skipField();
@@ -2511,19 +2659,12 @@ proto.pogootRefactoredRefactored.NotecardModifyRequest.prototype.serializeBinary
  */
 proto.pogootRefactoredRefactored.NotecardModifyRequest.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
-  f = message.getNotecardsList();
-  if (f.length > 0) {
-    writer.writeRepeatedMessage(
+  f = message.getNotecards();
+  if (f != null) {
+    writer.writeMessage(
       1,
       f,
-      proto.pogootRefactoredRefactored.Notecard.serializeBinaryToWriter
-    );
-  }
-  f = message.getModifiedList();
-  if (f.length > 0) {
-    writer.writePackedInt32(
-      2,
-      f
+      proto.pogootRefactoredRefactored.NotecardList.serializeBinaryToWriter
     );
   }
   f = message.getAuthToken();
@@ -2533,81 +2674,85 @@ proto.pogootRefactoredRefactored.NotecardModifyRequest.serializeBinaryToWriter =
       f
     );
   }
+  f = /** @type {string} */ (jspb.Message.getField(message, 4));
+  if (f != null) {
+    writer.writeString(
+      4,
+      f
+    );
+  }
+  f = /** @type {string} */ (jspb.Message.getField(message, 5));
+  if (f != null) {
+    writer.writeString(
+      5,
+      f
+    );
+  }
+  f = /** @type {string} */ (jspb.Message.getField(message, 6));
+  if (f != null) {
+    writer.writeString(
+      6,
+      f
+    );
+  }
+  f = /** @type {string} */ (jspb.Message.getField(message, 7));
+  if (f != null) {
+    writer.writeString(
+      7,
+      f
+    );
+  }
+  f = message.getUsername();
+  if (f.length > 0) {
+    writer.writeString(
+      8,
+      f
+    );
+  }
+  f = message.getCfid();
+  if (f.length > 0) {
+    writer.writeString(
+      9,
+      f
+    );
+  }
 };
 
 
 /**
- * repeated Notecard notecards = 1;
- * @return {!Array<!proto.pogootRefactoredRefactored.Notecard>}
+ * optional NotecardList notecards = 1;
+ * @return {?proto.pogootRefactoredRefactored.NotecardList}
  */
-proto.pogootRefactoredRefactored.NotecardModifyRequest.prototype.getNotecardsList = function() {
-  return /** @type{!Array<!proto.pogootRefactoredRefactored.Notecard>} */ (
-    jspb.Message.getRepeatedWrapperField(this, proto.pogootRefactoredRefactored.Notecard, 1));
+proto.pogootRefactoredRefactored.NotecardModifyRequest.prototype.getNotecards = function() {
+  return /** @type{?proto.pogootRefactoredRefactored.NotecardList} */ (
+    jspb.Message.getWrapperField(this, proto.pogootRefactoredRefactored.NotecardList, 1));
 };
 
 
 /**
- * @param {!Array<!proto.pogootRefactoredRefactored.Notecard>} value
+ * @param {?proto.pogootRefactoredRefactored.NotecardList|undefined} value
  * @return {!proto.pogootRefactoredRefactored.NotecardModifyRequest} returns this
 */
-proto.pogootRefactoredRefactored.NotecardModifyRequest.prototype.setNotecardsList = function(value) {
-  return jspb.Message.setRepeatedWrapperField(this, 1, value);
+proto.pogootRefactoredRefactored.NotecardModifyRequest.prototype.setNotecards = function(value) {
+  return jspb.Message.setWrapperField(this, 1, value);
 };
 
 
 /**
- * @param {!proto.pogootRefactoredRefactored.Notecard=} opt_value
- * @param {number=} opt_index
- * @return {!proto.pogootRefactoredRefactored.Notecard}
- */
-proto.pogootRefactoredRefactored.NotecardModifyRequest.prototype.addNotecards = function(opt_value, opt_index) {
-  return jspb.Message.addToRepeatedWrapperField(this, 1, opt_value, proto.pogootRefactoredRefactored.Notecard, opt_index);
-};
-
-
-/**
- * Clears the list making it empty but non-null.
+ * Clears the message field making it undefined.
  * @return {!proto.pogootRefactoredRefactored.NotecardModifyRequest} returns this
  */
-proto.pogootRefactoredRefactored.NotecardModifyRequest.prototype.clearNotecardsList = function() {
-  return this.setNotecardsList([]);
+proto.pogootRefactoredRefactored.NotecardModifyRequest.prototype.clearNotecards = function() {
+  return this.setNotecards(undefined);
 };
 
 
 /**
- * repeated int32 modified = 2;
- * @return {!Array<number>}
+ * Returns whether this field is set.
+ * @return {boolean}
  */
-proto.pogootRefactoredRefactored.NotecardModifyRequest.prototype.getModifiedList = function() {
-  return /** @type {!Array<number>} */ (jspb.Message.getRepeatedField(this, 2));
-};
-
-
-/**
- * @param {!Array<number>} value
- * @return {!proto.pogootRefactoredRefactored.NotecardModifyRequest} returns this
- */
-proto.pogootRefactoredRefactored.NotecardModifyRequest.prototype.setModifiedList = function(value) {
-  return jspb.Message.setField(this, 2, value || []);
-};
-
-
-/**
- * @param {number} value
- * @param {number=} opt_index
- * @return {!proto.pogootRefactoredRefactored.NotecardModifyRequest} returns this
- */
-proto.pogootRefactoredRefactored.NotecardModifyRequest.prototype.addModified = function(value, opt_index) {
-  return jspb.Message.addToRepeatedField(this, 2, value, opt_index);
-};
-
-
-/**
- * Clears the list making it empty but non-null.
- * @return {!proto.pogootRefactoredRefactored.NotecardModifyRequest} returns this
- */
-proto.pogootRefactoredRefactored.NotecardModifyRequest.prototype.clearModifiedList = function() {
-  return this.setModifiedList([]);
+proto.pogootRefactoredRefactored.NotecardModifyRequest.prototype.hasNotecards = function() {
+  return jspb.Message.getField(this, 1) != null;
 };
 
 
@@ -2629,6 +2774,186 @@ proto.pogootRefactoredRefactored.NotecardModifyRequest.prototype.setAuthToken = 
 };
 
 
+/**
+ * optional string title = 4;
+ * @return {string}
+ */
+proto.pogootRefactoredRefactored.NotecardModifyRequest.prototype.getTitle = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 4, ""));
+};
+
+
+/**
+ * @param {string} value
+ * @return {!proto.pogootRefactoredRefactored.NotecardModifyRequest} returns this
+ */
+proto.pogootRefactoredRefactored.NotecardModifyRequest.prototype.setTitle = function(value) {
+  return jspb.Message.setField(this, 4, value);
+};
+
+
+/**
+ * Clears the field making it undefined.
+ * @return {!proto.pogootRefactoredRefactored.NotecardModifyRequest} returns this
+ */
+proto.pogootRefactoredRefactored.NotecardModifyRequest.prototype.clearTitle = function() {
+  return jspb.Message.setField(this, 4, undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {boolean}
+ */
+proto.pogootRefactoredRefactored.NotecardModifyRequest.prototype.hasTitle = function() {
+  return jspb.Message.getField(this, 4) != null;
+};
+
+
+/**
+ * optional string description = 5;
+ * @return {string}
+ */
+proto.pogootRefactoredRefactored.NotecardModifyRequest.prototype.getDescription = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 5, ""));
+};
+
+
+/**
+ * @param {string} value
+ * @return {!proto.pogootRefactoredRefactored.NotecardModifyRequest} returns this
+ */
+proto.pogootRefactoredRefactored.NotecardModifyRequest.prototype.setDescription = function(value) {
+  return jspb.Message.setField(this, 5, value);
+};
+
+
+/**
+ * Clears the field making it undefined.
+ * @return {!proto.pogootRefactoredRefactored.NotecardModifyRequest} returns this
+ */
+proto.pogootRefactoredRefactored.NotecardModifyRequest.prototype.clearDescription = function() {
+  return jspb.Message.setField(this, 5, undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {boolean}
+ */
+proto.pogootRefactoredRefactored.NotecardModifyRequest.prototype.hasDescription = function() {
+  return jspb.Message.getField(this, 5) != null;
+};
+
+
+/**
+ * optional string tags = 6;
+ * @return {string}
+ */
+proto.pogootRefactoredRefactored.NotecardModifyRequest.prototype.getTags = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 6, ""));
+};
+
+
+/**
+ * @param {string} value
+ * @return {!proto.pogootRefactoredRefactored.NotecardModifyRequest} returns this
+ */
+proto.pogootRefactoredRefactored.NotecardModifyRequest.prototype.setTags = function(value) {
+  return jspb.Message.setField(this, 6, value);
+};
+
+
+/**
+ * Clears the field making it undefined.
+ * @return {!proto.pogootRefactoredRefactored.NotecardModifyRequest} returns this
+ */
+proto.pogootRefactoredRefactored.NotecardModifyRequest.prototype.clearTags = function() {
+  return jspb.Message.setField(this, 6, undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {boolean}
+ */
+proto.pogootRefactoredRefactored.NotecardModifyRequest.prototype.hasTags = function() {
+  return jspb.Message.getField(this, 6) != null;
+};
+
+
+/**
+ * optional string school = 7;
+ * @return {string}
+ */
+proto.pogootRefactoredRefactored.NotecardModifyRequest.prototype.getSchool = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 7, ""));
+};
+
+
+/**
+ * @param {string} value
+ * @return {!proto.pogootRefactoredRefactored.NotecardModifyRequest} returns this
+ */
+proto.pogootRefactoredRefactored.NotecardModifyRequest.prototype.setSchool = function(value) {
+  return jspb.Message.setField(this, 7, value);
+};
+
+
+/**
+ * Clears the field making it undefined.
+ * @return {!proto.pogootRefactoredRefactored.NotecardModifyRequest} returns this
+ */
+proto.pogootRefactoredRefactored.NotecardModifyRequest.prototype.clearSchool = function() {
+  return jspb.Message.setField(this, 7, undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {boolean}
+ */
+proto.pogootRefactoredRefactored.NotecardModifyRequest.prototype.hasSchool = function() {
+  return jspb.Message.getField(this, 7) != null;
+};
+
+
+/**
+ * optional string username = 8;
+ * @return {string}
+ */
+proto.pogootRefactoredRefactored.NotecardModifyRequest.prototype.getUsername = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 8, ""));
+};
+
+
+/**
+ * @param {string} value
+ * @return {!proto.pogootRefactoredRefactored.NotecardModifyRequest} returns this
+ */
+proto.pogootRefactoredRefactored.NotecardModifyRequest.prototype.setUsername = function(value) {
+  return jspb.Message.setProto3StringField(this, 8, value);
+};
+
+
+/**
+ * optional string cfid = 9;
+ * @return {string}
+ */
+proto.pogootRefactoredRefactored.NotecardModifyRequest.prototype.getCfid = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 9, ""));
+};
+
+
+/**
+ * @param {string} value
+ * @return {!proto.pogootRefactoredRefactored.NotecardModifyRequest} returns this
+ */
+proto.pogootRefactoredRefactored.NotecardModifyRequest.prototype.setCfid = function(value) {
+  return jspb.Message.setProto3StringField(this, 9, value);
+};
+
+
 
 
 
@@ -2645,8 +2970,8 @@ if (jspb.Message.GENERATE_TO_OBJECT) {
  *     http://goto/soy-param-migration
  * @return {!Object}
  */
-proto.pogootRefactoredRefactored.NotecardFetchRequest.prototype.toObject = function(opt_includeInstance) {
-  return proto.pogootRefactoredRefactored.NotecardFetchRequest.toObject(opt_includeInstance, this);
+proto.pogootRefactoredRefactored.NotecardLibraryRequest.prototype.toObject = function(opt_includeInstance) {
+  return proto.pogootRefactoredRefactored.NotecardLibraryRequest.toObject(opt_includeInstance, this);
 };
 
 
@@ -2655,14 +2980,14 @@ proto.pogootRefactoredRefactored.NotecardFetchRequest.prototype.toObject = funct
  * @param {boolean|undefined} includeInstance Deprecated. Whether to include
  *     the JSPB instance for transitional soy proto support:
  *     http://goto/soy-param-migration
- * @param {!proto.pogootRefactoredRefactored.NotecardFetchRequest} msg The msg instance to transform.
+ * @param {!proto.pogootRefactoredRefactored.NotecardLibraryRequest} msg The msg instance to transform.
  * @return {!Object}
  * @suppress {unusedLocalVariables} f is only used for nested messages
  */
-proto.pogootRefactoredRefactored.NotecardFetchRequest.toObject = function(includeInstance, msg) {
+proto.pogootRefactoredRefactored.NotecardLibraryRequest.toObject = function(includeInstance, msg) {
   var f, obj = {
-    id: jspb.Message.getFieldWithDefault(msg, 1, ""),
-    authToken: jspb.Message.getFieldWithDefault(msg, 3, "")
+    username: jspb.Message.getFieldWithDefault(msg, 1, ""),
+    authToken: jspb.Message.getFieldWithDefault(msg, 2, "")
   };
 
   if (includeInstance) {
@@ -2676,23 +3001,23 @@ proto.pogootRefactoredRefactored.NotecardFetchRequest.toObject = function(includ
 /**
  * Deserializes binary data (in protobuf wire format).
  * @param {jspb.ByteSource} bytes The bytes to deserialize.
- * @return {!proto.pogootRefactoredRefactored.NotecardFetchRequest}
+ * @return {!proto.pogootRefactoredRefactored.NotecardLibraryRequest}
  */
-proto.pogootRefactoredRefactored.NotecardFetchRequest.deserializeBinary = function(bytes) {
+proto.pogootRefactoredRefactored.NotecardLibraryRequest.deserializeBinary = function(bytes) {
   var reader = new jspb.BinaryReader(bytes);
-  var msg = new proto.pogootRefactoredRefactored.NotecardFetchRequest;
-  return proto.pogootRefactoredRefactored.NotecardFetchRequest.deserializeBinaryFromReader(msg, reader);
+  var msg = new proto.pogootRefactoredRefactored.NotecardLibraryRequest;
+  return proto.pogootRefactoredRefactored.NotecardLibraryRequest.deserializeBinaryFromReader(msg, reader);
 };
 
 
 /**
  * Deserializes binary data (in protobuf wire format) from the
  * given reader into the given message object.
- * @param {!proto.pogootRefactoredRefactored.NotecardFetchRequest} msg The message object to deserialize into.
+ * @param {!proto.pogootRefactoredRefactored.NotecardLibraryRequest} msg The message object to deserialize into.
  * @param {!jspb.BinaryReader} reader The BinaryReader to use.
- * @return {!proto.pogootRefactoredRefactored.NotecardFetchRequest}
+ * @return {!proto.pogootRefactoredRefactored.NotecardLibraryRequest}
  */
-proto.pogootRefactoredRefactored.NotecardFetchRequest.deserializeBinaryFromReader = function(msg, reader) {
+proto.pogootRefactoredRefactored.NotecardLibraryRequest.deserializeBinaryFromReader = function(msg, reader) {
   while (reader.nextField()) {
     if (reader.isEndGroup()) {
       break;
@@ -2701,9 +3026,9 @@ proto.pogootRefactoredRefactored.NotecardFetchRequest.deserializeBinaryFromReade
     switch (field) {
     case 1:
       var value = /** @type {string} */ (reader.readString());
-      msg.setId(value);
+      msg.setUsername(value);
       break;
-    case 3:
+    case 2:
       var value = /** @type {string} */ (reader.readString());
       msg.setAuthToken(value);
       break;
@@ -2720,9 +3045,9 @@ proto.pogootRefactoredRefactored.NotecardFetchRequest.deserializeBinaryFromReade
  * Serializes the message to binary data (in protobuf wire format).
  * @return {!Uint8Array}
  */
-proto.pogootRefactoredRefactored.NotecardFetchRequest.prototype.serializeBinary = function() {
+proto.pogootRefactoredRefactored.NotecardLibraryRequest.prototype.serializeBinary = function() {
   var writer = new jspb.BinaryWriter();
-  proto.pogootRefactoredRefactored.NotecardFetchRequest.serializeBinaryToWriter(this, writer);
+  proto.pogootRefactoredRefactored.NotecardLibraryRequest.serializeBinaryToWriter(this, writer);
   return writer.getResultBuffer();
 };
 
@@ -2730,13 +3055,13 @@ proto.pogootRefactoredRefactored.NotecardFetchRequest.prototype.serializeBinary 
 /**
  * Serializes the given message to binary data (in protobuf wire
  * format), writing to the given BinaryWriter.
- * @param {!proto.pogootRefactoredRefactored.NotecardFetchRequest} message
+ * @param {!proto.pogootRefactoredRefactored.NotecardLibraryRequest} message
  * @param {!jspb.BinaryWriter} writer
  * @suppress {unusedLocalVariables} f is only used for nested messages
  */
-proto.pogootRefactoredRefactored.NotecardFetchRequest.serializeBinaryToWriter = function(message, writer) {
+proto.pogootRefactoredRefactored.NotecardLibraryRequest.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
-  f = message.getId();
+  f = message.getUsername();
   if (f.length > 0) {
     writer.writeString(
       1,
@@ -2746,7 +3071,7 @@ proto.pogootRefactoredRefactored.NotecardFetchRequest.serializeBinaryToWriter = 
   f = message.getAuthToken();
   if (f.length > 0) {
     writer.writeString(
-      3,
+      2,
       f
     );
   }
@@ -2754,38 +3079,38 @@ proto.pogootRefactoredRefactored.NotecardFetchRequest.serializeBinaryToWriter = 
 
 
 /**
- * optional string id = 1;
+ * optional string username = 1;
  * @return {string}
  */
-proto.pogootRefactoredRefactored.NotecardFetchRequest.prototype.getId = function() {
+proto.pogootRefactoredRefactored.NotecardLibraryRequest.prototype.getUsername = function() {
   return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
 };
 
 
 /**
  * @param {string} value
- * @return {!proto.pogootRefactoredRefactored.NotecardFetchRequest} returns this
+ * @return {!proto.pogootRefactoredRefactored.NotecardLibraryRequest} returns this
  */
-proto.pogootRefactoredRefactored.NotecardFetchRequest.prototype.setId = function(value) {
+proto.pogootRefactoredRefactored.NotecardLibraryRequest.prototype.setUsername = function(value) {
   return jspb.Message.setProto3StringField(this, 1, value);
 };
 
 
 /**
- * optional string auth_token = 3;
+ * optional string auth_token = 2;
  * @return {string}
  */
-proto.pogootRefactoredRefactored.NotecardFetchRequest.prototype.getAuthToken = function() {
-  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 3, ""));
+proto.pogootRefactoredRefactored.NotecardLibraryRequest.prototype.getAuthToken = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 2, ""));
 };
 
 
 /**
  * @param {string} value
- * @return {!proto.pogootRefactoredRefactored.NotecardFetchRequest} returns this
+ * @return {!proto.pogootRefactoredRefactored.NotecardLibraryRequest} returns this
  */
-proto.pogootRefactoredRefactored.NotecardFetchRequest.prototype.setAuthToken = function(value) {
-  return jspb.Message.setProto3StringField(this, 3, value);
+proto.pogootRefactoredRefactored.NotecardLibraryRequest.prototype.setAuthToken = function(value) {
+  return jspb.Message.setProto3StringField(this, 2, value);
 };
 
 
@@ -3286,6 +3611,883 @@ proto.pogootRefactoredRefactored.NotecardList.prototype.clearNotecardsList = fun
  * @private {!Array<number>}
  * @const
  */
+proto.pogootRefactoredRefactored.NotecardLibraryList.repeatedFields_ = [1];
+
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * Optional fields that are not set will be set to undefined.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     net/proto2/compiler/js/internal/generator.cc#kKeyword.
+ * @param {boolean=} opt_includeInstance Deprecated. whether to include the
+ *     JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.pogootRefactoredRefactored.NotecardLibraryList.prototype.toObject = function(opt_includeInstance) {
+  return proto.pogootRefactoredRefactored.NotecardLibraryList.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Deprecated. Whether to include
+ *     the JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.pogootRefactoredRefactored.NotecardLibraryList} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.pogootRefactoredRefactored.NotecardLibraryList.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    libraryList: jspb.Message.toObjectList(msg.getLibraryList(),
+    proto.pogootRefactoredRefactored.NotecardLibraryData.toObject, includeInstance),
+    success: jspb.Message.getBooleanFieldWithDefault(msg, 2, false)
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.pogootRefactoredRefactored.NotecardLibraryList}
+ */
+proto.pogootRefactoredRefactored.NotecardLibraryList.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.pogootRefactoredRefactored.NotecardLibraryList;
+  return proto.pogootRefactoredRefactored.NotecardLibraryList.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.pogootRefactoredRefactored.NotecardLibraryList} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.pogootRefactoredRefactored.NotecardLibraryList}
+ */
+proto.pogootRefactoredRefactored.NotecardLibraryList.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = new proto.pogootRefactoredRefactored.NotecardLibraryData;
+      reader.readMessage(value,proto.pogootRefactoredRefactored.NotecardLibraryData.deserializeBinaryFromReader);
+      msg.addLibrary(value);
+      break;
+    case 2:
+      var value = /** @type {boolean} */ (reader.readBool());
+      msg.setSuccess(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.pogootRefactoredRefactored.NotecardLibraryList.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.pogootRefactoredRefactored.NotecardLibraryList.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.pogootRefactoredRefactored.NotecardLibraryList} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.pogootRefactoredRefactored.NotecardLibraryList.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getLibraryList();
+  if (f.length > 0) {
+    writer.writeRepeatedMessage(
+      1,
+      f,
+      proto.pogootRefactoredRefactored.NotecardLibraryData.serializeBinaryToWriter
+    );
+  }
+  f = message.getSuccess();
+  if (f) {
+    writer.writeBool(
+      2,
+      f
+    );
+  }
+};
+
+
+/**
+ * repeated NotecardLibraryData library = 1;
+ * @return {!Array<!proto.pogootRefactoredRefactored.NotecardLibraryData>}
+ */
+proto.pogootRefactoredRefactored.NotecardLibraryList.prototype.getLibraryList = function() {
+  return /** @type{!Array<!proto.pogootRefactoredRefactored.NotecardLibraryData>} */ (
+    jspb.Message.getRepeatedWrapperField(this, proto.pogootRefactoredRefactored.NotecardLibraryData, 1));
+};
+
+
+/**
+ * @param {!Array<!proto.pogootRefactoredRefactored.NotecardLibraryData>} value
+ * @return {!proto.pogootRefactoredRefactored.NotecardLibraryList} returns this
+*/
+proto.pogootRefactoredRefactored.NotecardLibraryList.prototype.setLibraryList = function(value) {
+  return jspb.Message.setRepeatedWrapperField(this, 1, value);
+};
+
+
+/**
+ * @param {!proto.pogootRefactoredRefactored.NotecardLibraryData=} opt_value
+ * @param {number=} opt_index
+ * @return {!proto.pogootRefactoredRefactored.NotecardLibraryData}
+ */
+proto.pogootRefactoredRefactored.NotecardLibraryList.prototype.addLibrary = function(opt_value, opt_index) {
+  return jspb.Message.addToRepeatedWrapperField(this, 1, opt_value, proto.pogootRefactoredRefactored.NotecardLibraryData, opt_index);
+};
+
+
+/**
+ * Clears the list making it empty but non-null.
+ * @return {!proto.pogootRefactoredRefactored.NotecardLibraryList} returns this
+ */
+proto.pogootRefactoredRefactored.NotecardLibraryList.prototype.clearLibraryList = function() {
+  return this.setLibraryList([]);
+};
+
+
+/**
+ * optional bool success = 2;
+ * @return {boolean}
+ */
+proto.pogootRefactoredRefactored.NotecardLibraryList.prototype.getSuccess = function() {
+  return /** @type {boolean} */ (jspb.Message.getBooleanFieldWithDefault(this, 2, false));
+};
+
+
+/**
+ * @param {boolean} value
+ * @return {!proto.pogootRefactoredRefactored.NotecardLibraryList} returns this
+ */
+proto.pogootRefactoredRefactored.NotecardLibraryList.prototype.setSuccess = function(value) {
+  return jspb.Message.setProto3BooleanField(this, 2, value);
+};
+
+
+
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * Optional fields that are not set will be set to undefined.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     net/proto2/compiler/js/internal/generator.cc#kKeyword.
+ * @param {boolean=} opt_includeInstance Deprecated. whether to include the
+ *     JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.pogootRefactoredRefactored.NotecardFetchRequest.prototype.toObject = function(opt_includeInstance) {
+  return proto.pogootRefactoredRefactored.NotecardFetchRequest.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Deprecated. Whether to include
+ *     the JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.pogootRefactoredRefactored.NotecardFetchRequest} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.pogootRefactoredRefactored.NotecardFetchRequest.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    id: jspb.Message.getFieldWithDefault(msg, 1, ""),
+    auth: jspb.Message.getFieldWithDefault(msg, 2, ""),
+    username: jspb.Message.getFieldWithDefault(msg, 3, "")
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.pogootRefactoredRefactored.NotecardFetchRequest}
+ */
+proto.pogootRefactoredRefactored.NotecardFetchRequest.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.pogootRefactoredRefactored.NotecardFetchRequest;
+  return proto.pogootRefactoredRefactored.NotecardFetchRequest.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.pogootRefactoredRefactored.NotecardFetchRequest} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.pogootRefactoredRefactored.NotecardFetchRequest}
+ */
+proto.pogootRefactoredRefactored.NotecardFetchRequest.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setId(value);
+      break;
+    case 2:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setAuth(value);
+      break;
+    case 3:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setUsername(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.pogootRefactoredRefactored.NotecardFetchRequest.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.pogootRefactoredRefactored.NotecardFetchRequest.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.pogootRefactoredRefactored.NotecardFetchRequest} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.pogootRefactoredRefactored.NotecardFetchRequest.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getId();
+  if (f.length > 0) {
+    writer.writeString(
+      1,
+      f
+    );
+  }
+  f = /** @type {string} */ (jspb.Message.getField(message, 2));
+  if (f != null) {
+    writer.writeString(
+      2,
+      f
+    );
+  }
+  f = /** @type {string} */ (jspb.Message.getField(message, 3));
+  if (f != null) {
+    writer.writeString(
+      3,
+      f
+    );
+  }
+};
+
+
+/**
+ * optional string id = 1;
+ * @return {string}
+ */
+proto.pogootRefactoredRefactored.NotecardFetchRequest.prototype.getId = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
+};
+
+
+/**
+ * @param {string} value
+ * @return {!proto.pogootRefactoredRefactored.NotecardFetchRequest} returns this
+ */
+proto.pogootRefactoredRefactored.NotecardFetchRequest.prototype.setId = function(value) {
+  return jspb.Message.setProto3StringField(this, 1, value);
+};
+
+
+/**
+ * optional string auth = 2;
+ * @return {string}
+ */
+proto.pogootRefactoredRefactored.NotecardFetchRequest.prototype.getAuth = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 2, ""));
+};
+
+
+/**
+ * @param {string} value
+ * @return {!proto.pogootRefactoredRefactored.NotecardFetchRequest} returns this
+ */
+proto.pogootRefactoredRefactored.NotecardFetchRequest.prototype.setAuth = function(value) {
+  return jspb.Message.setField(this, 2, value);
+};
+
+
+/**
+ * Clears the field making it undefined.
+ * @return {!proto.pogootRefactoredRefactored.NotecardFetchRequest} returns this
+ */
+proto.pogootRefactoredRefactored.NotecardFetchRequest.prototype.clearAuth = function() {
+  return jspb.Message.setField(this, 2, undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {boolean}
+ */
+proto.pogootRefactoredRefactored.NotecardFetchRequest.prototype.hasAuth = function() {
+  return jspb.Message.getField(this, 2) != null;
+};
+
+
+/**
+ * optional string username = 3;
+ * @return {string}
+ */
+proto.pogootRefactoredRefactored.NotecardFetchRequest.prototype.getUsername = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 3, ""));
+};
+
+
+/**
+ * @param {string} value
+ * @return {!proto.pogootRefactoredRefactored.NotecardFetchRequest} returns this
+ */
+proto.pogootRefactoredRefactored.NotecardFetchRequest.prototype.setUsername = function(value) {
+  return jspb.Message.setField(this, 3, value);
+};
+
+
+/**
+ * Clears the field making it undefined.
+ * @return {!proto.pogootRefactoredRefactored.NotecardFetchRequest} returns this
+ */
+proto.pogootRefactoredRefactored.NotecardFetchRequest.prototype.clearUsername = function() {
+  return jspb.Message.setField(this, 3, undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {boolean}
+ */
+proto.pogootRefactoredRefactored.NotecardFetchRequest.prototype.hasUsername = function() {
+  return jspb.Message.getField(this, 3) != null;
+};
+
+
+
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * Optional fields that are not set will be set to undefined.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     net/proto2/compiler/js/internal/generator.cc#kKeyword.
+ * @param {boolean=} opt_includeInstance Deprecated. whether to include the
+ *     JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.pogootRefactoredRefactored.NotecardFetchResponse.prototype.toObject = function(opt_includeInstance) {
+  return proto.pogootRefactoredRefactored.NotecardFetchResponse.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Deprecated. Whether to include
+ *     the JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.pogootRefactoredRefactored.NotecardFetchResponse} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.pogootRefactoredRefactored.NotecardFetchResponse.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    success: jspb.Message.getBooleanFieldWithDefault(msg, 1, false),
+    notecards: (f = msg.getNotecards()) && proto.pogootRefactoredRefactored.NotecardList.toObject(includeInstance, f)
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.pogootRefactoredRefactored.NotecardFetchResponse}
+ */
+proto.pogootRefactoredRefactored.NotecardFetchResponse.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.pogootRefactoredRefactored.NotecardFetchResponse;
+  return proto.pogootRefactoredRefactored.NotecardFetchResponse.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.pogootRefactoredRefactored.NotecardFetchResponse} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.pogootRefactoredRefactored.NotecardFetchResponse}
+ */
+proto.pogootRefactoredRefactored.NotecardFetchResponse.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = /** @type {boolean} */ (reader.readBool());
+      msg.setSuccess(value);
+      break;
+    case 2:
+      var value = new proto.pogootRefactoredRefactored.NotecardList;
+      reader.readMessage(value,proto.pogootRefactoredRefactored.NotecardList.deserializeBinaryFromReader);
+      msg.setNotecards(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.pogootRefactoredRefactored.NotecardFetchResponse.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.pogootRefactoredRefactored.NotecardFetchResponse.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.pogootRefactoredRefactored.NotecardFetchResponse} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.pogootRefactoredRefactored.NotecardFetchResponse.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getSuccess();
+  if (f) {
+    writer.writeBool(
+      1,
+      f
+    );
+  }
+  f = message.getNotecards();
+  if (f != null) {
+    writer.writeMessage(
+      2,
+      f,
+      proto.pogootRefactoredRefactored.NotecardList.serializeBinaryToWriter
+    );
+  }
+};
+
+
+/**
+ * optional bool success = 1;
+ * @return {boolean}
+ */
+proto.pogootRefactoredRefactored.NotecardFetchResponse.prototype.getSuccess = function() {
+  return /** @type {boolean} */ (jspb.Message.getBooleanFieldWithDefault(this, 1, false));
+};
+
+
+/**
+ * @param {boolean} value
+ * @return {!proto.pogootRefactoredRefactored.NotecardFetchResponse} returns this
+ */
+proto.pogootRefactoredRefactored.NotecardFetchResponse.prototype.setSuccess = function(value) {
+  return jspb.Message.setProto3BooleanField(this, 1, value);
+};
+
+
+/**
+ * optional NotecardList notecards = 2;
+ * @return {?proto.pogootRefactoredRefactored.NotecardList}
+ */
+proto.pogootRefactoredRefactored.NotecardFetchResponse.prototype.getNotecards = function() {
+  return /** @type{?proto.pogootRefactoredRefactored.NotecardList} */ (
+    jspb.Message.getWrapperField(this, proto.pogootRefactoredRefactored.NotecardList, 2));
+};
+
+
+/**
+ * @param {?proto.pogootRefactoredRefactored.NotecardList|undefined} value
+ * @return {!proto.pogootRefactoredRefactored.NotecardFetchResponse} returns this
+*/
+proto.pogootRefactoredRefactored.NotecardFetchResponse.prototype.setNotecards = function(value) {
+  return jspb.Message.setWrapperField(this, 2, value);
+};
+
+
+/**
+ * Clears the message field making it undefined.
+ * @return {!proto.pogootRefactoredRefactored.NotecardFetchResponse} returns this
+ */
+proto.pogootRefactoredRefactored.NotecardFetchResponse.prototype.clearNotecards = function() {
+  return this.setNotecards(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {boolean}
+ */
+proto.pogootRefactoredRefactored.NotecardFetchResponse.prototype.hasNotecards = function() {
+  return jspb.Message.getField(this, 2) != null;
+};
+
+
+
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * Optional fields that are not set will be set to undefined.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     net/proto2/compiler/js/internal/generator.cc#kKeyword.
+ * @param {boolean=} opt_includeInstance Deprecated. whether to include the
+ *     JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.pogootRefactoredRefactored.NotecardLibraryData.prototype.toObject = function(opt_includeInstance) {
+  return proto.pogootRefactoredRefactored.NotecardLibraryData.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Deprecated. Whether to include
+ *     the JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.pogootRefactoredRefactored.NotecardLibraryData} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.pogootRefactoredRefactored.NotecardLibraryData.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    title: jspb.Message.getFieldWithDefault(msg, 1, ""),
+    school: jspb.Message.getFieldWithDefault(msg, 2, ""),
+    tags: jspb.Message.getFieldWithDefault(msg, 3, ""),
+    desc: jspb.Message.getFieldWithDefault(msg, 4, ""),
+    cfid: jspb.Message.getFieldWithDefault(msg, 5, ""),
+    date: jspb.Message.getFieldWithDefault(msg, 6, "")
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.pogootRefactoredRefactored.NotecardLibraryData}
+ */
+proto.pogootRefactoredRefactored.NotecardLibraryData.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.pogootRefactoredRefactored.NotecardLibraryData;
+  return proto.pogootRefactoredRefactored.NotecardLibraryData.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.pogootRefactoredRefactored.NotecardLibraryData} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.pogootRefactoredRefactored.NotecardLibraryData}
+ */
+proto.pogootRefactoredRefactored.NotecardLibraryData.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setTitle(value);
+      break;
+    case 2:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setSchool(value);
+      break;
+    case 3:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setTags(value);
+      break;
+    case 4:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setDesc(value);
+      break;
+    case 5:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setCfid(value);
+      break;
+    case 6:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setDate(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.pogootRefactoredRefactored.NotecardLibraryData.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.pogootRefactoredRefactored.NotecardLibraryData.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.pogootRefactoredRefactored.NotecardLibraryData} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.pogootRefactoredRefactored.NotecardLibraryData.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getTitle();
+  if (f.length > 0) {
+    writer.writeString(
+      1,
+      f
+    );
+  }
+  f = message.getSchool();
+  if (f.length > 0) {
+    writer.writeString(
+      2,
+      f
+    );
+  }
+  f = message.getTags();
+  if (f.length > 0) {
+    writer.writeString(
+      3,
+      f
+    );
+  }
+  f = message.getDesc();
+  if (f.length > 0) {
+    writer.writeString(
+      4,
+      f
+    );
+  }
+  f = message.getCfid();
+  if (f.length > 0) {
+    writer.writeString(
+      5,
+      f
+    );
+  }
+  f = message.getDate();
+  if (f.length > 0) {
+    writer.writeString(
+      6,
+      f
+    );
+  }
+};
+
+
+/**
+ * optional string title = 1;
+ * @return {string}
+ */
+proto.pogootRefactoredRefactored.NotecardLibraryData.prototype.getTitle = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
+};
+
+
+/**
+ * @param {string} value
+ * @return {!proto.pogootRefactoredRefactored.NotecardLibraryData} returns this
+ */
+proto.pogootRefactoredRefactored.NotecardLibraryData.prototype.setTitle = function(value) {
+  return jspb.Message.setProto3StringField(this, 1, value);
+};
+
+
+/**
+ * optional string school = 2;
+ * @return {string}
+ */
+proto.pogootRefactoredRefactored.NotecardLibraryData.prototype.getSchool = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 2, ""));
+};
+
+
+/**
+ * @param {string} value
+ * @return {!proto.pogootRefactoredRefactored.NotecardLibraryData} returns this
+ */
+proto.pogootRefactoredRefactored.NotecardLibraryData.prototype.setSchool = function(value) {
+  return jspb.Message.setProto3StringField(this, 2, value);
+};
+
+
+/**
+ * optional string tags = 3;
+ * @return {string}
+ */
+proto.pogootRefactoredRefactored.NotecardLibraryData.prototype.getTags = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 3, ""));
+};
+
+
+/**
+ * @param {string} value
+ * @return {!proto.pogootRefactoredRefactored.NotecardLibraryData} returns this
+ */
+proto.pogootRefactoredRefactored.NotecardLibraryData.prototype.setTags = function(value) {
+  return jspb.Message.setProto3StringField(this, 3, value);
+};
+
+
+/**
+ * optional string desc = 4;
+ * @return {string}
+ */
+proto.pogootRefactoredRefactored.NotecardLibraryData.prototype.getDesc = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 4, ""));
+};
+
+
+/**
+ * @param {string} value
+ * @return {!proto.pogootRefactoredRefactored.NotecardLibraryData} returns this
+ */
+proto.pogootRefactoredRefactored.NotecardLibraryData.prototype.setDesc = function(value) {
+  return jspb.Message.setProto3StringField(this, 4, value);
+};
+
+
+/**
+ * optional string CFID = 5;
+ * @return {string}
+ */
+proto.pogootRefactoredRefactored.NotecardLibraryData.prototype.getCfid = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 5, ""));
+};
+
+
+/**
+ * @param {string} value
+ * @return {!proto.pogootRefactoredRefactored.NotecardLibraryData} returns this
+ */
+proto.pogootRefactoredRefactored.NotecardLibraryData.prototype.setCfid = function(value) {
+  return jspb.Message.setProto3StringField(this, 5, value);
+};
+
+
+/**
+ * optional string date = 6;
+ * @return {string}
+ */
+proto.pogootRefactoredRefactored.NotecardLibraryData.prototype.getDate = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 6, ""));
+};
+
+
+/**
+ * @param {string} value
+ * @return {!proto.pogootRefactoredRefactored.NotecardLibraryData} returns this
+ */
+proto.pogootRefactoredRefactored.NotecardLibraryData.prototype.setDate = function(value) {
+  return jspb.Message.setProto3StringField(this, 6, value);
+};
+
+
+
+/**
+ * List of repeated fields within this message type.
+ * @private {!Array<number>}
+ * @const
+ */
 proto.pogootRefactoredRefactored.Notecard.repeatedFields_ = [1,2];
 
 
@@ -3678,7 +4880,8 @@ proto.pogootRefactoredRefactored.UserRegisterWithEmailRequest.prototype.toObject
 proto.pogootRefactoredRefactored.UserRegisterWithEmailRequest.toObject = function(includeInstance, msg) {
   var f, obj = {
     email: jspb.Message.getFieldWithDefault(msg, 1, ""),
-    password: jspb.Message.getFieldWithDefault(msg, 2, "")
+    password: jspb.Message.getFieldWithDefault(msg, 2, ""),
+    username: jspb.Message.getFieldWithDefault(msg, 3, "")
   };
 
   if (includeInstance) {
@@ -3723,6 +4926,10 @@ proto.pogootRefactoredRefactored.UserRegisterWithEmailRequest.deserializeBinaryF
       var value = /** @type {string} */ (reader.readString());
       msg.setPassword(value);
       break;
+    case 3:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setUsername(value);
+      break;
     default:
       reader.skipField();
       break;
@@ -3766,6 +4973,13 @@ proto.pogootRefactoredRefactored.UserRegisterWithEmailRequest.serializeBinaryToW
       f
     );
   }
+  f = message.getUsername();
+  if (f.length > 0) {
+    writer.writeString(
+      3,
+      f
+    );
+  }
 };
 
 
@@ -3802,6 +5016,24 @@ proto.pogootRefactoredRefactored.UserRegisterWithEmailRequest.prototype.getPassw
  */
 proto.pogootRefactoredRefactored.UserRegisterWithEmailRequest.prototype.setPassword = function(value) {
   return jspb.Message.setProto3StringField(this, 2, value);
+};
+
+
+/**
+ * optional string username = 3;
+ * @return {string}
+ */
+proto.pogootRefactoredRefactored.UserRegisterWithEmailRequest.prototype.getUsername = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 3, ""));
+};
+
+
+/**
+ * @param {string} value
+ * @return {!proto.pogootRefactoredRefactored.UserRegisterWithEmailRequest} returns this
+ */
+proto.pogootRefactoredRefactored.UserRegisterWithEmailRequest.prototype.setUsername = function(value) {
+  return jspb.Message.setProto3StringField(this, 3, value);
 };
 
 

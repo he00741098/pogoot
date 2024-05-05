@@ -258,6 +258,67 @@ proto.pogootRefactoredRefactored.NotecardServicePromiseClient.prototype.modify =
 
 
 /**
+ * @const
+ * @type {!grpc.web.MethodDescriptor<
+ *   !proto.pogootRefactoredRefactored.NotecardFetchRequest,
+ *   !proto.pogootRefactoredRefactored.NotecardFetchResponse>}
+ */
+const methodDescriptor_NotecardService_GetNotecards = new grpc.web.MethodDescriptor(
+  '/pogootRefactoredRefactored.NotecardService/GetNotecards',
+  grpc.web.MethodType.UNARY,
+  proto.pogootRefactoredRefactored.NotecardFetchRequest,
+  proto.pogootRefactoredRefactored.NotecardFetchResponse,
+  /**
+   * @param {!proto.pogootRefactoredRefactored.NotecardFetchRequest} request
+   * @return {!Uint8Array}
+   */
+  function(request) {
+    return request.serializeBinary();
+  },
+  proto.pogootRefactoredRefactored.NotecardFetchResponse.deserializeBinary
+);
+
+
+/**
+ * @param {!proto.pogootRefactoredRefactored.NotecardFetchRequest} request The
+ *     request proto
+ * @param {?Object<string, string>} metadata User defined
+ *     call metadata
+ * @param {function(?grpc.web.RpcError, ?proto.pogootRefactoredRefactored.NotecardFetchResponse)}
+ *     callback The callback function(error, response)
+ * @return {!grpc.web.ClientReadableStream<!proto.pogootRefactoredRefactored.NotecardFetchResponse>|undefined}
+ *     The XHR Node Readable Stream
+ */
+proto.pogootRefactoredRefactored.NotecardServiceClient.prototype.getNotecards =
+    function(request, metadata, callback) {
+  return this.client_.rpcCall(this.hostname_ +
+      '/pogootRefactoredRefactored.NotecardService/GetNotecards',
+      request,
+      metadata || {},
+      methodDescriptor_NotecardService_GetNotecards,
+      callback);
+};
+
+
+/**
+ * @param {!proto.pogootRefactoredRefactored.NotecardFetchRequest} request The
+ *     request proto
+ * @param {?Object<string, string>=} metadata User defined
+ *     call metadata
+ * @return {!Promise<!proto.pogootRefactoredRefactored.NotecardFetchResponse>}
+ *     Promise that resolves to the response
+ */
+proto.pogootRefactoredRefactored.NotecardServicePromiseClient.prototype.getNotecards =
+    function(request, metadata) {
+  return this.client_.unaryCall(this.hostname_ +
+      '/pogootRefactoredRefactored.NotecardService/GetNotecards',
+      request,
+      metadata || {},
+      methodDescriptor_NotecardService_GetNotecards);
+};
+
+
+/**
  * @param {string} hostname
  * @param {?Object} credentials
  * @param {?grpc.web.ClientOptions} options

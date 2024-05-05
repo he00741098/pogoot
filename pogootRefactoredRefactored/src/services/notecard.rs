@@ -151,10 +151,11 @@ async fn store_with_sql(
     mut secrets: AwsSecrets,
 ) -> Result<String, ()> {
     //TODO:Verify login
+    //Don't take the username because it is used later in storage proccess;
     let verified = verify_credentials(
         verifyer,
         std::mem::take(&mut data.auth),
-        std::mem::take(&mut data.username),
+        data.username.clone(),
     )
     .await;
     if verified.is_err() {

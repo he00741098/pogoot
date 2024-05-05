@@ -5,14 +5,24 @@ package pogootRefactoredRefactored;
 //Note card stuff
 service NotecardService{
   rpc Upload(NotecardListUploadRequest) returns (NotecardUploadResponse);
+  //Due to mistakes, this function now returns a list of notecard titles and descriptions
   rpc Fetch(NotecardLibraryRequest) returns (NotecardLibraryList);
   rpc Modify(NotecardModifyRequest) returns (NotecardUploadResponse);
+  rpc GetNotecards(NotecardFetchRequest) returns (NotecardFetchResponse);
 }
 
+//A notecard modify request. ogTitle is the orginal title, other title field will change the title;
+//UPDATE: ogTitle will be used as the CFID field
+//Fields can be none - Those will not be modified
 message NotecardModifyRequest{
-  repeated Notecard notecards = 1;
-  repeated int32 modified = 2;
+  optional NotecardList notecards = 1;
   string auth_token = 3;
+  optional string title = 4;
+  optional string description = 5;
+  optional string tags = 6;
+  optional string school = 7;
+  string username = 8;
+  string cfid = 9;
 }
 //Notecard Library Request -
 //Fetch the list of notecards owned by a user
@@ -40,6 +50,17 @@ message NotecardLibraryList{
   bool success = 2;
 }
 
+message NotecardFetchRequest{
+  string id = 1;
+  optional string auth = 2;
+  optional string username = 3;
+}
+
+message NotecardFetchResponse{
+  bool success = 1;
+  NotecardList notecards = 2;
+}
+
 // pub title: String,
 // pub school: String,
 // pub tags: String,
@@ -51,6 +72,7 @@ message NotecardLibraryData{
   string tags = 3;
   string desc = 4;
   string CFID = 5;
+  string date = 6;
 }
 
 message Notecard{
@@ -74,18 +96,22 @@ service LoginServer{
 message UserRegisterWithEmailRequest{
   string email = 1;
   string password = 2;
+  string username = 3;
 }
 
+//Email counts as either username or email
 message UserLoginRequest{
   string email = 1;
   string password = 2;
 }
 
+//Email counts as either username or email
 message UserPasswordUpdateRequest{
   string email = 1;
   string password = 2;
 }
 
+//Mystery contains either an error message or the token
 message LoginResponse{
   bool success = 1;
   string mystery = 2;
@@ -103,7 +129,7 @@ service PogootPlayerServer{
 message PogootRequest{
   //the specific id of the game
   string gameid = 1;
-  //the tmp username assigned to the player(Non unique)
+  //the tmp username assigned to the player(Non unique). This username does not correspond to an account. E.g. Display name
   string username = 2;
 }
 

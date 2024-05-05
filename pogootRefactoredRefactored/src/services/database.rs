@@ -142,6 +142,7 @@ pub async fn store_notecards(
         )
         .await;
     if result.is_err() {
+        println!("Notecard Store Into SQLITE FAILED");
         return Err(());
     }
 
@@ -287,12 +288,12 @@ pub async fn fetch_user_library(
     //Grabbing ALL notecards that fit the criteria...
     let result = conn
         .query(
-            "SELECT NAME, DESCRIPTION, TAGS, SCHOOL, CFID, CREATION_DATE FROM USERS WHERE EMAIL = ?1 OR USERNAME = ?1;",
+            "SELECT NAME, DESCRIPTION, TAGS, SCHOOL, CFID, CREATION_DATE FROM NOTECARDS WHERE OWNER = ?1;",
             params![username],
         )
         .await;
     if result.is_err() {
-        println!("Database Query was error");
+        println!("Database Query was error: {:?}", result.err());
         return Err(());
     }
     let mut rows = result.unwrap();
@@ -328,7 +329,10 @@ pub async fn fetch_user_library(
                     date: date.unwrap().to_string(),
                 })
             }
-            None => return Ok(accumulate),
+            None => {
+                println!("Rows Is None");
+                return Ok(accumulate);
+            }
         }
     }
     println!("Rows errored");
@@ -353,7 +357,7 @@ pub async fn update_notecard_data(
     let cfid = request.cfid;
     let query = "UPDATE NOTECARDS SET".to_string();
     let ending = "WHERE CFID=?;";
-    let now = chrono::Utc::now();
+    // let now = chrono::Utc::now();
     let conversion = &["NAME", "DESCRIPTION", "TAGS", "SCHOOL"];
     let strings = vec![title, description, tags, school];
     let strings = strings

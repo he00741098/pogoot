@@ -16,9 +16,9 @@ try {
   data = await env.NOTECARDBUCKET.get("pogootdata/" + id);
   if (data == null) {
     console.log("Null...");
-  data = JSON.parse(
-    '[{"front":["Error loading Notecards"],"back":["Error loading Notecards"]}]',
-  );
+    data = JSON.parse(
+      '[{"front":["Error loading Notecards"],"back":["Error loading Notecards"]}]',
+    );
   } else {
     console.log("Into Buffer");
     let arrayBuffer = await data.arrayBuffer();

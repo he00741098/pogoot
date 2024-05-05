@@ -107,42 +107,4 @@ import AlertBox from "../components/AlertBox.astro";
   }
 </style>
 
-<script>
-  document.addEventListener("astro:page-load", function () {
-    var alertBox = document.getElementById("exampleAlert");
-    alertBox.style.display = "none";
-    if (document.URL.indexOf("library") < 1) {
-      return;
-    }
-    function cookie_get(key) {
-      let cookies = document.cookie;
-      let split = cookies.split(";");
-      for (var cookie of split) {
-        let cook = cookie.trim().split("=");
-        if (cook[0] == key) {
-          return cook[1];
-        }
-      }
-      return "";
-    }
-
-    function send_alert(color, header, text) {
-      var alertBox = document.getElementById("exampleAlert");
-      var alerts = document.getElementById("Alerts");
-      let box = alertBox.cloneNode(true);
-      box.style.outline = color + " solid 3px";
-      console.log(box.childNodes);
-      box.childNodes[1].innerText = header;
-      box.childNodes[3].innerText = text;
-      box.style.display = "grid";
-      alerts.appendChild(box);
-      setTimeout(() => {
-        alerts.removeChild(box);
-      }, 5000);
-    }
-
-    if (cookie_get("auth").length < 2 || cookie_get("username").length < 2) {
-      send_alert("red", "Login", "Please Login To View Your Library");
-    }
-  });
-</script>
+<script src="../proto/result_library.js"></script>

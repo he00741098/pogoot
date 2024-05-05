@@ -6,33 +6,13 @@ document.addEventListener("astro:page-load", () => {
   var alertBox = document.getElementById("exampleAlert");
   alertBox.style.display = "none";
   const {
-    GameStartInfoResponse,
     LoginResponse,
-    ManagerPlayerRequest,
-    Notecard,
-    NotecardFetchRequest,
-    NotecardList,
-    NotecardListUploadRequest,
-    NotecardModifyRequest,
-    NotecardUploadResponse,
-    PogootAnswerRequest,
-    PogootCreationRequest,
-    PogootCreationResponse,
-    PogootJoinCode,
-    PogootQuestion,
-    PogootQuestionList,
-    PogootRequest,
-    PogootResultsResponse,
-    Progress,
-    RoundResultResponse,
     UserLoginRequest,
     UserPasswordUpdateRequest,
     UserRegisterWithEmailRequest,
   } = require("./pogoots_pb.js");
   const {
-    NotecardServiceClient,
     LoginServerClient,
-    PogootPlayerServerClient,
   } = require("./pogoots_grpc_web_pb.js");
 
   let register_button = document.getElementById("RegisterButton");
