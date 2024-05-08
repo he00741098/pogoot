@@ -14,9 +14,9 @@ use self::{
 use pogoots::login_server_server::LoginServerServer;
 use pogoots::notecard_service_server::NotecardServiceServer;
 use pogoots::*;
-use std::pin::Pin;
 use std::sync::Arc;
 use std::time::Duration;
+use std::{clone, pin::Pin};
 use tokio::sync::mpsc;
 use tokio_stream::{wrappers::ReceiverStream, Stream};
 use tonic::{
@@ -44,12 +44,17 @@ pub async fn start_serving(mut secrets: AwsSecrets) {
     }
 
     let con = con.unwrap();
-    let clonecon = con.clone();
+    let clonecon = con.connect();
+    if clonecon.is_err() {
+        println!("Database connection failed during boot. Crashing and burning!!!!");
+        return;
+    }
+    let clonecon = clonecon.unwrap();
 
     //repeat connection attempts every 5 seconds
     let user_manager = UserManager {
         map: Arc::new(Mutex::new(UserManageMap::new())),
-        connection: con,
+        connection: Arc::new(con),
     };
     let (ltx, lrx) = tokio::sync::mpsc::channel(100);
     tokio::spawn(async move {
