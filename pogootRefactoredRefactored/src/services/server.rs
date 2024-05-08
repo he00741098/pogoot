@@ -43,18 +43,12 @@ pub async fn start_serving(mut secrets: AwsSecrets) {
         con = crate::services::database::new_connection(secrets.clone()).await;
     }
 
-    let con = con.unwrap();
-    let clonecon = con.connect();
-    if clonecon.is_err() {
-        println!("Database connection failed during boot. Crashing and burning!!!!");
-        return;
-    }
-    let clonecon = clonecon.unwrap();
+    let con = Arc::new(con.unwrap());
 
     //repeat connection attempts every 5 seconds
     let user_manager = UserManager {
         map: Arc::new(Mutex::new(UserManageMap::new())),
-        connection: Arc::new(con),
+        connection: con.clone(),
     };
     let (ltx, lrx) = tokio::sync::mpsc::channel(100);
     tokio::spawn(async move {
@@ -67,7 +61,7 @@ pub async fn start_serving(mut secrets: AwsSecrets) {
 
     let (tx, rx) = tokio::sync::mpsc::channel(100);
     tokio::spawn(async move {
-        crate::services::notecard::upload_proccessor(clonecon, rx, ltx, secrets).await;
+        crate::services::notecard::upload_proccessor(con, rx, ltx, secrets).await;
     });
     let notecard_server = NotecardServer { send_channel: tx };
     let notecard_server = NotecardServiceServer::new(notecard_server);

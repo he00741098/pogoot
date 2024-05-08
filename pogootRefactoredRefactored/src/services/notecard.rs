@@ -1,9 +1,11 @@
+use std::sync::Arc;
+
 use crate::{
     server::NotecardDBRequest,
     services::server::pogoots::{NotecardLibraryList, NotecardUploadResponse},
     AwsSecrets,
 };
-use libsql::Connection;
+use libsql::{Connection, Database};
 use serde::{Deserialize, Serialize};
 
 use super::{
@@ -15,7 +17,7 @@ use super::{
 };
 
 pub async fn upload_proccessor(
-    conn: Connection,
+    conn: Arc<Database>,
     mut reciever: tokio::sync::mpsc::Receiver<NotecardDBRequest>,
     verifyer: tokio::sync::mpsc::Sender<LoginDBRequest>,
     secrets: AwsSecrets,
@@ -91,9 +93,23 @@ pub async fn upload_proccessor(
                 let clonecon = conn.clone();
                 let verifyerclone = verifyer.clone();
                 // let secret_clone = secrets.clone();
+                let temp_connection = clonecon.connect();
+                if temp_connection.is_err() {
+                    println!("Temp Connection Failed during list");
+                    callback.send(NotecardLibraryList {
+                        library: Vec::with_capacity(0),
+                        success: false,
+                    });
+                    continue;
+                }
                 tokio::spawn(async move {
-                    let list_result =
-                        get_library_with_sql(clonecon, auth, verifyerclone, username).await;
+                    let list_result = get_library_with_sql(
+                        temp_connection.unwrap(),
+                        auth,
+                        verifyerclone,
+                        username,
+                    )
+                    .await;
 
                     let callback_result = if let Ok(result) = list_result {
                         callback.send(NotecardLibraryList {
@@ -125,9 +141,30 @@ pub async fn upload_proccessor(
                 let clonecon = conn.clone();
                 let verifyerclone = verifyer.clone();
                 let secrets_clone = secrets.clone();
-                // let secret_clone = secrets.clone();
+
+                let temp_connection = clonecon.connect();
+                if temp_connection.is_err() {
+                    println!("Temp Connection Failed during list");
+                    let callback_result = callback.send(NotecardUploadResponse {
+                        success: false,
+                        id: "".to_string(),
+                    });
+                    if callback_result.is_err() {
+                        println!("Callback failed after connection");
+                    }
+                    continue;
+                }
                 tokio::spawn(async move {
-                    modify_set(verifyerclone, clonecon, secrets_clone, request).await;
+                    let result = modify_set(
+                        verifyerclone,
+                        temp_connection.unwrap(),
+                        secrets_clone,
+                        request,
+                    )
+                    .await;
+                    if result.is_err() {
+                        println!("Modify set failed");
+                    }
                 });
                 todo!()
             }
@@ -144,7 +181,7 @@ pub struct NotecardData {
 }
 
 async fn store_with_sql(
-    conn: Connection,
+    conn: Arc<Database>,
     list: Vec<ReMapNotecard>,
     mut data: NotecardData,
     verifyer: tokio::sync::mpsc::Sender<LoginDBRequest>,

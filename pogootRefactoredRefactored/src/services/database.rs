@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 //A database system that needs to accomplish a few key tasks
 //1. Store notecards in a Database
 //2. Retreive notecards from a Database
@@ -104,7 +106,7 @@ async fn turso_init(secrets: &AwsSecrets) -> Result<Database, ()> {
 /// TODO: Redundancy
 ///
 pub async fn store_notecards(
-    conn: Connection,
+    conn: Arc<Database>,
     notes: Vec<ReMapNotecard>,
     secrets: &mut AwsSecrets,
     data: NotecardData,
@@ -124,6 +126,13 @@ pub async fn store_notecards(
     let id = format!("{}", id);
     let now = chrono::Utc::now();
     let now = now.to_string();
+    let conn = conn.connect();
+    if conn.is_err() {
+        println!("Connection error!");
+        return Err(());
+    }
+    let conn = conn.unwrap();
+
     let result = conn
         .execute(
             "INSERT INTO NOTECARDS VALUES (?,?,?,?,?,?,?,?,?);",
