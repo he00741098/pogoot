@@ -75,6 +75,7 @@ impl UserManager {
         let password = std::mem::take(&mut req.password);
         let username = std::mem::take(&mut req.username);
         if !email.contains('.') || !email.contains('@') || email.len() <= 5 {
+            println!("Invalid email");
             let result = callback.send(LoginResponse {
                 success: false,
                 mystery: "Invalid Email".to_string(),
@@ -89,6 +90,7 @@ impl UserManager {
                 success: false,
                 mystery: "Invalid Password".to_string(),
             });
+            println!("Invalid Password");
             if result.is_err() {
                 println!("Callback errored when invalid password");
             }
@@ -106,6 +108,7 @@ impl UserManager {
                 success: false,
                 mystery: "User Logged In Already".to_string(),
             });
+            println!("User Logged In Already");
             if result.is_err() {
                 println!("Callback errored when user already logged in");
             }
@@ -126,12 +129,16 @@ impl UserManager {
                     success: false,
                     mystery: "Database Store Failed".to_string(),
                 });
+
+                println!("Database Store Failed");
+
                 //The callback failed, TODO: add error management
                 if result.is_err() {
-                    println!("Callback errored when user already logged in");
+                    println!(
+                        "Callback errored when user already logged in and Database Store Failed"
+                    );
                 }
             } else {
-                //Callback was sent successfully
                 //Generate a new session token for them.
                 let random_auth_token = uuid::Uuid::new_v4().to_string();
                 //Map username to user
@@ -164,8 +171,28 @@ impl UserManager {
                 });
                 //TODO: Add error management
                 if result.is_err() {
-                    println!("Callback errored when user already logged in");
+                    println!("Callback errored when informing of successful login");
                 }
+            }
+        } else if let Ok(s) = database_query {
+            let result = callback.send(LoginResponse {
+                success: false,
+                mystery: "User Already Exists".to_string(),
+            });
+            println!("User Already Exists");
+            //TODO: Add error management
+            if result.is_err() {
+                println!("Callback errored when informing of User existence");
+            }
+        } else {
+            println!("Database query errored");
+            let result = callback.send(LoginResponse {
+                success: false,
+                mystery: "Database Query Failed".to_string(),
+            });
+            //TODO: Add error management
+            if result.is_err() {
+                println!("Callback errored when informing of Database Failure");
             }
         }
 
