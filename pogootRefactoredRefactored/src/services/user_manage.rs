@@ -174,10 +174,10 @@ impl UserManager {
                     println!("Callback errored when informing of successful login");
                 }
             }
-        } else if let Ok(s) = database_query {
+        } else if let Ok(Some(string)) = database_query {
             let result = callback.send(LoginResponse {
                 success: false,
-                mystery: "User Already Exists".to_string(),
+                mystery: "User Already Exists: 180".to_string(),
             });
             println!("User Already Exists");
             //TODO: Add error management

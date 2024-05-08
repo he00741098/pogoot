@@ -25,7 +25,7 @@ pub async fn new_connection(secrets: AwsSecrets) -> Option<Connection> {
 }
 
 async fn turso_init(secrets: &AwsSecrets) -> Result<Connection, ()> {
-    let dev_build_mode = true;
+    let dev_build_mode = false;
     let url = secrets.turso_url.as_str();
     let url = url.to_string();
     // let config = Config {
