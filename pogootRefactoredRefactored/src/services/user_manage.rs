@@ -118,6 +118,7 @@ impl UserManager {
             }
             return;
         }
+
         let connection_temp = self.connection.connect();
         if connection_temp.is_err() {
             let result = callback.send(LoginResponse {
@@ -131,12 +132,28 @@ impl UserManager {
             return;
         }
         let connection_temp = connection_temp.unwrap();
+
         let database_query =
             database::check_email_exists(&connection_temp, &email, &username).await;
         //Checks have been completed, User can log in possibly
         if let Ok(None) = database_query {
             println!("User not in database, Registering...");
             //User is not in the database, registering...
+
+            let connection_temp = self.connection.connect();
+            if connection_temp.is_err() {
+                let result = callback.send(LoginResponse {
+                    success: false,
+                    mystery: "Database Connection Failed".to_string(),
+                });
+                println!("Database Connection failed");
+                if result.is_err() {
+                    println!("Callback errored when informing of connection failure with database");
+                }
+                return;
+            }
+            let connection_temp = connection_temp.unwrap();
+
             let database_store_result =
                 database::store_user_info(&username, &email, password, &connection_temp).await;
             //Stored data, checking if store succeeded
