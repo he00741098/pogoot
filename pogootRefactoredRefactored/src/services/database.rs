@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 //A database system that needs to accomplish a few key tasks
 //1. Store notecards in a Database
 //2. Retreive notecards from a Database
@@ -6,14 +8,14 @@
 use crate::AwsSecrets;
 use argon2::password_hash::{rand_core::OsRng, PasswordHasher, SaltString};
 use argon2::Argon2;
-use libsql::{params, params_from_iter, Connection};
+use libsql::{params, params_from_iter, Connection, Database};
 use uuid::Uuid;
 
 use super::notecard::{NotecardData, ReMapNotecard};
 use super::server::pogoots::{NotecardLibraryData, NotecardModifyRequest};
 //NOTECARD STUFF----------------------------------------
 
-pub async fn new_connection(secrets: AwsSecrets) -> Option<Connection> {
+pub async fn new_connection(secrets: AwsSecrets) -> Option<Database> {
     let client_result = turso_init(&secrets).await;
     if client_result.is_err() {
         println!("Turso init failed");
@@ -24,8 +26,8 @@ pub async fn new_connection(secrets: AwsSecrets) -> Option<Connection> {
     Some(client)
 }
 
-async fn turso_init(secrets: &AwsSecrets) -> Result<Connection, ()> {
-    let dev_build_mode = true;
+async fn turso_init(secrets: &AwsSecrets) -> Result<Database, ()> {
+    let dev_build_mode = false;
     let url = secrets.turso_url.as_str();
     let url = url.to_string();
     // let config = Config {
@@ -37,20 +39,20 @@ async fn turso_init(secrets: &AwsSecrets) -> Result<Connection, ()> {
     // } else {
     //     return Err(());
     // };
-    let client = libsql::Builder::new_remote(url, secrets.auth_token.clone())
+    let build = libsql::Builder::new_remote(url, secrets.auth_token.clone())
         .build()
         .await;
-    if client.is_err() {
-        println!("Client build failed: {:?}", client);
+    if build.is_err() {
+        println!("Client build failed: {:?}", build);
         return Err(());
     }
-    let client = if dev_build_mode {
+    let build = if dev_build_mode {
         libsql::Builder::new_local(":memory:").build().await
     } else {
-        client
+        build
     };
-    let client = client.unwrap();
-    let client = client.connect().unwrap();
+    let db = build.unwrap();
+    let client = db.connect().unwrap();
     //tracks the users username, password, most recently used ip, and stores more data as
     //rawJSON
     //TODO: Figure out the optimal database setup
@@ -97,14 +99,14 @@ async fn turso_init(secrets: &AwsSecrets) -> Result<Connection, ()> {
         return Err(());
     }
     // client.clone();
-    Ok(client)
+    Ok(db)
 }
 ///Notecard Storage Sequence
 /// Assigns a unique ID to the Notecard Sequence
 /// TODO: Redundancy
 ///
 pub async fn store_notecards(
-    conn: Connection,
+    conn: Arc<Database>,
     notes: Vec<ReMapNotecard>,
     secrets: &mut AwsSecrets,
     data: NotecardData,
@@ -124,6 +126,13 @@ pub async fn store_notecards(
     let id = format!("{}", id);
     let now = chrono::Utc::now();
     let now = now.to_string();
+    let conn = conn.connect();
+    if conn.is_err() {
+        println!("Connection error!");
+        return Err(());
+    }
+    let conn = conn.unwrap();
+
     let result = conn
         .execute(
             "INSERT INTO NOTECARDS VALUES (?,?,?,?,?,?,?,?,?);",

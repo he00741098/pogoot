@@ -1,5 +1,5 @@
 use argon2::{Argon2, PasswordHash, PasswordVerifier};
-use libsql::Connection;
+use libsql::{Connection, Database};
 use std::{collections::HashMap, sync::Arc, time::Duration};
 use tokio::sync::{oneshot::Sender, Mutex};
 
@@ -19,7 +19,7 @@ use super::{
 pub struct UserManager {
     ///a map of tokens that lead to a user
     pub map: Arc<Mutex<UserManageMap>>,
-    pub connection: Connection,
+    pub connection: Arc<Database>,
 }
 impl UserManager {
     //TODO: Rate limiting
@@ -73,8 +73,9 @@ impl UserManager {
     ) {
         let email = std::mem::take(&mut req.email);
         let password = std::mem::take(&mut req.password);
-        let username = std::mem::take(&mut req.username);
+        let mut username = std::mem::take(&mut req.username);
         if !email.contains('.') || !email.contains('@') || email.len() <= 5 {
+            println!("Invalid email");
             let result = callback.send(LoginResponse {
                 success: false,
                 mystery: "Invalid Email".to_string(),
@@ -84,11 +85,16 @@ impl UserManager {
             }
             return;
         }
+        if username.len() < 6 {
+            username = email.clone();
+        }
+
         if password.len() < 6 {
             let result = callback.send(LoginResponse {
                 success: false,
                 mystery: "Invalid Password".to_string(),
             });
+            println!("Invalid Password");
             if result.is_err() {
                 println!("Callback errored when invalid password");
             }
@@ -106,19 +112,50 @@ impl UserManager {
                 success: false,
                 mystery: "User Logged In Already".to_string(),
             });
+            println!("User Logged In Already");
             if result.is_err() {
                 println!("Callback errored when user already logged in");
             }
             return;
         }
+
+        let connection_temp = self.connection.connect();
+        if connection_temp.is_err() {
+            let result = callback.send(LoginResponse {
+                success: false,
+                mystery: "Database Connection Failed".to_string(),
+            });
+            println!("Database Connection failed");
+            if result.is_err() {
+                println!("Callback errored when informing of connection failure with database");
+            }
+            return;
+        }
+        let connection_temp = connection_temp.unwrap();
+
         let database_query =
-            database::check_email_exists(&self.connection, &email, &username).await;
+            database::check_email_exists(&connection_temp, &email, &username).await;
         //Checks have been completed, User can log in possibly
         if let Ok(None) = database_query {
             println!("User not in database, Registering...");
             //User is not in the database, registering...
+
+            let connection_temp = self.connection.connect();
+            if connection_temp.is_err() {
+                let result = callback.send(LoginResponse {
+                    success: false,
+                    mystery: "Database Connection Failed".to_string(),
+                });
+                println!("Database Connection failed");
+                if result.is_err() {
+                    println!("Callback errored when informing of connection failure with database");
+                }
+                return;
+            }
+            let connection_temp = connection_temp.unwrap();
+
             let database_store_result =
-                database::store_user_info(&username, &email, password, &self.connection).await;
+                database::store_user_info(&username, &email, password, &connection_temp).await;
             //Stored data, checking if store succeeded
             //TODO: add failure management
             if database_store_result.is_err() {
@@ -126,12 +163,16 @@ impl UserManager {
                     success: false,
                     mystery: "Database Store Failed".to_string(),
                 });
+
+                println!("Database Store Failed");
+
                 //The callback failed, TODO: add error management
                 if result.is_err() {
-                    println!("Callback errored when user already logged in");
+                    println!(
+                        "Callback errored when user already logged in and Database Store Failed"
+                    );
                 }
             } else {
-                //Callback was sent successfully
                 //Generate a new session token for them.
                 let random_auth_token = uuid::Uuid::new_v4().to_string();
                 //Map username to user
@@ -164,8 +205,28 @@ impl UserManager {
                 });
                 //TODO: Add error management
                 if result.is_err() {
-                    println!("Callback errored when user already logged in");
+                    println!("Callback errored when informing of successful login");
                 }
+            }
+        } else if let Ok(Some(_)) = database_query {
+            let result = callback.send(LoginResponse {
+                success: false,
+                mystery: "User Already Exists: 180".to_string(),
+            });
+            println!("User Already Exists");
+            //TODO: Add error management
+            if result.is_err() {
+                println!("Callback errored when informing of User existence");
+            }
+        } else {
+            println!("Database query errored");
+            let result = callback.send(LoginResponse {
+                success: false,
+                mystery: "Database Query Failed".to_string(),
+            });
+            //TODO: Add error management
+            if result.is_err() {
+                println!("Callback errored when informing of Database Failure");
             }
         }
 
@@ -199,8 +260,22 @@ impl UserManager {
 
         //Check if user exists in database
         //Note: Login only takes a email parameter but this email could be a username or an email
+        //
+        //
+        let connection_temp = self.connection.connect();
+        if connection_temp.is_err() {
+            let result = callback.send(LoginResponse {
+                success: false,
+                mystery: "Database Connection Failed during login".to_string(),
+            });
+            if result.is_err() {
+                println!("Callback errored when informing of connection fail during login");
+            }
+            //The database could not be queried, continuing
+            return;
+        }
         let database_query =
-            database::check_email_or_username_exists(&self.connection, &email).await;
+            database::check_email_or_username_exists(&connection_temp.unwrap(), &email).await;
         if database_query.is_err() {
             let result = callback.send(LoginResponse {
                 success: false,

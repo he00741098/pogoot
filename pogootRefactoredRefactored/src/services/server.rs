@@ -14,9 +14,9 @@ use self::{
 use pogoots::login_server_server::LoginServerServer;
 use pogoots::notecard_service_server::NotecardServiceServer;
 use pogoots::*;
-use std::pin::Pin;
 use std::sync::Arc;
 use std::time::Duration;
+use std::{clone, pin::Pin};
 use tokio::sync::mpsc;
 use tokio_stream::{wrappers::ReceiverStream, Stream};
 use tonic::{
@@ -43,13 +43,12 @@ pub async fn start_serving(mut secrets: AwsSecrets) {
         con = crate::services::database::new_connection(secrets.clone()).await;
     }
 
-    let con = con.unwrap();
-    let clonecon = con.clone();
+    let con = Arc::new(con.unwrap());
 
     //repeat connection attempts every 5 seconds
     let user_manager = UserManager {
         map: Arc::new(Mutex::new(UserManageMap::new())),
-        connection: con,
+        connection: con.clone(),
     };
     let (ltx, lrx) = tokio::sync::mpsc::channel(100);
     tokio::spawn(async move {
@@ -62,7 +61,7 @@ pub async fn start_serving(mut secrets: AwsSecrets) {
 
     let (tx, rx) = tokio::sync::mpsc::channel(100);
     tokio::spawn(async move {
-        crate::services::notecard::upload_proccessor(clonecon, rx, ltx, secrets).await;
+        crate::services::notecard::upload_proccessor(con, rx, ltx, secrets).await;
     });
     let notecard_server = NotecardServer { send_channel: tx };
     let notecard_server = NotecardServiceServer::new(notecard_server);
