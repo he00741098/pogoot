@@ -90,29 +90,43 @@ import AlertBox from "../components/AlertBox.astro";
     /* outline: 2px solid red; */
     /* margin:-8px; */
   }
+  #login {
+    grid-row: 20;
+  }
+  #register {
+    grid-row: 20;
+  }
 
   main {
     display: grid;
     position: absolute;
     max-width: 50%;
-    width: 300px;
+    width: 1000px;
     /* outline: 2px solid red; */
-    top: calc(50% - 350px);
-    height: 600px;
+    top: 100px;
+    height: 400px;
     background-image: linear-gradient(180deg, rgb(37, 37, 37), black);
     background-color: white;
     justify-self: center;
     padding: 80px;
     border-radius: 20px 20px 20px 20px;
     box-shadow: 5px 5px 5px 5px black;
+    grid-template-columns: 50% 50%;
+    grid-template-rows: repeat(20, 5px);
   }
-  #registerForm,
+  #registerForm {
+    width: 100%;
+    display: grid;
+    row-gap: 2px;
+    /* height:1 */
+  }
   #loginForm {
     width: 100%;
     display: grid;
     row-gap: 2px;
     /* height:1 */
   }
+
   input {
     max-width: 80%;
     width: 60%;
@@ -128,6 +142,13 @@ import AlertBox from "../components/AlertBox.astro";
   #top {
     justify-self: center;
     text-align: center;
+    grid-column: 1/3;
+    /* width: 200%; */
+    margin: 0;
+    /* position: absolute; */
+  }
+  #top > h1 {
+    margin: 0;
   }
   .submit {
     background-color: white;
@@ -140,6 +161,6 @@ import AlertBox from "../components/AlertBox.astro";
     border-radius: 3px 3px 3px 3px;
   }
   input:invalid {
-    outline: red solid 2px;
+    border-bottom: red solid 2px;
   }
 </style>

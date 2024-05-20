@@ -7,19 +7,26 @@ import SearchBar from "./SearchBar.astro";
   <div class="navBox">
     <a class="navElement" href="/"><img id="logo" src="/logo.svg" /></a>
   </div>
-  <div class="navBox"><a class="navElement" href="/">Home</a></div>
+  <div class="navBox" id="home"><a class="navElement" href="/">Home</a></div>
   <div class="navBox"><a class="navElement" href="/library">Library</a></div>
-  <div class="navBox"><a class="navElement" href="/tools">Tools</a></div>
+  <div class="navBox" id="tools">
+    <a class="navElement" href="/tools">Tools</a>
+  </div>
   <div class="navBox" id="searchbar"><SearchBar class="navSearchBar" /></div>
   <div class="navBox"><a class="navElement" href="/create">Create</a></div>
-  <div class="navBox"><a class="navElement">Notifications</a></div>
-  <div class="navBox"><a class="navElement" href="/pricing">Features</a></div>
+  <div id="notifications" class="navBox">
+    <a class="navElement">Notifications</a>
+  </div>
+  <div class="navBox" id="features">
+    <a class="navElement" href="/pricing">Features</a>
+  </div>
   <AccountButton />
 </div>
 
 <style>
-  .navSearchBar{
-    top:11px;
+  .navSearchBar {
+    top: 11px;
+    position: relative;
   }
   .navbar {
     position: absolute;
@@ -51,8 +58,41 @@ import SearchBar from "./SearchBar.astro";
     /* font-size:40px; */
   }
   #logo {
-    width: 50%;
+    width: 37px;
+    height: 30px;
+    margin-left: 5px;
     /* height: 50%; */
+  }
+  @media (width<1200px) {
+    #searchbar {
+      display: none;
+    }
+    .navbar {
+      /* padding-left: 10px; */
+      display: flex;
+      gap: 10px;
+      /* width: calc(100%-10px); */
+    }
+  }
+  @media (width<620px) {
+    #notifications {
+      display: none;
+    }
+  }
+  @media (width<440px) {
+    #features {
+      display: none;
+    }
+  }
+  @media (width<360px) {
+    #tools {
+      display: none;
+    }
+  }
+  @media (width<320px) {
+    #home {
+      display: none;
+    }
   }
   /* #searchbar{
     top:11px;

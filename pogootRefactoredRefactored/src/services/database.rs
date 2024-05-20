@@ -336,6 +336,7 @@ pub async fn fetch_user_library(
                     desc: desc.unwrap().to_string(),
                     cfid: cfid.unwrap().to_string(),
                     date: date.unwrap().to_string(),
+                    terms: 0,
                 })
             }
             None => {

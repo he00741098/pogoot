@@ -73,6 +73,7 @@ message NotecardLibraryData{
   string desc = 4;
   string CFID = 5;
   string date = 6;
+  int32 terms = 7;
 }
 
 message Notecard{
