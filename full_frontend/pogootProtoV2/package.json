@@ -10,8 +10,8 @@
     "astro": "astro"
   },
   "dependencies": {
-    "@astrojs/cloudflare": "^10.2.3",
-    "astro": "^4.5.9",
+    "@astrojs/cloudflare": "^10.2.6",
+    "astro": "^4.9.1",
     "fzstd": "^0.1.1",
     "google-protobuf": "^3.6.1",
     "grpc-web": "^0.4.0",
