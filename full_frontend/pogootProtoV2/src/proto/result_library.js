@@ -4,6 +4,14 @@ document.addEventListener("astro:page-load", () => {
     return;
   }
 
+  let main = document.getElementsByClassName("LibraryMain")[0];
+  let two = document.getElementById("libraryEntryOne");
+  let three = document.getElementById("libraryEntryTwo");
+  let clonedLibraryEntryOne = two.cloneNode(true);
+  let clonedLibraryEntryTwo = three.cloneNode(true);
+  clonedLibraryEntryOne.id="";
+  clonedLibraryEntryTwo.id="";
+
   var alertBox = document.getElementById("exampleAlert");
   alertBox.style.display = "none";
   const {
@@ -106,6 +114,26 @@ document.addEventListener("astro:page-load", () => {
     fetch_request.setAuthToken(auth_cookie);
     client.fetch(fetch_request, {}, (err, response) => {
       console.log(response);
+      for(var b of response.array[0]){
+        let title = b[0];
+        let tag = b[2];
+        let desc = b[3];
+        let id = b[4];
+        let date = b[5];
+        if(desc.length<1){
+        }else{
+          let newChildNode = clonedLibraryEntryOne.cloneNode(true);
+          let termCountHolder = newChildNode.childNodes[1].childNodes[1];
+          let notecardTitleHolder = newChildNode.childNodes[3].childNodes[1];
+          let descHolder = newChildNode.childNodes[5].childNodes[1];
+          notecardTitleHolder.innerText = title;
+          descHolder.innerText = desc;
+          newChildNode.onclick = function (ev){
+            window.location.href = "/notecards/"+id;
+          };
+          main.appendChild(newChildNode);
+        }
+      }
     });
   }
 });
