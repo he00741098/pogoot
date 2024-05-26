@@ -8,11 +8,11 @@ document.addEventListener("astro:page-load", () => {
   let search_bar = document.getElementsByClassName("accountSearchBar")[0];
   console.log(search_bar);
   search_bar.addEventListener("input", (ev) => {
-    let val = searchbar.value;
+    let val = search_bar.value;
     if (val==null||val=='undefined'){
       val = "";
     }
-    val.trim().toLowerCase();
+    val = val.trim().toLowerCase();
 
     console.log("Searching... for "+val);
     let nodes = main.childNodes;
@@ -36,16 +36,42 @@ document.addEventListener("astro:page-load", () => {
         }
       }
     }
-    // let cur_dex = 0;
-    // let last_dex = 0;
-    // for (x of nodes){
-    //   if(x.classList[0]=="placeholderDate"){
-    //     if(cur_dex-last_dex==1){
-    //       nodes[last_dex].classList.add("hidden");
-    //     }
-    //   }
-    //   cur_dex++;
-    // }
+    let dates = document.getElementsByClassName("placeholderDate");
+    let first = true;
+    for (var d of dates){
+      if(first){
+        first = false;
+        continue;
+      }
+      d.classList.remove("hidden");
+    }
+
+    let filtered_nodes = [];
+    for (var i = 7; i<nodes.length;i++){
+      if(!nodes[i].classList.contains("hidden")){
+        filtered_nodes.push(nodes[i]);
+      }
+    }
+    let cur_dex = 0;
+    let last_dex = 0;
+    for (var x of filtered_nodes){
+      if(x.classList[0]=="placeholderDate"){
+        if(cur_dex-last_dex==1){
+          filtered_nodes[last_dex].classList.add("hidden");
+        }
+        if(cur_dex==filtered_nodes.length-1){
+          filtered_nodes[cur_dex].classList.add("hidden");
+        }
+        last_dex = cur_dex;
+      }
+      cur_dex++;
+    }
+    console.log("Visible: "+filtered_nodes.length+" Dates:" + dates.length);
+    if(filtered_nodes.length==dates.length-1){
+      for(var d of dates){
+        d.classList.add("hidden");
+      }
+    }
 
   });
   header.id="";
@@ -171,6 +197,7 @@ document.addEventListener("astro:page-load", () => {
         let desc = b[3];
         let id = b[4];
         let date = b[5];
+        let term_count = b[6];
         date = new Date(date);
         // date = date.toJSON().split("-");
         // let year = date[0];
@@ -195,6 +222,15 @@ document.addEventListener("astro:page-load", () => {
           let descHolder = newChildNode.childNodes[5].childNodes[1];
           notecardTitleHolder.innerText = title;
           descHolder.innerText = desc;
+          if (term_count==1){
+            termCountHolder.innerText = term_count+" Term";
+          }else if (term_count<1){
+            termCountHolder.innerText = "Empty";
+          }else{
+            termCountHolder.innerText = term_count+" Terms";
+          }
+
+
           newChildNode.onclick = function (ev){
             window.location.href = "/notecards/"+id;
           };
