@@ -8,7 +8,7 @@ use std::sync::Arc;
 use crate::AwsSecrets;
 use argon2::password_hash::{rand_core::OsRng, PasswordHasher, SaltString};
 use argon2::Argon2;
-use libsql::{params, params_from_iter, Connection, Database};
+use libsql::{params, params_from_iter, Connection, Database, Value};
 use uuid::Uuid;
 
 use super::notecard::{NotecardData, ReMapNotecard};
@@ -88,7 +88,8 @@ async fn turso_init(secrets: &AwsSecrets) -> Result<Database, ()> {
             TAGS text,
             SCHOOL text,
             CFID text,
-            CREATION_DATE text
+            CREATION_DATE text,
+            SETLEN INTEGER
         );",
             (),
         )
@@ -111,6 +112,7 @@ pub async fn store_notecards(
     secrets: &mut AwsSecrets,
     data: NotecardData,
 ) -> Result<String, ()> {
+    let set_len = notes.len();
     let json = serde_json::to_string(&notes);
     if json.is_err() {
         println!("Serde To String Error");
@@ -135,7 +137,7 @@ pub async fn store_notecards(
 
     let result = conn
         .execute(
-            "INSERT INTO NOTECARDS VALUES (?,?,?,?,?,?,?,?,?);",
+            "INSERT INTO NOTECARDS VALUES (?,?,?,?,?,?,?,?,?,?);",
             //username, email, password, ips
             params![
                 data.username,
@@ -146,7 +148,8 @@ pub async fn store_notecards(
                 data.tags,
                 data.school,
                 id.clone(),
-                now
+                now,
+                set_len.to_string()
             ],
         )
         .await;
@@ -297,7 +300,7 @@ pub async fn fetch_user_library(
     //Grabbing ALL notecards that fit the criteria...
     let result = conn
         .query(
-            "SELECT NAME, DESCRIPTION, TAGS, SCHOOL, CFID, CREATION_DATE FROM NOTECARDS WHERE OWNER = ?1;",
+            "SELECT NAME, DESCRIPTION, TAGS, SCHOOL, CFID, CREATION_DATE, SETLEN FROM NOTECARDS WHERE OWNER = ?1;",
             params![username],
         )
         .await;
@@ -319,16 +322,24 @@ pub async fn fetch_user_library(
                 let school = row.get_str(3);
                 let cfid = row.get_str(4);
                 let date = row.get_str(5);
+                let set_len = row.get_value(6);
                 if name.is_err()
                     || desc.is_err()
                     || tags.is_err()
                     || school.is_err()
                     || cfid.is_err()
                     || date.is_err()
+                    || set_len.is_err()
                 {
                     println!("row index is not TEXT");
                     return Err(());
                 }
+                let set_len = if let Value::Integer(int) = set_len.unwrap() {
+                    int
+                } else {
+                    println!("SETLEN is not integer");
+                    return Err(());
+                };
                 accumulate.push(NotecardLibraryData {
                     title: name.unwrap().to_string(),
                     school: school.unwrap().to_string(),
@@ -336,7 +347,7 @@ pub async fn fetch_user_library(
                     desc: desc.unwrap().to_string(),
                     cfid: cfid.unwrap().to_string(),
                     date: date.unwrap().to_string(),
-                    terms: 0,
+                    terms: set_len as i32,
                 })
             }
             None => {

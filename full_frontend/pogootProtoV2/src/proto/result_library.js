@@ -5,6 +5,51 @@ document.addEventListener("astro:page-load", () => {
   }
 
   let main = document.getElementsByClassName("LibraryMain")[0];
+  let header = document.getElementsByClassName("placeholderDate")[0].cloneNode(true);
+  let search_bar = document.getElementsByClassName("accountSearchBar")[0];
+  console.log(search_bar);
+  search_bar.addEventListener("input", (ev) => {
+    let val = searchbar.value;
+    if (val==null||val=='undefined'){
+      val = "";
+    }
+    val.trim().toLowerCase();
+
+    console.log("Searching... for "+val);
+    let nodes = main.childNodes;
+    for (var i = 7; i<nodes.length;i++){
+      let z = nodes[i];
+      console.log(z);
+      if(z.classList[0]=="placeholderLibraryEntry"){
+        console.log("matched:"+z.childNodes[3].childNodes[1].innerText +". / :"+z.childNodes[5].childNodes[1].innerText);
+        if (!z.childNodes[3].childNodes[1].innerText.trim().toLowerCase().includes(val)&&!z.childNodes[5].childNodes[1].innerText.trim().toLowerCase().includes(val)){
+          console.log("hidden");
+          z.classList.add("hidden");
+        }else{
+          console.log("removed");
+          z.classList.remove("hidden");
+        }
+      }else if(z.classList[0]=="placeholderLibraryEntryNoDesc"){
+        if (!z.childNodes[3].childNodes[1].innerText.includes(val)){
+          z.classList.add("hidden");
+        }else{
+          z.classList.remove("hidden");
+        }
+      }
+    }
+    // let cur_dex = 0;
+    // let last_dex = 0;
+    // for (x of nodes){
+    //   if(x.classList[0]=="placeholderDate"){
+    //     if(cur_dex-last_dex==1){
+    //       nodes[last_dex].classList.add("hidden");
+    //     }
+    //   }
+    //   cur_dex++;
+    // }
+
+  });
+  header.id="";
   let two = document.getElementById("libraryEntryOne");
   let three = document.getElementById("libraryEntryTwo");
   let clonedLibraryEntryOne = two.cloneNode(true);
@@ -112,15 +157,38 @@ document.addEventListener("astro:page-load", () => {
     let fetch_request = new NotecardLibraryRequest();
     fetch_request.setUsername(username_cookie);
     fetch_request.setAuthToken(auth_cookie);
+    send_alert("green", "Loading...","");
     client.fetch(fetch_request, {}, (err, response) => {
       console.log(response);
+      if (response==null){
+        console.log("Load failed");
+        send_alert("red", "Loading Failed", "Please reload");
+        return;
+      }
+      let element_map = new Map();
       for(var b of response.array[0]){
         let title = b[0];
         let tag = b[2];
         let desc = b[3];
         let id = b[4];
         let date = b[5];
-        if(desc.length<1){
+        date = new Date(date);
+        // date = date.toJSON().split("-");
+        // let year = date[0];
+        // let month = date[1];
+        // let day = date[2].split("T")[0];
+        if(desc==null||desc.length<1){
+          let newChildNode = clonedLibraryEntryTwo.cloneNode(true);
+          let termCountHolder = newChildNode.childNodes[1].childNodes[1];
+          let notecardTitleHolder = newChildNode.childNodes[3].childNodes[1];
+          // let descHolder = newChildNode.childNodes[5].childNodes[1];
+          notecardTitleHolder.innerText = title;
+          // descHolder.innerText = desc;
+
+          newChildNode.onclick = function (ev){
+            window.location.href = "/notecards/"+id;
+          };
+          element_map.set(date, newChildNode);
         }else{
           let newChildNode = clonedLibraryEntryOne.cloneNode(true);
           let termCountHolder = newChildNode.childNodes[1].childNodes[1];
@@ -131,11 +199,36 @@ document.addEventListener("astro:page-load", () => {
           newChildNode.onclick = function (ev){
             window.location.href = "/notecards/"+id;
           };
-          main.appendChild(newChildNode);
+          element_map.set(date, newChildNode);
         }
       }
+      let sorted = element_map.keys();
+      let sorting = [];
+      for (var g of sorted){
+        sorting.push(g);
+      }
+      sorted = sorting.sort(function(a,b){
+        return new Date(b.date) - new Date(a.date);
+      });
+      sorted = sorted.reverse();
+      let last_date = "";
+      for (var c of sorted){
+        let dater = c.toJSON().split("-");
+        let year = dater[0];
+        let month = dater[1];
+        let day = dater[2].split("T")[0];
+        if (last_date != month+"/"+day+"/"+year){
+          let headernew = header.cloneNode(true);
+          headernew.childNodes[1].innerHTML=month+"/"+day+"/"+year;
+          main.appendChild(headernew);
+        }
+        last_date = month+"/"+day+"/"+year;
+        main.appendChild(element_map.get(c));
+      }
+
     });
   }
+
 });
 
 },{"./pogoots_grpc_web_pb.js":4,"./pogoots_pb.js":5}],2:[function(require,module,exports){
@@ -4174,7 +4267,8 @@ proto.pogootRefactoredRefactored.NotecardLibraryData.toObject = function(include
     tags: jspb.Message.getFieldWithDefault(msg, 3, ""),
     desc: jspb.Message.getFieldWithDefault(msg, 4, ""),
     cfid: jspb.Message.getFieldWithDefault(msg, 5, ""),
-    date: jspb.Message.getFieldWithDefault(msg, 6, "")
+    date: jspb.Message.getFieldWithDefault(msg, 6, ""),
+    terms: jspb.Message.getFieldWithDefault(msg, 7, 0)
   };
 
   if (includeInstance) {
@@ -4234,6 +4328,10 @@ proto.pogootRefactoredRefactored.NotecardLibraryData.deserializeBinaryFromReader
     case 6:
       var value = /** @type {string} */ (reader.readString());
       msg.setDate(value);
+      break;
+    case 7:
+      var value = /** @type {number} */ (reader.readInt32());
+      msg.setTerms(value);
       break;
     default:
       reader.skipField();
@@ -4303,6 +4401,13 @@ proto.pogootRefactoredRefactored.NotecardLibraryData.serializeBinaryToWriter = f
   if (f.length > 0) {
     writer.writeString(
       6,
+      f
+    );
+  }
+  f = message.getTerms();
+  if (f !== 0) {
+    writer.writeInt32(
+      7,
       f
     );
   }
@@ -4414,6 +4519,24 @@ proto.pogootRefactoredRefactored.NotecardLibraryData.prototype.getDate = functio
  */
 proto.pogootRefactoredRefactored.NotecardLibraryData.prototype.setDate = function(value) {
   return jspb.Message.setProto3StringField(this, 6, value);
+};
+
+
+/**
+ * optional int32 terms = 7;
+ * @return {number}
+ */
+proto.pogootRefactoredRefactored.NotecardLibraryData.prototype.getTerms = function() {
+  return /** @type {number} */ (jspb.Message.getFieldWithDefault(this, 7, 0));
+};
+
+
+/**
+ * @param {number} value
+ * @return {!proto.pogootRefactoredRefactored.NotecardLibraryData} returns this
+ */
+proto.pogootRefactoredRefactored.NotecardLibraryData.prototype.setTerms = function(value) {
+  return jspb.Message.setProto3IntField(this, 7, value);
 };
 
 

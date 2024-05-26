@@ -2311,7 +2311,8 @@ proto.pogootRefactoredRefactored.NotecardLibraryData.toObject = function(include
     tags: jspb.Message.getFieldWithDefault(msg, 3, ""),
     desc: jspb.Message.getFieldWithDefault(msg, 4, ""),
     cfid: jspb.Message.getFieldWithDefault(msg, 5, ""),
-    date: jspb.Message.getFieldWithDefault(msg, 6, "")
+    date: jspb.Message.getFieldWithDefault(msg, 6, ""),
+    terms: jspb.Message.getFieldWithDefault(msg, 7, 0)
   };
 
   if (includeInstance) {
@@ -2371,6 +2372,10 @@ proto.pogootRefactoredRefactored.NotecardLibraryData.deserializeBinaryFromReader
     case 6:
       var value = /** @type {string} */ (reader.readString());
       msg.setDate(value);
+      break;
+    case 7:
+      var value = /** @type {number} */ (reader.readInt32());
+      msg.setTerms(value);
       break;
     default:
       reader.skipField();
@@ -2440,6 +2445,13 @@ proto.pogootRefactoredRefactored.NotecardLibraryData.serializeBinaryToWriter = f
   if (f.length > 0) {
     writer.writeString(
       6,
+      f
+    );
+  }
+  f = message.getTerms();
+  if (f !== 0) {
+    writer.writeInt32(
+      7,
       f
     );
   }
@@ -2551,6 +2563,24 @@ proto.pogootRefactoredRefactored.NotecardLibraryData.prototype.getDate = functio
  */
 proto.pogootRefactoredRefactored.NotecardLibraryData.prototype.setDate = function(value) {
   return jspb.Message.setProto3StringField(this, 6, value);
+};
+
+
+/**
+ * optional int32 terms = 7;
+ * @return {number}
+ */
+proto.pogootRefactoredRefactored.NotecardLibraryData.prototype.getTerms = function() {
+  return /** @type {number} */ (jspb.Message.getFieldWithDefault(this, 7, 0));
+};
+
+
+/**
+ * @param {number} value
+ * @return {!proto.pogootRefactoredRefactored.NotecardLibraryData} returns this
+ */
+proto.pogootRefactoredRefactored.NotecardLibraryData.prototype.setTerms = function(value) {
+  return jspb.Message.setProto3IntField(this, 7, value);
 };
 
 
