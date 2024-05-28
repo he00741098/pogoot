@@ -252,6 +252,17 @@ let counter = 1;
           "100%";
         curdex.innerHTML = current_index + "/";
         showing_front = true;
+      }else if(e.key==" "){
+        if (showing_front) {
+          //show back
+          document.getElementById("back" + current_index).style.display = "grid";
+          document.getElementById("front" + current_index).style.display = "none";
+          showing_front = false;
+        } else {
+          document.getElementById("back" + current_index).style.display = "none";
+          document.getElementById("front" + current_index).style.display = "grid";
+          showing_front = true;
+        }
       }
 
 
