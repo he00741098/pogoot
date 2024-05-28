@@ -210,6 +210,13 @@ document.addEventListener("astro:page-load", () => {
           // let descHolder = newChildNode.childNodes[5].childNodes[1];
           notecardTitleHolder.innerText = title;
           // descHolder.innerText = desc;
+          if (term_count==1){
+            termCountHolder.innerText = term_count+" Term";
+          }else if (term_count<1){
+            termCountHolder.innerText = "Empty";
+          }else{
+            termCountHolder.innerText = term_count+" Terms";
+          }
 
           newChildNode.onclick = function (ev){
             window.location.href = "/notecards/"+id;
@@ -235,7 +242,10 @@ document.addEventListener("astro:page-load", () => {
             window.location.href = "/notecards/"+id;
           };
           element_map.set(date, newChildNode);
+
+
         }
+
       }
       let sorted = element_map.keys();
       let sorting = [];
