@@ -3,22 +3,32 @@ import AccountButton from "./AccountButton.astro";
 import SearchBar from "./SearchBar.astro";
 ---
 
-<div class="navbar" transition:persist>
+<div class="navbar" transition:persist client:load>
   <div class="navBox">
-    <a class="navElement" href="/"><img id="logo" src="/logo.svg" /></a>
+    <a class="navElement" href="/"
+      ><img id="logo" src="/logo.svg" transition:persist /></a
+    >
   </div>
-  <div class="navBox" id="home"><a class="navElement" href="/">Home</a></div>
-  <div class="navBox"><a class="navElement" href="/library">Library</a></div>
+  <div class="navBox" id="home">
+    <a class="navElement" href="/" transition:persist>Home</a>
+  </div>
+  <div class="navBox">
+    <a class="navElement" href="/library" transition:persist>Library</a>
+  </div>
   <div class="navBox" id="tools">
-    <a class="navElement" href="/tools">Tools</a>
+    <a class="navElement" href="/tools" transition:persist>Tools</a>
   </div>
-  <div class="navBox" id="searchbar"><SearchBar class="navSearchBar" /></div>
-  <div class="navBox"><a class="navElement" href="/create">Create</a></div>
+  <div class="navBox" id="searchbar">
+    <SearchBar class="navSearchBar" transition:persist />
+  </div>
+  <div class="navBox">
+    <a class="navElement" href="/create" transition:persist>Create</a>
+  </div>
   <div id="notifications" class="navBox">
-    <a class="navElement">Notifications</a>
+    <a class="navElement" transition:persist>Notifications</a>
   </div>
   <div class="navBox" id="features">
-    <a class="navElement" href="/pricing">Features</a>
+    <a class="navElement" href="/pricing" transition:persist>Features</a>
   </div>
   <AccountButton />
 </div>
@@ -26,7 +36,7 @@ import SearchBar from "./SearchBar.astro";
 <style>
   .navSearchBar {
     top: 11px;
-    position: relative;
+    /* position: relative; */
   }
   .navbar {
     position: absolute;

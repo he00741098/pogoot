@@ -13,20 +13,41 @@
     position: fixed;
     bottom: 10px;
     right: 10px;
+    display: flex;
+    flex-direction: column;
+    justify-items: flex-end;
+    align-items: flex-end;
+    height: fit-content;
+    text-align: right;
   }
   .AlertBox {
     width: fit-content;
     height: fit-content;
     color: white;
     display: grid;
-    grid-template-rows: 30% 60%;
+    /* grid-template-rows: 30% 60%; */
     row-gap: 10%;
-    padding: 4px;
+    padding: 10px;
+    margin-bottom: 10px;
     text-align: center;
     /* align-content: center; */
     background-color: rgba(0, 0, 0, 0.6);
+    margin-bottom: 10px;
+    /* position: fixed; */
+    /* right: 0px; */
+    /* position: relative; */
+    /* right: 0px; */
+    /* float: right; */
 
     /* background-color: white; */
     /* outline: red solid 1px; */
+  }
+  p {
+    height: fit-content;
+    margin: 0px;
+  }
+  h3 {
+    margin: 0px;
+    margin-top: 5px;
   }
 </style>

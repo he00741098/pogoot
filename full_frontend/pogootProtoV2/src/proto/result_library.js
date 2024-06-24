@@ -191,7 +191,12 @@ document.addEventListener("astro:page-load", () => {
         send_alert("red", "Loading Failed", "Please reload");
         return;
       }
+
       let element_map = new Map();
+      if(response.array[0].length<1){
+        //there are no elements...
+        send_alert("orange", "No Sets Found", "Create a new set and you will see it here!")
+      }
       for(var b of response.array[0]){
         let title = b[0];
         let tag = b[2];

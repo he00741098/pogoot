@@ -35,39 +35,47 @@ document.addEventListener("astro:page-load", () => {
   var skip_back_input = false;
   var skip_front_input = false;
   let rows = 1;
-
+  let refresh_inputs = [];
   let immediate_line_add = false;
   let last_value_length = 0;
   let entered_rows = 0;
   let last_line_count = 1;
-  front_input.oninput = function (ev) {
+  let char_count = Math.round(front_input.clientWidth/15.15);
+  window.addEventListener("resize", function (ev){
+    char_count = Math.round(front_input.clientWidth/15.15);
+    for(input of refresh_inputs){
+      flex_input(input);
+    }
+  });
+
+  function flex_input(front_input){
     let input1 = front_input.value.split("\n");
     let rows = 0;
     for (var index = input1.length - 1; index >= 0; index--) {
       rows += 1;
       let length_temp = input1[index].length;
-      while (length_temp > 34) {
+      while (length_temp > char_count) {
         rows += 1;
-        length_temp -= 34;
+        length_temp -= char_count;
       }
     }
 
     front_input.rows = rows;
-  };
-  back_input.oninput = function (ev) {
-    let input1 = back_input.value.split("\n");
-    let rows = 0;
-    for (var index = input1.length - 1; index >= 0; index--) {
-      rows += 1;
-      let length_temp = input1[index].length;
-      while (length_temp > 34) {
-        rows += 1;
-        length_temp -= 34;
-      }
-    }
+  }
+  
 
-    back_input.rows = rows;
+  refresh_inputs.push(front_input);
+  front_input.oninput = function(ev){
+    flex_input(front_input)
   };
+
+  refresh_inputs.push(back_input);
+  back_input.oninput = function (ev) {
+    flex_input(back_input)
+  };
+
+
+
   end_cap.onclick = function (ev) {
     skip_front_input = true;
     skip_back_input = true;
@@ -114,6 +122,14 @@ document.addEventListener("astro:page-load", () => {
     cloned_created.appendChild(cloned_right_header);
     cloned_created.appendChild(cloned_front_input);
     cloned_created.appendChild(cloned_back_input);
+    refresh_inputs.push(cloned_front_input)
+    cloned_front_input.oninput = function (ev){
+      flex_input(cloned_front_input)
+    }
+    refresh_inputs.push(cloned_back_input)
+    cloned_back_input.oninput = function(ev){
+      flex_input(cloned_back_input)
+    }
     cloned_created.style.display = "grid";
     cards.insertBefore(cloned_created, creates.nextSibling);
     skip_back_input = false;
@@ -200,7 +216,12 @@ document.addEventListener("astro:page-load", () => {
 
   function uploader(request) {
     client.upload(request, {}, (err, response) => {
-      console.log(response.array[1]);
+      if(err==null && response.array[0]){
+        //the request was a success
+        redirect_to("/notecards/"+response.array[1])
+      }else{
+        send_alert("red", "Upload Failed", "Please Try Again");
+      }
     });
   }
 
@@ -218,6 +239,9 @@ document.addEventListener("astro:page-load", () => {
   }
   function redirect() {
     window.location.href = "/library";
+  }
+  function redirect_to(url){
+    window.location.href = url;
   }
 
   function cookie_set(key, value) {

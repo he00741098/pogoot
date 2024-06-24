@@ -251,6 +251,7 @@ pub async fn check_email_or_username_exists(
     // Ok(None)
 }
 
+///Check whether a user exists based on a username or email
 pub async fn check_email_exists(
     conn: &Connection,
     email: &str,
