@@ -5,7 +5,7 @@ import NavBar from "../components/NavBar.astro";
 import AlertBox from "../components/AlertBox.astro";
 ---
 
-<Layout title="Home | Pogoot">
+<Layout title="Create | Pogoot">
   <NavBar />
   <main class="LibraryMain">
     <div class="createTitle">
@@ -43,6 +43,7 @@ import AlertBox from "../components/AlertBox.astro";
           class="notecardInput backNotecardInput"
           value=""></textarea>
       </div>
+
       <div id="created" class="notecardContainer" style="display:none"></div>
       <div id="notecardHeaderLeft" class="notecardHeaderLeft">
         <input class="orderNumber" value="1" disabled style="display:none" />
@@ -54,13 +55,21 @@ import AlertBox from "../components/AlertBox.astro";
       >
         <strong>X</strong>
       </div>
-      <div id="end_cap">Add Card</div>
+
+      <div id="end_cap">
+        <mdui-button variant="filled" id="add_button">Add Card</mdui-button>
+      </div>
     </div>
   </main>
   <AlertBox />
 </Layout>
 
 <style>
+  #created,
+  #notecardHeaderLeft,
+  #notecardHeaderRight {
+    display: none;
+  }
   .createTitle {
     display: grid;
     grid-template-columns: 50% 50%;
@@ -141,8 +150,8 @@ import AlertBox from "../components/AlertBox.astro";
     font-size: 25px;
     text-align: center;
     /* width: 100%; */
-    text-decoration: underline;
-    cursor: pointer;
+    /* text-decoration: underline; */
+    /* cursor: pointer; */
   }
   #end_cap:hover {
     /* color: var(--blue); */
@@ -205,9 +214,9 @@ import AlertBox from "../components/AlertBox.astro";
     padding: 0px;
     margin: 0px;
     resize: none;
-    /* padding-left: 20px; */
     /* text-indent: 15px; */
-    /* background-color: white; */
+    background-color: white;
+    color: black;
     /* color: white; */
     /* border-radius: 4px; */
   }

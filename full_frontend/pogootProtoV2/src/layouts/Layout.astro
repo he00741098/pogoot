@@ -7,13 +7,12 @@ const { title } = Astro.props;
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang="en" class="mdui-theme-auto">
 	<head>
 		<meta charset="UTF-8" />
-		<meta
-			name="description"
-			content="The Greatest Notecard Website Ever Created"
-		/>
+		<link rel="stylesheet" href="https://unpkg.com/mdui@2/mdui.css" />
+		<script src="https://unpkg.com/mdui@2/mdui.global.js"></script>
+		<meta name="description" content="A Free Notecard Website" />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
 		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 		<link rel="stylesheet" href="/fonts.css" />
@@ -30,11 +29,27 @@ const { title } = Astro.props;
 				--orange: #ff5f00;
 				--purple: #3c0163;
 				--pink: #630159;
+				/* --md-ref-typeface-brand: LeagueSpartan; */
+				/* --md-ref-typeface-plain: LeagueSpartan; */
+				/* --md-sys-color-primary: #0A0163; */
+				/* --md-sys-color-on-primary: #908EA6; */
+				/* --md-sys-color-primary-container: #6FF7F6; */
+				/* --md-sys-color-on-primary-container: #002020; */
 			}
 			html {
 				margin: 0;
 			}
 
+			.mdui-theme-dark {
+				color: #fff;
+				background-color: var(--blue);
+			}
+			@media (prefers-color-scheme: dark) {
+				.mdui-theme-auto {
+					color: #fff;
+					background-color: var(--blue);
+				}
+			}
 			a {
 				color: white;
 				text-decoration: none;
@@ -46,6 +61,9 @@ const { title } = Astro.props;
 		<script src="../proto/result_login.js"></script>
 		<script>
 			document.addEventListener("astro:page-load", function () {
+				const mdui = window.mdui;
+				// mdui.setColorScheme("#0a0163");
+
 				if (document.URL.indexOf("account") < 1) {
 					return;
 				}

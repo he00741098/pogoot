@@ -30,7 +30,7 @@ document.addEventListener("astro:page-load", () => {
   var alerts = document.getElementById("Alerts");
   var front_input = document.getElementById("createFrontInput");
   var back_input = document.getElementById("createBackInput");
-  var end_cap = document.getElementById("end_cap");
+  var end_cap = document.getElementById("add_button");
   var save_button = document.getElementById("save");
   var skip_back_input = false;
   var skip_front_input = false;
@@ -42,6 +42,9 @@ document.addEventListener("astro:page-load", () => {
   let last_line_count = 1;
   let char_count = Math.round(front_input.clientWidth/15.15);
   window.addEventListener("resize", function (ev){
+    if (document.URL.indexOf("create") < 0) {
+      return;
+    }
     char_count = Math.round(front_input.clientWidth/15.15);
     for(input of refresh_inputs){
       flex_input(input);
@@ -62,7 +65,7 @@ document.addEventListener("astro:page-load", () => {
 
     front_input.rows = rows;
   }
-  
+
 
   refresh_inputs.push(front_input);
   front_input.oninput = function(ev){
@@ -86,7 +89,7 @@ document.addEventListener("astro:page-load", () => {
   function new_card(ev) {
     if (
       (front_input.value == "" && !skip_front_input) ||
-      (back_input.value == "" && !skip_back_input)
+        (back_input.value == "" && !skip_back_input)
     ) {
       return;
     }
@@ -95,12 +98,12 @@ document.addEventListener("astro:page-load", () => {
     let cloned_front_input = front_input.cloneNode();
     let cloned_back_input = back_input.cloneNode();
     let cloned_left_header = document
-      .getElementById("notecardHeaderLeft")
-      .cloneNode(true);
+    .getElementById("notecardHeaderLeft")
+    .cloneNode(true);
     cloned_left_header.value = cloned_left_header.value + ":" + clone_count;
     let cloned_right_header = document
-      .getElementById("notecardHeaderRight")
-      .cloneNode(true);
+    .getElementById("notecardHeaderRight")
+    .cloneNode(true);
 
     cloned_right_header.value = cloned_right_header.value + ":" + clone_count;
     let current_clone = clone_count;
@@ -265,17 +268,17 @@ document.addEventListener("astro:page-load", () => {
         "username=; SameSite=None; Secure; expires=" + date.toUTCString() + ";";
       document.cookie =
         "validCookies=; SameSite=None; Secure; expires=" +
-        date.toUTCString() +
-        ";";
+          date.toUTCString() +
+          ";";
     }
     cookies = document.cookie;
     document.cookie =
       key +
-      "=" +
-      value +
-      "; SameSite=None; Secure; expires=" +
-      date.toUTCString() +
-      ";";
+        "=" +
+        value +
+        "; SameSite=None; Secure; expires=" +
+        date.toUTCString() +
+        ";";
   }
 
   function cookie_get(key) {
