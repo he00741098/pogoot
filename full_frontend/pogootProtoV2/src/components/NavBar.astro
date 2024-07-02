@@ -4,34 +4,89 @@ import SearchBar from "./SearchBar.astro";
 ---
 
 <div class="navbar" transition:persist client:load>
-  <div class="navBox">
-    <a class="navElement" href="/"
-      ><img id="logo" src="/logo.svg" transition:persist /></a
+  <!-- <div class="navBox"> -->
+  <!--   <a class="navElement" href="/" -->
+  <!--     ><img id="logo" src="/logo.svg" transition:persist /></a -->
+  <!--   > -->
+  <!-- </div> -->
+  <!-- <div class="navBox" id="home"> -->
+  <!--   <a class="navElement" href="/" transition:persist>Home</a> -->
+  <!-- </div> -->
+  <!-- <div class="navBox"> -->
+  <!--   <a class="navElement" href="/library" transition:persist>Library</a> -->
+  <!-- </div> -->
+  <!-- <div class="navBox" id="tools"> -->
+  <!--   <a class="navElement" href="/tools" transition:persist>Tools</a> -->
+  <!-- </div> -->
+  <!-- <div class="navBox" id="searchbar"> -->
+  <!--   <SearchBar class="navSearchBar" transition:persist /> -->
+  <!-- </div> -->
+  <!-- <div class="navBox"> -->
+  <!--   <a class="navElement" href="/create" transition:persist>Create</a> -->
+  <!-- </div> -->
+  <!-- <div id="notifications" class="navBox"> -->
+  <!--   <a class="navElement" transition:persist>Notifications</a> -->
+  <!-- </div> -->
+  <!-- <div class="navBox" id="features"> -->
+  <!--   <a class="navElement" href="/pricing" transition:persist>Features</a> -->
+  <!-- </div> -->
+  <!-- <AccountButton /> -->
+
+  <mdui-navigation-rail contained transition:persist>
+    <mdui-button-icon icon="menu" slot="top"></mdui-button-icon>
+    <mdui-fab lowered icon="search" slot="top"></mdui-fab>
+    <mdui-button-icon
+      icon="account_circle"
+      style="font-size: 48px"
+      slot="bottom"
+      id="account_button"
     >
-  </div>
-  <div class="navBox" id="home">
-    <a class="navElement" href="/" transition:persist>Home</a>
-  </div>
-  <div class="navBox">
-    <a class="navElement" href="/library" transition:persist>Library</a>
-  </div>
-  <div class="navBox" id="tools">
-    <a class="navElement" href="/tools" transition:persist>Tools</a>
-  </div>
-  <div class="navBox" id="searchbar">
-    <SearchBar class="navSearchBar" transition:persist />
-  </div>
-  <div class="navBox">
-    <a class="navElement" href="/create" transition:persist>Create</a>
-  </div>
-  <div id="notifications" class="navBox">
-    <a class="navElement" transition:persist>Notifications</a>
-  </div>
-  <div class="navBox" id="features">
-    <a class="navElement" href="/pricing" transition:persist>Features</a>
-  </div>
-  <AccountButton />
+      <!-- <mdui-icon name="account_circle"></mdui-icon> -->
+    </mdui-button-icon>
+    <mdui-navigation-rail-item icon="home" id="home_button"
+      >Home</mdui-navigation-rail-item
+    >
+    <mdui-navigation-rail-item icon="bookmarks" id="library_button"
+      >Library</mdui-navigation-rail-item
+    >
+    <mdui-navigation-rail-item icon="auto_awesome" id="features_button"
+      >Features</mdui-navigation-rail-item
+    >
+    <mdui-navigation-rail-item icon="add" id="create_button"
+      >Create</mdui-navigation-rail-item
+    >
+  </mdui-navigation-rail>
 </div>
+
+<script>
+  import { prefetch } from "astro:prefetch";
+  import { navigate } from "astro:transitions/client";
+  const home_btn = document.getElementById("home_button");
+  home_btn.addEventListener("click", () => {
+    prefetch("/");
+    navigate("/");
+  });
+  const library_btn = document.getElementById("library_button");
+  library_btn.addEventListener("click", () => {
+    prefetch("/library");
+    navigate("/library");
+  });
+  const create_btn = document.getElementById("create_button");
+  create_btn.addEventListener("click", () => {
+    prefetch("/create");
+    navigate("/create");
+  });
+  const features_btn = document.getElementById("features_button");
+  features_btn.addEventListener("click", () => {
+    prefetch("/features");
+    navigate("/features");
+  });
+  const account_btn = document.getElementById("account_button");
+  account_btn.addEventListener("click", () => {
+    prefetch("/account");
+    navigate("/account");
+  });
+</script>
 
 <style>
   .navSearchBar {
@@ -39,16 +94,10 @@ import SearchBar from "./SearchBar.astro";
     /* position: relative; */
   }
   .navbar {
-    position: absolute;
+    position: fixed;
     top: 0px;
     left: 0px;
-    width: 100%;
-    max-width: 100%;
-    overflow-x: hidden;
-    display: grid;
-    grid-template-columns: 5% 5% 5% 5% 40% 5% 10% 5% 19%;
-    grid-template-rows: 100%;
-    height: 55px;
+    height: 100%;
     text-align: center;
     align-items: center;
     background-color: var(--blue);

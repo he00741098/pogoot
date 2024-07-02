@@ -16,13 +16,45 @@ const { title } = Astro.props;
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
 		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 		<link rel="stylesheet" href="/fonts.css" />
+		<link
+			href="https://fonts.googleapis.com/icon?family=Material+Icons"
+			rel="stylesheet"
+		/>
+		<link
+			href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined"
+			rel="stylesheet"
+		/>
+		<link
+			href="https://fonts.googleapis.com/icon?family=Material+Icons+Round"
+			rel="stylesheet"
+		/>
+		<link
+			href="https://fonts.googleapis.com/icon?family=Material+Icons+Sharp"
+			rel="stylesheet"
+		/>
+		<link
+			href="https://fonts.googleapis.com/icon?family=Material+Icons+Two+Tone"
+			rel="stylesheet"
+		/>
+
 		<meta name="generator" content={Astro.generator} />
 		<title>{title}</title>
 		<ViewTransitions />
 	</head>
 	<body>
-		<slot />
+		<div id="slot_container">
+			<slot />
+		</div>
 		<style is:global>
+			#slot_container {
+				width: calc(100% - 80px);
+				height: 100%;
+				position: absolute;
+				left: 80px;
+				top: 0px;
+				overflow: hidden;
+				/* margin: 0; */
+			}
 			:root {
 				--green: #00ff5f;
 				--blue: #0a0163;
@@ -72,7 +104,8 @@ const { title } = Astro.props;
 					console.log("Drawing");
 					const canvas = document.getElementById("canvas");
 					let height = (canvas.height = window.innerHeight);
-					let width = (canvas.width = window.innerWidth);
+
+					let width = (canvas.width = window.innerWidth - 80);
 					if (canvas.getContext) {
 						const ctx = canvas.getContext("2d");
 						// for (var i = 0; i < width; i += 50) {
