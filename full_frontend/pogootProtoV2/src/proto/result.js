@@ -240,12 +240,12 @@ document.addEventListener("astro:page-load", () => {
       alerts.removeChild(box);
     }, 5000);
   }
-  function redirect() {
-    window.location.href = "/library";
-  }
-  function redirect_to(url){
-    window.location.href = url;
-  }
+  // function redirect() {
+  //   window.location.href = "/library";
+  // }
+  // function redirect_to(url){
+  //   window.location.href = url;
+  // }
 
   function cookie_set(key, value) {
     var date = new Date();

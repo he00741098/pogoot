@@ -4,9 +4,9 @@
   "version": "0.0.1",
   "dependencies": {
     "astro": "^4.5.9",
-    "typescript": "^5.4.3",
     "google-protobuf": "^3.6.1",
-    "grpc-web": "1.5.0"
+    "grpc-web": "1.5.0",
+    "typescript": "^5.4.3"
   },
   "devDependencies": {
     "@grpc/proto-loader": "^0.3.0",

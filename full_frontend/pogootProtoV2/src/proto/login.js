@@ -197,7 +197,7 @@ document.addEventListener("astro:page-load", () => {
       alerts.removeChild(box);
     }, 5000);
   }
-  function redirect() {
-    window.location.href = "/library";
-  }
+  // function redirect() {
+  //   window.location.href = "/library";
+  // }
 });

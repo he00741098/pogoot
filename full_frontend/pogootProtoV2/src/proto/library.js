@@ -163,9 +163,9 @@ document.addEventListener("astro:page-load", () => {
       alerts.removeChild(box);
     }, 5000);
   }
-  function redirect() {
-    window.location.href = "/library";
-  }
+  // function redirect() {
+  //   window.location.href = "/library";
+  // }
 
 
   var alertBox = document.getElementById("exampleAlert");
@@ -244,7 +244,7 @@ document.addEventListener("astro:page-load", () => {
 
 
           newChildNode.onclick = function (ev){
-            window.location.href = "/notecards/"+id;
+            redirect_to("/notecards/"+id);
           };
           element_map.set(date, newChildNode);
 

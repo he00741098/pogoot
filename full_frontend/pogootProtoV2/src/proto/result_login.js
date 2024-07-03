@@ -198,9 +198,9 @@ document.addEventListener("astro:page-load", () => {
       alerts.removeChild(box);
     }, 5000);
   }
-  function redirect() {
-    window.location.href = "/library";
-  }
+  // function redirect() {
+  //   window.location.href = "/library";
+  // }
 });
 
 },{"./pogoots_grpc_web_pb.js":4,"./pogoots_pb.js":5}],2:[function(require,module,exports){
