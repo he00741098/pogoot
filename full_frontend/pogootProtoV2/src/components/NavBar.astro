@@ -33,7 +33,7 @@ import SearchBar from "./SearchBar.astro";
   <!-- <AccountButton /> -->
 
   <mdui-navigation-rail contained transition:persist>
-    <mdui-button-icon icon="menu" slot="top"></mdui-button-icon>
+    <!-- <mdui-button-icon icon="menu" slot="top"></mdui-button-icon> -->
     <mdui-fab lowered icon="search" slot="top"></mdui-fab>
     <mdui-button-icon
       icon="account_circle"
@@ -61,30 +61,45 @@ import SearchBar from "./SearchBar.astro";
 <script>
   import { prefetch } from "astro:prefetch";
   import { navigate } from "astro:transitions/client";
-  const home_btn = document.getElementById("home_button");
-  home_btn.addEventListener("click", () => {
-    prefetch("/");
-    navigate("/");
-  });
-  const library_btn = document.getElementById("library_button");
-  library_btn.addEventListener("click", () => {
-    prefetch("/library");
-    navigate("/library");
-  });
-  const create_btn = document.getElementById("create_button");
-  create_btn.addEventListener("click", () => {
-    prefetch("/create");
-    navigate("/create");
-  });
-  const features_btn = document.getElementById("features_button");
-  features_btn.addEventListener("click", () => {
-    prefetch("/features");
-    navigate("/features");
-  });
-  const account_btn = document.getElementById("account_button");
-  account_btn.addEventListener("click", () => {
-    prefetch("/account");
-    navigate("/account");
+
+  document.addEventListener("astro:page-load", function () {
+    const home_btn = document.getElementById("home_button");
+    home_btn.addEventListener("click", () => {
+      navigate("/");
+    });
+    home_btn.addEventListener("mouseover", () => {
+      prefetch("/");
+    });
+    const library_btn = document.getElementById("library_button");
+    library_btn.addEventListener("click", () => {
+      navigate("/library");
+    });
+    library_btn.addEventListener("mouseover", () => {
+      prefetch("/library");
+    });
+
+    const create_btn = document.getElementById("create_button");
+    create_btn.addEventListener("click", () => {
+      navigate("/create");
+    });
+    create_btn.addEventListener("mouseover", () => {
+      prefetch("/create");
+    });
+
+    const features_btn = document.getElementById("features_button");
+    features_btn.addEventListener("click", () => {
+      navigate("/features");
+    });
+    features_btn.addEventListener("mouseover", () => {
+      prefetch("/features");
+    });
+    const account_btn = document.getElementById("account_button");
+    account_btn.addEventListener("click", () => {
+      navigate("/account");
+    });
+    account_btn.addEventListener("mouseover", () => {
+      prefetch("/account");
+    });
   });
 </script>
 

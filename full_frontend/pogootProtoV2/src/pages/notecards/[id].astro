@@ -47,7 +47,6 @@ let counter = 1;
 ---
 
 <Layout title="Notecard | Sweep.rs">
-  <NavBar />
   <main id="main">
     {
       data.map((item) => (
@@ -199,8 +198,8 @@ let counter = 1;
       showing_front = true;
     };
 
-    document.addEventListener("keydown", function(e){
-      if(e.key=="ArrowRight"){
+    document.addEventListener("keydown", function (e) {
+      if (e.key == "ArrowRight") {
         document.getElementById(
           "notecardContainer" + current_index,
         ).style.display = "none";
@@ -209,8 +208,9 @@ let counter = 1;
         document.getElementById(
           "notecardContainer" + current_index,
         ).style.height = "0%";
-        document.getElementById("notecardContainer" + current_index).style.width =
-          "0%";
+        document.getElementById(
+          "notecardContainer" + current_index,
+        ).style.width = "0%";
         current_index++;
         if (current_index > maxlen) {
           current_index = 1;
@@ -222,11 +222,12 @@ let counter = 1;
         document.getElementById(
           "notecardContainer" + current_index,
         ).style.height = "100%";
-        document.getElementById("notecardContainer" + current_index).style.width =
-          "100%";
+        document.getElementById(
+          "notecardContainer" + current_index,
+        ).style.width = "100%";
         curdex.innerHTML = current_index + "/";
         showing_front = true;
-      }else if(e.key=="ArrowLeft"){
+      } else if (e.key == "ArrowLeft") {
         document.getElementById(
           "notecardContainer" + current_index,
         ).style.display = "none";
@@ -235,8 +236,9 @@ let counter = 1;
         document.getElementById(
           "notecardContainer" + current_index,
         ).style.height = "0%";
-        document.getElementById("notecardContainer" + current_index).style.width =
-          "0%";
+        document.getElementById(
+          "notecardContainer" + current_index,
+        ).style.width = "0%";
         current_index--;
         if (current_index < 1) {
           current_index = maxlen;
@@ -248,24 +250,27 @@ let counter = 1;
         document.getElementById(
           "notecardContainer" + current_index,
         ).style.height = "100%";
-        document.getElementById("notecardContainer" + current_index).style.width =
-          "100%";
+        document.getElementById(
+          "notecardContainer" + current_index,
+        ).style.width = "100%";
         curdex.innerHTML = current_index + "/";
         showing_front = true;
-      }else if(e.key==" "){
+      } else if (e.key == " ") {
         if (showing_front) {
           //show back
-          document.getElementById("back" + current_index).style.display = "grid";
-          document.getElementById("front" + current_index).style.display = "none";
+          document.getElementById("back" + current_index).style.display =
+            "grid";
+          document.getElementById("front" + current_index).style.display =
+            "none";
           showing_front = false;
         } else {
-          document.getElementById("back" + current_index).style.display = "none";
-          document.getElementById("front" + current_index).style.display = "grid";
+          document.getElementById("back" + current_index).style.display =
+            "none";
+          document.getElementById("front" + current_index).style.display =
+            "grid";
           showing_front = true;
         }
       }
-
-
     });
   });
 </script>
