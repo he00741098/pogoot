@@ -117,13 +117,16 @@ import AlertBox from "../components/AlertBox.astro";
   }
   .LibraryMain {
     grid-row: 2;
-    width: 100%;
+    width: 60%;
     height: 100%;
     /* height: 120px; */
-    display: grid;
-    grid-template-columns: repeat(10, 10%);
+    display: flex;
+    /* grid-template-columns: repeat(10, 10%); */
+    align-content: start;
+    flex-direction: column;
     text-align: center;
-    justify-content: center;
+    justify-self: center;
+    /* justify-content: center; */
   }
 
   .notecardDescriptionHolder {
@@ -184,15 +187,18 @@ import AlertBox from "../components/AlertBox.astro";
     width: 100%;
   }
   .placeholderLibraryEntry {
+    position: relative;
     box-sizing: border-box;
     -webkit-box-sizing: border-box;
     background-color: white;
-    grid-column: 3/8;
-    color: black;
     width: 100%;
+    /* grid-column: 3/8; */
+    /* width: 500px; */
+    color: black;
+    /* width: 100%; */
     /* height: 60px; */
     border-radius: 2px 2px 2px 2px;
-    display: grid;
+    /* display: grid; */
     margin-bottom: 15px;
     display: grid;
     /* grid-template-rows: 30px 30px; */
@@ -215,6 +221,7 @@ import AlertBox from "../components/AlertBox.astro";
     background-color: white;
     grid-column: 3/8;
     color: black;
+    /* width: 100%; */
     width: 100%;
     height: 45px;
     border-radius: 2px 2px 2px 2px;
