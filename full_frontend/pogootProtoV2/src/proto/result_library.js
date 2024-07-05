@@ -4,9 +4,49 @@ document.addEventListener("astro:page-load", () => {
     return;
   }
 
+
+  let refresher = document.getElementById("refresh");
   let main = document.getElementsByClassName("LibraryMain")[0];
   let header = document.getElementsByClassName("placeholderDate")[0].cloneNode(true);
   let search_bar = document.getElementsByClassName("accountSearchBar")[0];
+  search_bar.value = "";
+  
+
+
+  refresher.onclick = function(e){
+    cookie_set("updated", "true");
+    let nodes = main.childNodes;
+    for (var i = nodes.length-1; i>=7;i--){
+      let z = nodes[i];
+      // console.log(z);
+      main.removeChild(z);
+    }
+  let auth_cookie = cookie_get("auth");
+  let username_cookie = cookie_get("username");
+  if (auth_cookie==null || username_cookie==null || auth_cookie.length < 2 || username_cookie.length < 2) {
+    send_alert("red", "Login", "Please Login To View Your Library");
+  }else{
+    let client = new NotecardServiceClient("https://bigpogoot.sweep.rs");
+    let fetch_request = new NotecardLibraryRequest();
+    fetch_request.setUsername(username_cookie);
+    fetch_request.setAuthToken(auth_cookie);
+    send_alert("green", "Loading...","");
+    client.fetch(fetch_request, {}, (err, response) => {
+      console.log(response);
+      if (response==null){
+        console.log("Load failed");
+        send_alert("red", "Loading Failed", "Please reload");
+        return;
+      }
+      localStorage.setItem("library_cache", JSON.stringify(response));
+      cookie_set("updated", "false");
+      proccess_response(response);
+    });
+    //end of if statment
+  }
+
+  };
+
   console.log(search_bar);
   search_bar.addEventListener("input", (ev) => {
     let val = search_bar.value;
@@ -139,6 +179,9 @@ document.addEventListener("astro:page-load", () => {
         "; path=/";
   }
 
+
+
+
   function cookie_get(key) {
     let cookies = document.cookie;
     let split = cookies.split(";");
@@ -174,10 +217,30 @@ document.addEventListener("astro:page-load", () => {
   if (document.URL.indexOf("library") < 1) {
     return;
   }
+
+  let response="";
+  let cached = false;
+ if(cookie_get("updated")=="false"){
+    try{
+      let library_data = localStorage.getItem("library_cache");
+      if(library_data.length<5){
+        cached = false;
+      }else{
+      response = JSON.parse(library_data);
+      console.log("JSON parse successfully!");
+      cached = true;
+      }
+    }catch(err){
+      console.error("JSON parse failed...\n"+err);
+    }
+  }
+
   let auth_cookie = cookie_get("auth");
   let username_cookie = cookie_get("username");
   if (auth_cookie==null || username_cookie==null || auth_cookie.length < 2 || username_cookie.length < 2) {
     send_alert("red", "Login", "Please Login To View Your Library");
+  }else if(cached){
+      proccess_response(response)
   }else{
     let client = new NotecardServiceClient("https://bigpogoot.sweep.rs");
     let fetch_request = new NotecardLibraryRequest();
@@ -191,11 +254,19 @@ document.addEventListener("astro:page-load", () => {
         send_alert("red", "Loading Failed", "Please reload");
         return;
       }
+      localStorage.setItem("library_cache", JSON.stringify(response));
+      cookie_set("updated", "false");
+      proccess_response(response);
+    });
+    //end of if statment
+  }
 
+  function proccess_response(response){
       let element_map = new Map();
       if(response.array[0].length<1){
         //there are no elements...
         send_alert("orange", "No Sets Found", "Create a new set and you will see it here!")
+
       }
       for(var b of response.array[0]){
         let title = b[0];
@@ -276,8 +347,6 @@ document.addEventListener("astro:page-load", () => {
         last_date = month+"/"+day+"/"+year;
         main.appendChild(element_map.get(c));
       }
-
-    });
   }
 
 });

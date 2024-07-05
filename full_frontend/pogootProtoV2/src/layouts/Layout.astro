@@ -46,15 +46,136 @@ const { title } = Astro.props;
 		<NavBar />
 		<div id="slot_container">
 			<slot />
+
+			<div id="footer-line">
+				<mdui-divider middle></mdui-divider>
+			</div>
+			<footer id="footer">
+				<div id="footer-div">
+					<div id="footer-title">
+						<h2 class="footer-titles">Sweep.rs</h2>
+						<p id="motto-p">Learning Free Forever</p>
+					</div>
+					<div id="contacts">
+						<!-- <h2 class="footer-titles">Contact Us</h2> -->
+						<div id="contacts-sub">
+							<a href="https://github.com/he00741098/pogoot">
+								<div id="svg-git">
+									<svg
+										viewBox="0 0 100 100"
+										xmlns="http://www.w3.org/2000/svg"
+										aria-hidden="true"
+										role="img"
+										><path
+											clip-rule="evenodd"
+											d="M50 5.7C24.9 5.7 4.5 26 4.6 51.2c0 19.6 12.5 36.9 31.1 43.1 2.3.4 3.1-1 3.1-2.2s0-3.9-.1-7.7c-12.6 2.7-15.3-6.1-15.3-6.1-2.1-5.3-5-6.7-5-6.7-4.1-2.9.3-2.8.3-2.8 4.6.3 7 4.7 7 4.7 4.1 6.9 10.6 4.9 13.2 3.8.2-2.3 1.2-4.5 2.9-6.1-10.2-1.1-20.8-5-20.8-22.5-.1-4.5 1.6-8.9 4.7-12.2-.5-1.1-2-5.7.4-12 0 0 3.8-1.2 12.5 4.7 7.4-2 15.3-2 22.8 0 8.7-5.9 12.4-4.7 12.4-4.7 2.5 6.3 1 10.9.5 12 3.1 3.3 4.8 7.7 4.7 12.2 0 17.5-10.6 21.4-20.8 22.4 1.6 1.4 3.1 4.2 3.1 8.4 0 6.1-.1 11-.1 12.4 0 1.2.8 2.6 3.1 2.2 23.8-8 36.6-33.8 28.6-57.6C86.8 18.2 69.5 5.7 50 5.7z"
+											fill="currentColor"
+											fill-rule="evenodd"></path><iframe
+											xmlns="http://www.w3.org/1999/xhtml"
+											class="cleanslate hidden"
+											src="moz-extension://be8d8a17-bac8-447f-90e8-13d5dd315ae6/static/commandline.html"
+											id="cmdline_iframe"
+											loading="lazy"
+											style="height: 0px !important;"></iframe></svg
+									>
+								</div>
+							</a><a href="mailto:support@sweep.rs"
+								><mdui-icon name="email" id="email-icon"></mdui-icon></a
+							>
+						</div>
+					</div>
+					<div id="legal">
+						<a>Terms Of Service</a>
+						<a>Privacy Policy</a>
+						<a>Cookies</a>
+						<a>Feedback</a>
+					</div>
+				</div>
+			</footer>
 		</div>
+
 		<style is:global>
+			#motto-p {
+				margin-top: 0;
+			}
+			#svg-git {
+				width: 50px;
+			}
+			#email-icon {
+				font-size: 50px;
+			}
+			#contacts-sub {
+				display: flex;
+				/* justify-content: center; */
+				/* position: ; */
+				width: fit-content;
+				margin-left: 20px;
+			}
+			#footer-line {
+				bottom: 0;
+				/* top: 100%; */
+				width: calc(100% - 80px);
+				left: 45px;
+				position: absolute;
+				/* z-index: 10; */
+			}
+			#footer {
+				top: 100%;
+				position: absolute;
+				left: 80px;
+				width: calc(100% - 80px);
+				display: flex;
+				/* align-content: center; */
+				justify-content: center;
+				margin-top: 20px;
+				margin-bottom: 40px;
+
+				/* background-color: rgb(var(--mdui-color-surface-bright)); */
+			}
+			#contacts {
+				/* display: inline-block; */
+				display: grid;
+				justify-content: left;
+				align-content: center;
+			}
+			/* #legal { */
+			/* color: black; */
+			/* } */
+			/* #footer > a:hover { */
+			/* 	text-decoration: underline; */
+			/* } */
+			#legal {
+				text-decoration: underline;
+				display: flex;
+				justify-content: space-between;
+				grid-column: 1/3;
+				/* width: 50%; */
+				text-align: center;
+				margin-bottom: 10px;
+				/* justify-content: center; */
+			}
+			#footer-div {
+				width: 25%;
+				display: grid;
+				grid-template-columns: 1fr 1fr;
+				grid-template-rows: 110px 40px;
+				justify-content: space-between;
+			}
+			.footer-titles {
+				margin-bottom: 5px;
+			}
+			#contacts {
+			}
+			#slot_container {
+			}
 			:not(:defined) {
 				visibility: hidden;
 			}
 
 			#slot_container {
 				width: calc(100% - 80px);
-				height: 100%;
+				min-height: 100%;
+				height: fit-content;
 				position: absolute;
 				left: 80px;
 				top: 0px;

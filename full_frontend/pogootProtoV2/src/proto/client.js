@@ -219,6 +219,7 @@ document.addEventListener("astro:page-load", () => {
   function uploader(request) {
     client.upload(request, {}, (err, response) => {
       if(err==null && response.array[0]){
+        cookie_set("updated", "true");
         //the request was a success
         redirect_to("/notecards/"+response.array[1])
       }else{

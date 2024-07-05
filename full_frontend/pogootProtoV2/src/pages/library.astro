@@ -9,8 +9,9 @@ import AlertBox from "../components/AlertBox.astro";
 <Layout title="Library | Pogoot">
   <div id="content">
     <div class="accountSection">
-      <div class="profilePicture">I</div>
-      <div><h2>Name</h2> <p>username</p></div>
+      <!-- <div class="profilePicture">I</div> -->
+      <!-- <div><h2>Name</h2> <p>username</p></div> -->
+      <h1>Your Library</h1>
     </div>
 
     <div class="SearchBar">
@@ -45,10 +46,25 @@ import AlertBox from "../components/AlertBox.astro";
       </div>
     </div>
   </main>
+  <div class="refresher">
+    <mdui-fab
+      extended
+      icon="refresh"
+      size="normal"
+      variant="primary"
+      id="refresh">Refresh</mdui-fab
+    >
+  </div>
   <AlertBox />
 </Layout>
 
 <style>
+  .refresher {
+    position: fixed;
+    bottom: 0px;
+    right: 0px;
+    margin: 10px;
+  }
   .hidden {
     display: none !important;
   }
@@ -92,7 +108,7 @@ import AlertBox from "../components/AlertBox.astro";
     grid-template-rows: 230px calc(100% - 230px);
     grid-template-columns: 100%;
     /* width: 100%; */
-    height: 100%;
+    /* height: 100%; */
     /* background-color: rgb(253, 249, 241); */
     margin: 0;
     background-color: var(--blue);
@@ -110,8 +126,8 @@ import AlertBox from "../components/AlertBox.astro";
     /* width: 50%; */
     /* height:100%; */
     /* left: 16.5%; */
-    display: grid;
-    grid-template-columns: 100px 100px;
+    /* display: grid; */
+    /* grid-template-columns: 100px 100px; */
     width: fit-content;
     grid-column: 3/10;
   }
@@ -126,6 +142,7 @@ import AlertBox from "../components/AlertBox.astro";
     flex-direction: column;
     text-align: center;
     justify-self: center;
+    margin-bottom: 20px;
     /* justify-content: center; */
   }
 
@@ -309,7 +326,7 @@ import AlertBox from "../components/AlertBox.astro";
       display: grid;
       grid-template-rows: 230px calc(100% - 230px);
       grid-template-columns: 100%;
-      height: 100%;
+      /* height: 100%; */
       /* background-color: rgb(253, 249, 241); */
       margin: 0;
       background-color: var(--blue);
@@ -326,8 +343,8 @@ import AlertBox from "../components/AlertBox.astro";
       /* width: 50%; */
       /* height:100%; */
       /* left: 16.5%; */
-      display: grid;
-      grid-template-columns: 100px 100px;
+      /* display: grid; */
+      /* grid-template-columns: 100px 100px; */
       width: fit-content;
       grid-column: 2/10;
       position: relative;
