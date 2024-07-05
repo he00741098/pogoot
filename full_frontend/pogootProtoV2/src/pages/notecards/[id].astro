@@ -17,7 +17,7 @@ try {
   if (data == null) {
     console.log("Null...");
     data = JSON.parse(
-      '[{"front":["Error loading Notecards"],"back":["Error loading Notecards"]}]',
+      '[{"front":["Error loading Notecards"],"back":["Error loading Notecards Back"]}, {"front":["Error loading Notecards 2"],"back":["Error loading Notecards 2 Back"]}, {"front":["Error loading Notecards 3"],"back":["Error loading Notecards 3 Back"]}, {"front":["Error loading Notecards 4"],"back":["Error loading Notecards 4 Back"]}]',
     );
   } else {
     console.log("Into Buffer");
@@ -38,7 +38,7 @@ try {
 } catch (error) {
   console.log(error);
   data = JSON.parse(
-    '[{"front":["Error loading Notecards"],"back":["Error loading Notecards"]}]',
+    '[{"front":["Error loading Notecards"],"back":["Error loading Notecards Back"]}, {"front":["Error loading Notecards 2"],"back":["Error loading Notecards 2 Back"]}]',
   );
 }
 
@@ -112,10 +112,18 @@ let counter = 1;
 </style>
 
 <script>
+  // let context_present = false;
   document.addEventListener("astro:page-load", function () {
+    // if (context_present) {
+    //   console.log("context present!");
+    //   return;
+    // }
+    // context_present = true;
+
     if (document.URL.indexOf("notecards") < 1) {
       return;
     }
+    console.log("activating!!!!!");
     let maxlen = document.getElementById("maxlen").innerHTML;
     let main = document.getElementById("main");
     let showing_front = true;
@@ -198,7 +206,7 @@ let counter = 1;
       showing_front = true;
     };
 
-    document.addEventListener("keydown", function (e) {
+    document.onkeydown = function (e) {
       if (e.key == "ArrowRight") {
         document.getElementById(
           "notecardContainer" + current_index,
@@ -271,6 +279,8 @@ let counter = 1;
           showing_front = true;
         }
       }
-    });
+    };
+    // document.removeEventListener("keydown", keycap);
+    // document.addEventListener("keydown", keycap);
   });
 </script>

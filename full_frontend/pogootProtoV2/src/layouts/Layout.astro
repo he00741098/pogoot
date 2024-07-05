@@ -48,6 +48,10 @@ const { title } = Astro.props;
 			<slot />
 		</div>
 		<style is:global>
+			:not(:defined) {
+				visibility: hidden;
+			}
+
 			#slot_container {
 				width: calc(100% - 80px);
 				height: 100%;
