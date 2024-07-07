@@ -2,7 +2,10 @@ document.addEventListener("astro:page-load", () => {
   if (document.URL.indexOf("library") < 1) {
     return;
   }
-
+  
+  if(localStorage.getItem("updated")==null){
+    localStorage.setItem("updated", false);
+  }
 
   let refresher = document.getElementById("refresh");
   let main = document.getElementsByClassName("LibraryMain")[0];
@@ -13,7 +16,7 @@ document.addEventListener("astro:page-load", () => {
 
 
   refresher.addEventListener("click", function(e){
-    cookie_set("updated", "true");
+    localStorage.setItem("updated", "true");
     let nodes = main.childNodes;
     for (var i = nodes.length-1; i>=7;i--){
       let z = nodes[i];
@@ -38,7 +41,7 @@ document.addEventListener("astro:page-load", () => {
         return;
       }
       localStorage.setItem("library_cache", JSON.stringify(response));
-      cookie_set("updated", "false");
+      localStorage.setItem("updated", "false");
       proccess_response(response);
     });
     //end of if statment
@@ -219,7 +222,7 @@ document.addEventListener("astro:page-load", () => {
 
   let response="";
   let cached = false;
- if(cookie_get("updated")=="false"){
+ if(localStorage.getItem("updated")=="false"){
     try{
       let library_data = localStorage.getItem("library_cache");
       if(library_data.length<5){
@@ -254,7 +257,7 @@ document.addEventListener("astro:page-load", () => {
         return;
       }
       localStorage.setItem("library_cache", JSON.stringify(response));
-      cookie_set("updated", "false");
+      localStorage.setItem("updated", "false");
       proccess_response(response);
     });
     //end of if statment

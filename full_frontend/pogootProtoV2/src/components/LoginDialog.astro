@@ -8,36 +8,50 @@
     <div id="form_container">
       <div id="register_form">
         <h2>Sign Up</h2>
-        <form>
-        <mdui-text-field
-          variant="outlined"
-          label="Username"
-          id="emailRegister"
+        <form id="regform">
+          <mdui-text-field
+            variant="outlined"
+            label="Email"
+            id="emailRegister"
             name="email"
             autocomplete="email"
-          class="textField"></mdui-text-field>
-        <mdui-text-field
-          variant="outlined"
-          label="Confirm Username"
-          id="emailRegisterConfirm"
+            class="textField"
+            type="email"
+          >
+            <span slot="helper" id="usernameReg"></span>
+          </mdui-text-field>
+          <mdui-text-field
+            variant="outlined"
+            label="Confirm Email"
+            id="emailRegisterConfirm"
             name="email"
             autocomplete="email"
-          class="textField"></mdui-text-field>
-        <mdui-text-field
-          variant="outlined"
-          label="Password"
-          id="passwordRegister"
-          class="textField"
-          type="password"
-          toggle-password></mdui-text-field>
-        <mdui-text-field
-          variant="outlined"
-          label="Confirm Password"
-          id="passwordRegisterConfirm"
-          class="textField"
-          type="password"
-          toggle-password></mdui-text-field>
-</form>
+            class="textField"
+            type="email"
+          >
+            <span slot="helper" id="usernameRegConfirm"></span>
+          </mdui-text-field>
+          <mdui-text-field
+            variant="outlined"
+            label="Password"
+            id="passwordRegister"
+            class="textField"
+            type="password"
+            toggle-password
+          >
+            <span slot="helper" id="passReg"></span>
+          </mdui-text-field>
+          <mdui-text-field
+            variant="outlined"
+            label="Confirm Password"
+            id="passwordRegisterConfirm"
+            class="textField"
+            type="password"
+            toggle-password
+          >
+            <span slot="helper" id="passRegConfirm"></span>
+          </mdui-text-field>
+        </form>
         <!-- <mdui-checkbox id="tosCheck" -->
         <!--   >I agree to the <a id="tosURL"> Terms Of Service</a></mdui-checkbox -->
         <!-- > -->
@@ -52,39 +66,57 @@
         <!-- <br /> -->
 
         <p>
-          By signing up, you accept our <a href="/TOS" target="_blank" rel="noopener noreferrer">Terms and Conditions</a>.
-          Please read our
-          <a href="/Privacy" target="_blank" rel="noopener noreferrer">Privacy Policy</a> and <a href="/Cookies" target="_blank" rel="noopener noreferrer">Cookie Policy</a>.
+          By signing up, you accept our <a
+            href="/TOS.txt"
+            target="_blank"
+            rel="noopener noreferrer">Terms and Conditions</a
+          >. Please read our
+          <a href="/Privacy" target="_blank" rel="noopener noreferrer"
+            >Privacy Policy</a
+          > and <a href="/Cookies" target="_blank" rel="noopener noreferrer"
+            >Cookie Policy</a
+          >.
         </p><p>
           I understand that I can withdraw my consent at any time and the
           withdrawal will not affect the lawfulness of the consent before its
-          withdrawal, as described in the <a href="/Privacy" target="_blank" rel="noopener noreferrer">Privacy Policy</a>.
+          withdrawal, as described in the <a
+            href="/Privacy"
+            target="_blank"
+            rel="noopener noreferrer">Privacy Policy</a
+          >.
         </p>
         <mdui-button id="RegisterButton">Submit</mdui-button>
       </div>
       <div id="login_form">
         <h2>Login</h2>
 
-        <form>
-        <mdui-text-field
-          variant="outlined"
-          label="Username"
-          id="emailLogin"
-          class="textField"></mdui-text-field>
-        <mdui-text-field
-          variant="outlined"
-          label="Password"
-          id="passwordLogin"
-          class="textField"
-          type="password"
-          toggle-password></mdui-text-field>
-
+        <form id="logform">
+          <mdui-text-field
+            variant="outlined"
+            label="Email"
+            id="emailLogin"
+            class="textField"
+            type="email"
+          >
+            <span slot="helper" id="usernameLogConfirm"></span>
+          </mdui-text-field>
+          <mdui-text-field
+            variant="outlined"
+            label="Password"
+            id="passwordLogin"
+            class="textField"
+            type="password"
+            toggle-password
+          >
+            <span slot="helper" id="passLogConfirm"></span>
+          </mdui-text-field>
         </form>
         <mdui-button id="LoginButton">Submit</mdui-button>
         <br />
         <br />
         <span id="forgot"
-          ><a id="password_link" href="/forgotPassword">Forgot Password?</a></span
+          ><a id="password_link" href="/forgotPassword">Forgot Password?</a
+          ></span
         >
       </div>
     </div>
@@ -94,6 +126,10 @@
 <style>
   p {
     color: gray;
+  }
+  h1 {
+    margin-top: 5px;
+    margin-bottom: 5px;
   }
   a {
     color: rgb(var(--mdui-color-primary));
@@ -126,7 +162,7 @@
     display: none;
   }
   #form_container {
-    margin-top: 20px;
+    margin-top: 5px;
     width: 500px;
     justify-content: center;
     display: grid;
@@ -148,6 +184,4 @@
   dialog::backdrop {
     backdrop-filter: blur(20px);
   }
-  
-
 </style>

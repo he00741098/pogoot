@@ -1,9 +1,5 @@
 (function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
 document.addEventListener("astro:page-load", () => {
-  // if (document.URL.indexOf("account") < 1) {
-  //   return;
-  // }
-
   var alertBox = document.getElementById("exampleAlert");
   alertBox.style.display = "none";
   const {
@@ -19,7 +15,7 @@ document.addEventListener("astro:page-load", () => {
   let register_button = document.getElementById("RegisterButton");
   let login_button = document.getElementById("LoginButton");
 
-  register_button.addEventListener("click", function (event) {
+  let register_function = function (event) {
     event.preventDefault();
     let email = document.getElementById("emailRegister").value;
     let emailConfirm = document.getElementById("emailRegisterConfirm").value;
@@ -28,61 +24,101 @@ document.addEventListener("astro:page-load", () => {
       "passwordRegisterConfirm",
     ).value;
 
+    let usernameReg = document.getElementById("usernameReg");
+    let usernameConfirm = document.getElementById("usernameRegConfirm");
+    let passReg = document.getElementById("passReg");
+    let passConfirm = document.getElementById("passRegConfirm");
     if (email != emailConfirm) {
-      send_alert("red", "Emails do not match", "Please try again");
+      // send_alert("red", "Emails do not match", "Please try again");
       document
         .getElementById("emailRegister")
         .setCustomValidity("Emails do not match");
+      usernameReg.innerText = "Emails Do Not Match"
 
-      // document.getElementById("emailRegister").innerHTML =
-      //   "Emails do not match";
       document
         .getElementById("emailRegisterConfirm")
         .setCustomValidity("Emails do not match");
+      usernameConfirm.innerText = "Emails Do Not Match";
 
       return;
     } else {
       document.getElementById("emailRegister").setCustomValidity("");
-
       document.getElementById("emailRegisterConfirm").setCustomValidity("");
+      usernameReg.innerText = "";
+      usernameConfirm.innerText = "";
     }
-    if (
-      document.getElementById("emailRegister").validity.typeMismatch ||
-      document.getElementById("emailRegister").validity.valueMissing
-    ) {
-      send_alert("red", "Invalid email", "Please enter a valid email");
-      console.log("Invalid email");
+
+    if (email.length<=5){
       document
         .getElementById("emailRegister")
-        .setCustomValidity("Please Enter a valid email");
+        .setCustomValidity("Email too short");
+      usernameReg.innerText = "Email too short";
+      return;
+    }
+    if (emailConfirm.length<=1){
       document
         .getElementById("emailRegisterConfirm")
-        .setCustomValidity("Please Enter a valid email");
+        .setCustomValidity("Email too short");
+      usernameConfirm.innerText = "Email too short";
       return;
-    } else {
-      document.getElementById("emailRegister").setCustomValidity("");
-      document.getElementById("emailRegisterConfirm").setCustomValidity("");
     }
+    // if (
+    //   document.getElementById("emailRegister").validity.typeMismatch ||
+    //   document.getElementById("emailRegister").validity.valueMissing
+    // ) {
+    //   send_alert("red", "Invalid email", "Please enter a valid email");
+    //   console.log("Invalid email");
+    //   document
+    //     .getElementById("emailRegister")
+    //     .setCustomValidity("Please Enter a valid email");
+    //   document
+    //     .getElementById("emailRegisterConfirm")
+    //     .setCustomValidity("Please Enter a valid email");
+    //   return;
+    // } else {
+    //   document.getElementById("emailRegister").setCustomValidity("");
+    //   document.getElementById("emailRegisterConfirm").setCustomValidity("");
+    // }
 
     if (password != passwordConfirm) {
-      send_alert("red", "Passwords do not match", "Re-input if needed!");
+      // send_alert("red", "Passwords do not match", "Re-input if needed!");
       document
         .getElementById("passwordRegister")
         .setCustomValidity("Passwords do not match");
+      passReg.innerText = "Passwords do not match";
       document
         .getElementById("passwordRegisterConfirm")
         .setCustomValidity("Passwords do not match");
+      passConfirm.innerText = "Passwords do not match";
       return;
     } else {
       document.getElementById("passwordRegister").setCustomValidity("");
       document.getElementById("passwordRegisterConfirm").setCustomValidity("");
+      passReg.innerText = "";
+      passConfirm.innerText = "";
     }
-    if (document.getElementById("passwordRegister").validity.valueMissing) {
-      send_alert(
-        "red",
-        "Please enter a password",
-        "Use a new password for every account!",
-      );
+    if (password.length<6) {
+      // send_alert(
+      //   "red",
+      //   "Please enter a password",
+      //   "Use a new password for every account!",
+      // );
+      document
+        .getElementById("passwordRegister")
+        .setCustomValidity("Password must be 6+ characters");
+      passReg.innerText = "Password must be 6+ characters";
+      return;
+    }
+    if (passwordConfirm.length<6) {
+      // send_alert(
+      //   "red",
+      //   "Please enter a password",
+      //   "Use a new password for every account!",
+      // );
+      document
+        .getElementById("passwordRegisterConfirm")
+        .setCustomValidity("Password must be 6+ characters");
+      passConfirm.innerText = "Password must be 6+ characters";
       return;
     }
 
@@ -102,17 +138,26 @@ document.addEventListener("astro:page-load", () => {
     client.register(regReq, {}, (err, response) => {
       console.log(response);
       if (response.array[1] == "User Logged In Already") {
-        send_alert("red", "User already exists", "Try logging in");
+        // send_alert("red", "User already exists", "Try logging in");
+        passConfirm.innerText = passReg.innerText = usernameReg.innerText = usernameConfirm.innerText = "User Already Exists. Try Logging in";
+      }else if(response.array[1] == "Invalid Email"){
+      document
+        .getElementById("emailRegister")
+        .setCustomValidity("Please enter an email address.");
+      document
+        .getElementById("emailRegisterConfirm")
+        .setCustomValidity("Please enter an email address.");
+        usernameReg.innerText = usernameConfirm.innerText = "Invalid Email";
       } else if (response.array[0]) {
+        localStorage.setItem("library_cache","");
         send_alert("green", "Login Success", "Redirecting...");
         cookie_set("auth", response.array[1]);
         cookie_set("username", email);
         redirect();
       }
     });
-  });
-
-  login_button.addEventListener("click", function (event) {
+  };
+  let login_function = function (event) {
     event.preventDefault();
 
     let email = document.getElementById("emailLogin").value;
@@ -130,10 +175,20 @@ document.addEventListener("astro:page-load", () => {
         cookie_set("username", email);
         redirect();
       } else {
-        send_alert("red", "Incorrect credentials", "");
+        let passLog = document.getElementById("usernameLogConfirm");
+        let userLog = document.getElementById("passLogConfirm");
+        passLog.innerText = "Incorrect credentials";
+        userLog.innerText = "Incorrect credentials";
+        // send_alert("red", "Incorrect credentials", "");
       }
     });
-  });
+  }
+
+
+  register_button.addEventListener("click", register_function);
+  login_button.addEventListener("click", login_function);
+  document.getElementById("regform").onsubmit = register_function;
+  document.getElementById("logform").onsubmit = login_function;
 
   function cookie_set(key, value) {
     var date = new Date();

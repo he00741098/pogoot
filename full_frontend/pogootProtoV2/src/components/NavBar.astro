@@ -103,8 +103,16 @@ import SearchBar from "./SearchBar.astro";
     });
     document.addEventListener("click", function (e) {
       // console.log(e);
-      // console.log(e.target.id);
-      if (e.target.id != "login_popup") return;
+      // console.log(":" + e.target.type + ":");
+      // if (e.target.type == "submit") {
+      // console.log("Submit button");
+      // return;
+      // }
+      if (e.target.id != "login_popup") {
+        // console.log("Not login popup: " + e.target.id);
+        return;
+      }
+      // console.log("Closing");
       document.getElementById("login_popup").close();
     });
     let login_tabs = document.getElementById("loginTabs");
@@ -118,13 +126,29 @@ import SearchBar from "./SearchBar.astro";
       }
     };
 
-    // document.getElementById("cookie_popup").showModal();
-    // document.addEventListener("click", function (e) {
-    //   if (e.target.id != "cookie_popup") return;
-    //   document.getElementById("cookie_popup").close();
-    // });
-
-
+    let cookie_settings = localStorage.getItem("cookies");
+    if (cookie_settings != null && cookie_settings.length > 2) {
+      let cookie_pop = document.getElementById("cookie_popup");
+      cookie_pop.style.display = "none";
+    } else {
+      let cookie_pop = document.getElementById("cookie_popup");
+      cookie_pop.style.display = "grid";
+      let all_accept = document.getElementById("all");
+      let only_needed = document.getElementById("necessary");
+      let custom = document.getElementById("custom");
+      all_accept.addEventListener("click", function (e) {
+        localStorage.setItem("cookies", "all");
+        cookie_pop.style.display = "none";
+      });
+      only_needed.addEventListener("click", function (e) {
+        localStorage.setItem("cookies", "nec");
+        cookie_pop.style.display = "none";
+      });
+      custom.addEventListener("click", function (e) {
+        localStorage.setItem("cookies", "custom");
+        cookie_pop.style.display = "none";
+      });
+    }
   });
 </script>
 
@@ -192,9 +216,9 @@ import SearchBar from "./SearchBar.astro";
     }
   }
   /* #searchbar{
-    top:11px;
-    position:relative;
-    height:100%;
-    
-  } */
+top:11px;
+position:relative;
+height:100%;
+
+} */
 </style>
