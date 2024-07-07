@@ -1,7 +1,7 @@
 document.addEventListener("astro:page-load", () => {
-  if (document.URL.indexOf("account") < 1) {
-    return;
-  }
+  // if (document.URL.indexOf("account") < 1) {
+  //   return;
+  // }
 
   var alertBox = document.getElementById("exampleAlert");
   alertBox.style.display = "none";

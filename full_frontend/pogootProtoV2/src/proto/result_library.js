@@ -13,7 +13,7 @@ document.addEventListener("astro:page-load", () => {
   
 
 
-  refresher.onclick = function(e){
+  refresher.addEventListener("click", function(e){
     cookie_set("updated", "true");
     let nodes = main.childNodes;
     for (var i = nodes.length-1; i>=7;i--){
@@ -45,7 +45,7 @@ document.addEventListener("astro:page-load", () => {
     //end of if statment
   }
 
-  };
+  });
 
   console.log(search_bar);
   search_bar.addEventListener("input", (ev) => {

@@ -94,11 +94,37 @@ import SearchBar from "./SearchBar.astro";
     });
     const account_btn = document.getElementById("account_button");
     account_btn.addEventListener("click", () => {
-      navigate("/account");
+      // console.log("Clicked!");
+      document.getElementById("login_popup").showModal();
+      // navigate("/account");
     });
     account_btn.addEventListener("mouseover", () => {
       prefetch("/account");
     });
+    document.addEventListener("click", function (e) {
+      // console.log(e);
+      // console.log(e.target.id);
+      if (e.target.id != "login_popup") return;
+      document.getElementById("login_popup").close();
+    });
+    let login_tabs = document.getElementById("loginTabs");
+    login_tabs.onchange = function (e) {
+      if (login_tabs.value == "Login") {
+        document.getElementById("login_form").style.display = "block";
+        document.getElementById("register_form").style.display = "none";
+      } else if (login_tabs.value == "Register") {
+        document.getElementById("login_form").style.display = "none";
+        document.getElementById("register_form").style.display = "block";
+      }
+    };
+
+    // document.getElementById("cookie_popup").showModal();
+    // document.addEventListener("click", function (e) {
+    //   if (e.target.id != "cookie_popup") return;
+    //   document.getElementById("cookie_popup").close();
+    // });
+
+
   });
 </script>
 

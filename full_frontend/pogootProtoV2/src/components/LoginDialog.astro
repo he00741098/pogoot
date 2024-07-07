@@ -1,0 +1,153 @@
+<dialog id="login_popup">
+  <div class="modal">
+    <h1>Sweep.rs</h1>
+    <mdui-tabs value="Login" id="loginTabs" full-width variant="secondary">
+      <mdui-tab value="Login">Login</mdui-tab>
+      <mdui-tab value="Register">Register</mdui-tab>
+    </mdui-tabs>
+    <div id="form_container">
+      <div id="register_form">
+        <h2>Sign Up</h2>
+        <form>
+        <mdui-text-field
+          variant="outlined"
+          label="Username"
+          id="emailRegister"
+            name="email"
+            autocomplete="email"
+          class="textField"></mdui-text-field>
+        <mdui-text-field
+          variant="outlined"
+          label="Confirm Username"
+          id="emailRegisterConfirm"
+            name="email"
+            autocomplete="email"
+          class="textField"></mdui-text-field>
+        <mdui-text-field
+          variant="outlined"
+          label="Password"
+          id="passwordRegister"
+          class="textField"
+          type="password"
+          toggle-password></mdui-text-field>
+        <mdui-text-field
+          variant="outlined"
+          label="Confirm Password"
+          id="passwordRegisterConfirm"
+          class="textField"
+          type="password"
+          toggle-password></mdui-text-field>
+</form>
+        <!-- <mdui-checkbox id="tosCheck" -->
+        <!--   >I agree to the <a id="tosURL"> Terms Of Service</a></mdui-checkbox -->
+        <!-- > -->
+        <!-- <br /> -->
+        <!-- <mdui-checkbox id="ageCheck" -->
+        <!--   >I am older than 13 years of age</mdui-checkbox -->
+        <!-- > -->
+        <!-- <br /> -->
+        <!-- <mdui-checkbox id="privacyCheck" -->
+        <!--   >I Agree to the Privacy Policy</mdui-checkbox -->
+        <!-- > -->
+        <!-- <br /> -->
+
+        <p>
+          By signing up, you accept our <a href="/TOS" target="_blank" rel="noopener noreferrer">Terms and Conditions</a>.
+          Please read our
+          <a href="/Privacy" target="_blank" rel="noopener noreferrer">Privacy Policy</a> and <a href="/Cookies" target="_blank" rel="noopener noreferrer">Cookie Policy</a>.
+        </p><p>
+          I understand that I can withdraw my consent at any time and the
+          withdrawal will not affect the lawfulness of the consent before its
+          withdrawal, as described in the <a href="/Privacy" target="_blank" rel="noopener noreferrer">Privacy Policy</a>.
+        </p>
+        <mdui-button id="RegisterButton">Submit</mdui-button>
+      </div>
+      <div id="login_form">
+        <h2>Login</h2>
+
+        <form>
+        <mdui-text-field
+          variant="outlined"
+          label="Username"
+          id="emailLogin"
+          class="textField"></mdui-text-field>
+        <mdui-text-field
+          variant="outlined"
+          label="Password"
+          id="passwordLogin"
+          class="textField"
+          type="password"
+          toggle-password></mdui-text-field>
+
+        </form>
+        <mdui-button id="LoginButton">Submit</mdui-button>
+        <br />
+        <br />
+        <span id="forgot"
+          ><a id="password_link" href="/forgotPassword">Forgot Password?</a></span
+        >
+      </div>
+    </div>
+  </div>
+</dialog>
+
+<style>
+  p {
+    color: gray;
+  }
+  a {
+    color: rgb(var(--mdui-color-primary));
+    text-decoration: underline;
+  }
+  .modal {
+    /* width: 100%; */
+    /* height: 100%; */
+    /* padding:0; */
+    display: flex;
+    padding: 1rem;
+    flex-direction: column;
+    height: 700px;
+  }
+  .textField {
+    margin-bottom: 5px;
+  }
+  #login_popup {
+    padding: 0;
+    /* overscroll-behavior: contain; */
+    /* width:50%; */
+    /* display:grid; */
+    /* justify-content: center; */
+    /* box-shadow: 5px 5px 5px 0px black; */
+    /* grid-template-columns: 50%; */
+  }
+  #register_form {
+    /* width:50%; */
+    /* position: relative; */
+    display: none;
+  }
+  #form_container {
+    margin-top: 20px;
+    width: 500px;
+    justify-content: center;
+    display: grid;
+  }
+  h1 {
+    justify-self: center;
+  }
+  #login_form {
+    width: 500px;
+  }
+  /* @keyframes blur{ */
+  /* from{ backdrop-filter:blur(0);} */
+  /* to{backdrop-filter:blur(20px);} */
+  /* } */
+  /* dialog::backdrop { */
+  /*   transition: backdrop-filter 1s linear; */
+  /*   backdrop-filter: blur(0); */
+  /* } */
+  dialog::backdrop {
+    backdrop-filter: blur(20px);
+  }
+  
+
+</style>

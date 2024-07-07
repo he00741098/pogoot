@@ -1,6 +1,9 @@
 ---
 import { ViewTransitions } from "astro:transitions";
 import NavBar from "../components/NavBar.astro";
+import AlertBox from "../components/AlertBox.astro";
+import LoginDialog from "../components/LoginDialog.astro";
+import CookieBanner from "../components/CookieBanner.astro";
 interface Props {
 	title: string;
 }
@@ -11,8 +14,11 @@ const { title } = Astro.props;
 <html lang="en" class="mdui-theme-auto">
 	<head>
 		<meta charset="UTF-8" />
+
+
+
 		<link rel="stylesheet" href="https://unpkg.com/mdui@2/mdui.css" />
-		<script is:inline src="https://unpkg.com/mdui@2/mdui.global.js"></script>
+		<script is:inline src="/js/mdui.global.js"></script>
 		<meta name="description" content="A Free Notecard Website" />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
 		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
@@ -43,7 +49,9 @@ const { title } = Astro.props;
 		<ViewTransitions />
 	</head>
 	<body>
+		<CookieBanner/>
 		<NavBar />
+		<LoginDialog />
 		<div id="slot_container">
 			<slot />
 
@@ -85,14 +93,15 @@ const { title } = Astro.props;
 						</div>
 					</div>
 					<div id="legal">
-						<a>Terms Of Service</a>
-						<a>Privacy Policy</a>
-						<a>Cookies</a>
-						<a>Feedback</a>
+						<a href="/TOS">Terms Of Service</a>
+						<a href="/Privacy">Privacy Policy</a>
+						<a href="/Cookies">Cookies</a>
+						<a href="/report">Feedback</a>
 					</div>
 				</div>
 			</footer>
 		</div>
+		<AlertBox />
 
 		<style is:global>
 			#motto-p {
@@ -135,7 +144,7 @@ const { title } = Astro.props;
 			#contacts {
 				/* display: inline-block; */
 				display: grid;
-				justify-content: left;
+				justify-content: right;
 				align-content: center;
 			}
 			/* #legal { */
