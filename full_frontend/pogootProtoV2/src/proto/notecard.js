@@ -151,6 +151,11 @@
         curdex.innerHTML = current_index + "/";
         showing_front = true;
       } else if (e.key == " ") {
+
+        if (document.URL.indexOf("notecards") > 0) {
+          e.preventDefault();
+        }
+
         if (showing_front) {
           //show back
           document.getElementById("back" + current_index).style.display =

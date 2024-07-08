@@ -172,6 +172,7 @@ document.addEventListener("astro:page-load", () => {
       if (response.array[0]) {
         send_alert("green", "Login Success", "Redirecting...");
         cookie_set("auth", response.array[1]);
+        localStorage.setItem("updated","true");
         cookie_set("username", email);
         redirect();
       } else {

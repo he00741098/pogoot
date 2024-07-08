@@ -91,9 +91,15 @@ const { title } = Astro.props;
 						</div>
 					</div>
 					<div id="legal">
-						<a href="/TOS.txt">Terms Of Service</a>
-						<a href="/Privacy">Privacy Policy</a>
-						<a href="/Cookies">Cookies</a>
+						<a href="/TOS.txt" rel="terms-of-service" target="_blank"
+							>Terms Of Service</a
+						>
+						<a href="/Privacy.html" rel="privacy-policy" target="_blank"
+							>Privacy Policy</a
+						>
+						<a href="/Cookies.html" rel="privacy-policy" target="_blank"
+							>Cookies</a
+						>
 						<a href="/report">Feedback</a>
 					</div>
 				</div>
@@ -129,8 +135,8 @@ const { title } = Astro.props;
 			#footer {
 				top: 100%;
 				position: absolute;
-				left: 80px;
-				width: calc(100% - 80px);
+				/* left: 80px; */
+				width: 100%;
 				display: flex;
 				/* align-content: center; */
 				justify-content: center;
