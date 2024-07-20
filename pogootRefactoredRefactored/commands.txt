@@ -1,0 +1,6 @@
+aws s3 cp s3://instanceaccess/pogoot ./pogoot
+chmod +x ./pogoot
+tmux new-session -d -A -s pogootsession
+tmux send -t pogootsession.0 C-c
+tmux send -t pogootsession.0 "sudo ./pogoot" ENTER
+echo Complete!

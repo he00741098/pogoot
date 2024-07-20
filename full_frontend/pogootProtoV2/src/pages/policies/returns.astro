@@ -1,0 +1,40 @@
+---
+export const prerender = true;
+import Layout from "../../layouts/Layout.astro";
+---
+
+<Layout title="Return Policy | Pogoot">
+  <main>
+    <h1>Return Policy</h1>
+    <h3>Last Updated: July 19th, 2024</h3>
+    <h2>Refunds</h2>
+    <p>All sales are final and no refund will be issued.</p>
+    <h2>Questions</h2>
+    <p>
+      If you have any questions concerning our return policy, please contact us
+      at:
+    </p>
+    <p>support@sweep.rs</p>
+  </main>
+</Layout>
+
+<style>
+  body {
+    display: grid;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    background-color: var(--blue);
+    color: white;
+    font-family: LeagueSpartan;
+    font-size: 20px;
+  }
+
+  main {
+    display: grid;
+    position: absolute;
+    width: 50%;
+    top: 50px;
+    left: 25%;
+  }
+</style>
