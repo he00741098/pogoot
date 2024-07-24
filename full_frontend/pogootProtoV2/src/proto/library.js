@@ -2,15 +2,6 @@ document.addEventListener("astro:page-load", () => {
   if (document.URL.indexOf("library") < 1) {
     return;
   }
-  const {
-    Notecard,
-    NotecardFetchRequest,
-    NotecardList,
-    NotecardListUploadRequest,
-    NotecardModifyRequest,
-    NotecardUploadResponse,
-  } = require("./pogoots_pb.js");
-  const { NotecardServiceClient } = require("./pogoots_grpc_web_pb.js");
 
   if (localStorage.getItem("updated") == null) {
     localStorage.setItem("updated", false);

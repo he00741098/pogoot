@@ -10,7 +10,6 @@ document.addEventListener("astro:page-load", function () {
     return;
   }
 
-  let data = JSON.parse(document.getElementById("rawData").innerText);
   // console.log("activating!!!!!");
   let maxlen = document.getElementById("maxlen").innerHTML;
   let main = document.getElementById("main");

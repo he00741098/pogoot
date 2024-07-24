@@ -44,6 +44,7 @@ try {
 
 len = data.length;
 let counter = 1;
+let other_counter = 1;
 ---
 
 <Layout title="Notecard | Sweep.rs">
@@ -69,8 +70,55 @@ let counter = 1;
       />
     </div>
   </div>
+  <div id="actionbar">
+    <button id="edit">Edit</button>
+  </div>
+  <div id="termlist">
+    {
+      data.map((item) => (
+        // <Notecard
+        //   front_text={item.front}
+        //   back_text={item.back}
+        //   idcount={counter++}
+        // />
+        <div class="termitem">
+          <div class="termcount">{other_counter++}</div>
+          <div class="termfront">{item.front}</div>
+          <div class="termback">{item.back}</div>
+        </div>
+      ))
+    }
+  </div>
+  <div id="rawData">{JSON.stringify(data)}</div>
 </Layout>
 <style>
+  #termlist {
+    position: absolute;
+    top: 84%;
+    left: 25%;
+    width: 50%;
+    display: block;
+  }
+  .termitem {
+    display: grid;
+    grid-template-columns: 10% 45% 45%;
+    padding: 4px;
+    margin-bottom: 4px;
+    background-color: white;
+    height: fit-content;
+    color: black;
+    text-align: center;
+    border-radius: 2px;
+  }
+  #actionbar {
+    position: absolute;
+    top: 80%;
+    left: 25%;
+    width: 50%;
+  }
+  #rawData {
+    display: none;
+  }
   .svg {
     top: 20px;
     width: 20px;
