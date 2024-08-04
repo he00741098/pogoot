@@ -38,7 +38,7 @@ prost = "0.13.1"
 tokio-stream = "0.1.15"
 async-stream = "0.3.5"
 aws-sdk-s3 = "1.42.0"
-tonic-web = "0.11.0"
+tonic-web = "0.12.1"
 libsql = "0.3.5"
 zstd = { version = "0.13.2", features = ["zdict_builder"] }
 tokio-rustls = "0.26.0"
