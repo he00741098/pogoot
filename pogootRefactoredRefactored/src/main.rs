@@ -47,7 +47,7 @@ async fn fetch_aws_secrets() -> Result<Option<String>, aws_sdk_secretsmanager::E
     let secret_name = "pogootSecrets";
     let region = Region::new("us-west-2");
 
-    let config = aws_config::defaults(BehaviorVersion::v2023_11_09())
+    let config = aws_config::defaults(BehaviorVersion::v2024_03_28())
         .region(region)
         .load()
         .await;

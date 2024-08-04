@@ -1,4 +1,3 @@
-
 use aws_config::{BehaviorVersion, Region};
 use aws_sdk_s3::{
     config::Credentials,
@@ -78,7 +77,7 @@ pub async fn upload_notecard_to_cloudflare(
         "https://{}.r2.cloudflarestorage.com/pogootdata",
         secrets.r2accountid
     );
-    let config = aws_config::defaults(BehaviorVersion::v2023_11_09())
+    let config = aws_config::defaults(BehaviorVersion::v2024_03_28())
         .region(region)
         .endpoint_url(&endpointurl)
         .credentials_provider(credentials_provider)
