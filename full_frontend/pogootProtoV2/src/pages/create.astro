@@ -199,9 +199,19 @@ import AlertBox from "../components/AlertBox.astro";
   }
   #cards {
     width: 100%;
-    display: grid;
-    grid-template-columns: 100%;
+    height: fit-content;
+    display: flex;
+    flex-direction: column;
+    /* grid-template-columns: 100%; */
     row-gap: 10px;
+    margin-bottom: 20px;
+  }
+  :global(#footer) {
+    position: relative;
+  }
+  :global(#slot-container) {
+    display: flex;
+    flex-direction: column;
   }
   .notecardInput {
     width: 100%;
@@ -256,15 +266,10 @@ import AlertBox from "../components/AlertBox.astro";
 
   main {
     display: grid;
-    position: absolute;
+    position: relative;
     width: 50%;
-    /* outline: 2px solid red; */
     top: 100px;
     left: 25%;
-    /* text-align: center; */
-    /* padding-left:50px; */
-    /* background-image: linear-gradient(to bottom right, #F5E3B8, #F5DD67); */
-    /* outline: 2px solid red; */
   }
   #sidebar {
     /* outline: 2px solid red; */

@@ -2,8 +2,11 @@ use crate::services::special_key_type::UserManageMap;
 use crate::services::user_manage::UserManager;
 use crate::AwsSecrets;
 use base64::prelude::*;
+use http::Method;
 use tokio::sync::Mutex;
 use tonic::transport::ServerTlsConfig;
+use tonic_web::GrpcWebLayer;
+use tower_http::cors::{Any, CorsLayer};
 pub mod pogoots {
     include!("../pogoot_refactored_refactored.rs");
 }
@@ -69,13 +72,18 @@ pub async fn start_serving(mut secrets: AwsSecrets) {
     let notecard_server = NotecardServiceServer::new(notecard_server)
         .send_compressed(tonic::codec::CompressionEncoding::Zstd)
         .accept_compressed(tonic::codec::CompressionEncoding::Zstd);
-
+    let cors = CorsLayer::new()
+        .allow_headers(Any)
+        .allow_methods([Method::GET, Method::POST])
+        .allow_origin(Any);
     println!("Server listening on {}", addr);
     let result = Server::builder()
         .tls_config(ServerTlsConfig::new().identity(Identity::from_pem(&cert, &key)))
-        .unwrap()
+        .expect("tls failed")
         // GrpcWeb is over http1 so we must enable it.
         .accept_http1(true)
+        .layer(cors)
+        .layer(GrpcWebLayer::new())
         .add_service(tonic_web::enable(notecard_server))
         .add_service(tonic_web::enable(login_server))
         .serve(addr)
