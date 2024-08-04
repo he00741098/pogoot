@@ -64,7 +64,9 @@ pub async fn start_serving(mut secrets: AwsSecrets) {
         crate::services::notecard::upload_proccessor(con, rx, ltx, secrets).await;
     });
     let notecard_server = NotecardServer { send_channel: tx };
-    let notecard_server = NotecardServiceServer::new(notecard_server);
+    let notecard_server = NotecardServiceServer::new(notecard_server)
+        .send_compressed(tonic::codec::CompressionEncoding::Gzip)
+        .accept_compressed(tonic::codec::CompressionEncoding::Gzip);
 
     println!("Server listening on {}", addr);
     let result = Server::builder()
