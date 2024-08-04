@@ -221,7 +221,7 @@ pub struct PogootCreationResponse {
     pub gameid: ::prost::alloc::string::String,
 }
 #[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
 pub struct Progress {}
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -1061,19 +1061,17 @@ pub mod notecard_service_server {
     /// Note card stuff
     #[derive(Debug)]
     pub struct NotecardServiceServer<T: NotecardService> {
-        inner: _Inner<T>,
+        inner: Arc<T>,
         accept_compression_encodings: EnabledCompressionEncodings,
         send_compression_encodings: EnabledCompressionEncodings,
         max_decoding_message_size: Option<usize>,
         max_encoding_message_size: Option<usize>,
     }
-    struct _Inner<T>(Arc<T>);
     impl<T: NotecardService> NotecardServiceServer<T> {
         pub fn new(inner: T) -> Self {
             Self::from_arc(Arc::new(inner))
         }
         pub fn from_arc(inner: Arc<T>) -> Self {
-            let inner = _Inner(inner);
             Self {
                 inner,
                 accept_compression_encodings: Default::default(),
@@ -1136,7 +1134,6 @@ pub mod notecard_service_server {
             Poll::Ready(Ok(()))
         }
         fn call(&mut self, req: http::Request<B>) -> Self::Future {
-            let inner = self.inner.clone();
             match req.uri().path() {
                 "/pogootRefactoredRefactored.NotecardService/Upload" => {
                     #[allow(non_camel_case_types)]
@@ -1167,7 +1164,6 @@ pub mod notecard_service_server {
                     let max_encoding_message_size = self.max_encoding_message_size;
                     let inner = self.inner.clone();
                     let fut = async move {
-                        let inner = inner.0;
                         let method = UploadSvc(inner);
                         let codec = tonic::codec::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
@@ -1213,7 +1209,6 @@ pub mod notecard_service_server {
                     let max_encoding_message_size = self.max_encoding_message_size;
                     let inner = self.inner.clone();
                     let fut = async move {
-                        let inner = inner.0;
                         let method = FetchSvc(inner);
                         let codec = tonic::codec::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
@@ -1259,7 +1254,6 @@ pub mod notecard_service_server {
                     let max_encoding_message_size = self.max_encoding_message_size;
                     let inner = self.inner.clone();
                     let fut = async move {
-                        let inner = inner.0;
                         let method = ModifySvc(inner);
                         let codec = tonic::codec::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
@@ -1305,7 +1299,6 @@ pub mod notecard_service_server {
                     let max_encoding_message_size = self.max_encoding_message_size;
                     let inner = self.inner.clone();
                     let fut = async move {
-                        let inner = inner.0;
                         let method = GetNotecardsSvc(inner);
                         let codec = tonic::codec::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
@@ -1327,8 +1320,11 @@ pub mod notecard_service_server {
                         Ok(
                             http::Response::builder()
                                 .status(200)
-                                .header("grpc-status", "12")
-                                .header("content-type", "application/grpc")
+                                .header("grpc-status", tonic::Code::Unimplemented as i32)
+                                .header(
+                                    http::header::CONTENT_TYPE,
+                                    tonic::metadata::GRPC_CONTENT_TYPE,
+                                )
                                 .body(empty_body())
                                 .unwrap(),
                         )
@@ -1347,16 +1343,6 @@ pub mod notecard_service_server {
                 max_decoding_message_size: self.max_decoding_message_size,
                 max_encoding_message_size: self.max_encoding_message_size,
             }
-        }
-    }
-    impl<T: NotecardService> Clone for _Inner<T> {
-        fn clone(&self) -> Self {
-            Self(Arc::clone(&self.0))
-        }
-    }
-    impl<T: std::fmt::Debug> std::fmt::Debug for _Inner<T> {
-        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-            write!(f, "{:?}", self.0)
         }
     }
     impl<T: NotecardService> tonic::server::NamedService for NotecardServiceServer<T> {
@@ -1386,19 +1372,17 @@ pub mod login_server_server {
     /// User stuff
     #[derive(Debug)]
     pub struct LoginServerServer<T: LoginServer> {
-        inner: _Inner<T>,
+        inner: Arc<T>,
         accept_compression_encodings: EnabledCompressionEncodings,
         send_compression_encodings: EnabledCompressionEncodings,
         max_decoding_message_size: Option<usize>,
         max_encoding_message_size: Option<usize>,
     }
-    struct _Inner<T>(Arc<T>);
     impl<T: LoginServer> LoginServerServer<T> {
         pub fn new(inner: T) -> Self {
             Self::from_arc(Arc::new(inner))
         }
         pub fn from_arc(inner: Arc<T>) -> Self {
-            let inner = _Inner(inner);
             Self {
                 inner,
                 accept_compression_encodings: Default::default(),
@@ -1461,7 +1445,6 @@ pub mod login_server_server {
             Poll::Ready(Ok(()))
         }
         fn call(&mut self, req: http::Request<B>) -> Self::Future {
-            let inner = self.inner.clone();
             match req.uri().path() {
                 "/pogootRefactoredRefactored.LoginServer/Login" => {
                     #[allow(non_camel_case_types)]
@@ -1492,7 +1475,6 @@ pub mod login_server_server {
                     let max_encoding_message_size = self.max_encoding_message_size;
                     let inner = self.inner.clone();
                     let fut = async move {
-                        let inner = inner.0;
                         let method = LoginSvc(inner);
                         let codec = tonic::codec::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
@@ -1538,7 +1520,6 @@ pub mod login_server_server {
                     let max_encoding_message_size = self.max_encoding_message_size;
                     let inner = self.inner.clone();
                     let fut = async move {
-                        let inner = inner.0;
                         let method = RegisterSvc(inner);
                         let codec = tonic::codec::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
@@ -1584,7 +1565,6 @@ pub mod login_server_server {
                     let max_encoding_message_size = self.max_encoding_message_size;
                     let inner = self.inner.clone();
                     let fut = async move {
-                        let inner = inner.0;
                         let method = UpdateSvc(inner);
                         let codec = tonic::codec::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
@@ -1606,8 +1586,11 @@ pub mod login_server_server {
                         Ok(
                             http::Response::builder()
                                 .status(200)
-                                .header("grpc-status", "12")
-                                .header("content-type", "application/grpc")
+                                .header("grpc-status", tonic::Code::Unimplemented as i32)
+                                .header(
+                                    http::header::CONTENT_TYPE,
+                                    tonic::metadata::GRPC_CONTENT_TYPE,
+                                )
                                 .body(empty_body())
                                 .unwrap(),
                         )
@@ -1626,16 +1609,6 @@ pub mod login_server_server {
                 max_decoding_message_size: self.max_decoding_message_size,
                 max_encoding_message_size: self.max_encoding_message_size,
             }
-        }
-    }
-    impl<T: LoginServer> Clone for _Inner<T> {
-        fn clone(&self) -> Self {
-            Self(Arc::clone(&self.0))
-        }
-    }
-    impl<T: std::fmt::Debug> std::fmt::Debug for _Inner<T> {
-        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-            write!(f, "{:?}", self.0)
         }
     }
     impl<T: LoginServer> tonic::server::NamedService for LoginServerServer<T> {
@@ -1681,19 +1654,17 @@ pub mod pogoot_player_server_server {
     }
     #[derive(Debug)]
     pub struct PogootPlayerServerServer<T: PogootPlayerServer> {
-        inner: _Inner<T>,
+        inner: Arc<T>,
         accept_compression_encodings: EnabledCompressionEncodings,
         send_compression_encodings: EnabledCompressionEncodings,
         max_decoding_message_size: Option<usize>,
         max_encoding_message_size: Option<usize>,
     }
-    struct _Inner<T>(Arc<T>);
     impl<T: PogootPlayerServer> PogootPlayerServerServer<T> {
         pub fn new(inner: T) -> Self {
             Self::from_arc(Arc::new(inner))
         }
         pub fn from_arc(inner: Arc<T>) -> Self {
-            let inner = _Inner(inner);
             Self {
                 inner,
                 accept_compression_encodings: Default::default(),
@@ -1756,7 +1727,6 @@ pub mod pogoot_player_server_server {
             Poll::Ready(Ok(()))
         }
         fn call(&mut self, req: http::Request<B>) -> Self::Future {
-            let inner = self.inner.clone();
             match req.uri().path() {
                 "/pogootRefactoredRefactored.PogootPlayerServer/Join" => {
                     #[allow(non_camel_case_types)]
@@ -1786,7 +1756,6 @@ pub mod pogoot_player_server_server {
                     let max_encoding_message_size = self.max_encoding_message_size;
                     let inner = self.inner.clone();
                     let fut = async move {
-                        let inner = inner.0;
                         let method = JoinSvc(inner);
                         let codec = tonic::codec::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
@@ -1835,7 +1804,6 @@ pub mod pogoot_player_server_server {
                     let max_encoding_message_size = self.max_encoding_message_size;
                     let inner = self.inner.clone();
                     let fut = async move {
-                        let inner = inner.0;
                         let method = AnswerSvc(inner);
                         let codec = tonic::codec::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
@@ -1886,7 +1854,6 @@ pub mod pogoot_player_server_server {
                     let max_encoding_message_size = self.max_encoding_message_size;
                     let inner = self.inner.clone();
                     let fut = async move {
-                        let inner = inner.0;
                         let method = EstablishQuestionStreamSvc(inner);
                         let codec = tonic::codec::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
@@ -1908,8 +1875,11 @@ pub mod pogoot_player_server_server {
                         Ok(
                             http::Response::builder()
                                 .status(200)
-                                .header("grpc-status", "12")
-                                .header("content-type", "application/grpc")
+                                .header("grpc-status", tonic::Code::Unimplemented as i32)
+                                .header(
+                                    http::header::CONTENT_TYPE,
+                                    tonic::metadata::GRPC_CONTENT_TYPE,
+                                )
                                 .body(empty_body())
                                 .unwrap(),
                         )
@@ -1928,16 +1898,6 @@ pub mod pogoot_player_server_server {
                 max_decoding_message_size: self.max_decoding_message_size,
                 max_encoding_message_size: self.max_encoding_message_size,
             }
-        }
-    }
-    impl<T: PogootPlayerServer> Clone for _Inner<T> {
-        fn clone(&self) -> Self {
-            Self(Arc::clone(&self.0))
-        }
-    }
-    impl<T: std::fmt::Debug> std::fmt::Debug for _Inner<T> {
-        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-            write!(f, "{:?}", self.0)
         }
     }
     impl<T: PogootPlayerServer> tonic::server::NamedService
@@ -1990,19 +1950,17 @@ pub mod lead_server_server {
     }
     #[derive(Debug)]
     pub struct LeadServerServer<T: LeadServer> {
-        inner: _Inner<T>,
+        inner: Arc<T>,
         accept_compression_encodings: EnabledCompressionEncodings,
         send_compression_encodings: EnabledCompressionEncodings,
         max_decoding_message_size: Option<usize>,
         max_encoding_message_size: Option<usize>,
     }
-    struct _Inner<T>(Arc<T>);
     impl<T: LeadServer> LeadServerServer<T> {
         pub fn new(inner: T) -> Self {
             Self::from_arc(Arc::new(inner))
         }
         pub fn from_arc(inner: Arc<T>) -> Self {
-            let inner = _Inner(inner);
             Self {
                 inner,
                 accept_compression_encodings: Default::default(),
@@ -2065,7 +2023,6 @@ pub mod lead_server_server {
             Poll::Ready(Ok(()))
         }
         fn call(&mut self, req: http::Request<B>) -> Self::Future {
-            let inner = self.inner.clone();
             match req.uri().path() {
                 "/pogootRefactoredRefactored.LeadServer/Create" => {
                     #[allow(non_camel_case_types)]
@@ -2096,7 +2053,6 @@ pub mod lead_server_server {
                     let max_encoding_message_size = self.max_encoding_message_size;
                     let inner = self.inner.clone();
                     let fut = async move {
-                        let inner = inner.0;
                         let method = CreateSvc(inner);
                         let codec = tonic::codec::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
@@ -2140,7 +2096,6 @@ pub mod lead_server_server {
                     let max_encoding_message_size = self.max_encoding_message_size;
                     let inner = self.inner.clone();
                     let fut = async move {
-                        let inner = inner.0;
                         let method = FinishRoundSvc(inner);
                         let codec = tonic::codec::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
@@ -2184,7 +2139,6 @@ pub mod lead_server_server {
                     let max_encoding_message_size = self.max_encoding_message_size;
                     let inner = self.inner.clone();
                     let fut = async move {
-                        let inner = inner.0;
                         let method = StartNextRoundSvc(inner);
                         let codec = tonic::codec::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
@@ -2230,7 +2184,6 @@ pub mod lead_server_server {
                     let max_encoding_message_size = self.max_encoding_message_size;
                     let inner = self.inner.clone();
                     let fut = async move {
-                        let inner = inner.0;
                         let method = ManageSvc(inner);
                         let codec = tonic::codec::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
@@ -2277,7 +2230,6 @@ pub mod lead_server_server {
                     let max_encoding_message_size = self.max_encoding_message_size;
                     let inner = self.inner.clone();
                     let fut = async move {
-                        let inner = inner.0;
                         let method = PlayerJoinsSvc(inner);
                         let codec = tonic::codec::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
@@ -2299,8 +2251,11 @@ pub mod lead_server_server {
                         Ok(
                             http::Response::builder()
                                 .status(200)
-                                .header("grpc-status", "12")
-                                .header("content-type", "application/grpc")
+                                .header("grpc-status", tonic::Code::Unimplemented as i32)
+                                .header(
+                                    http::header::CONTENT_TYPE,
+                                    tonic::metadata::GRPC_CONTENT_TYPE,
+                                )
                                 .body(empty_body())
                                 .unwrap(),
                         )
@@ -2319,16 +2274,6 @@ pub mod lead_server_server {
                 max_decoding_message_size: self.max_decoding_message_size,
                 max_encoding_message_size: self.max_encoding_message_size,
             }
-        }
-    }
-    impl<T: LeadServer> Clone for _Inner<T> {
-        fn clone(&self) -> Self {
-            Self(Arc::clone(&self.0))
-        }
-    }
-    impl<T: std::fmt::Debug> std::fmt::Debug for _Inner<T> {
-        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-            write!(f, "{:?}", self.0)
         }
     }
     impl<T: LeadServer> tonic::server::NamedService for LeadServerServer<T> {

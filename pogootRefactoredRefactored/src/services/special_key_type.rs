@@ -2,7 +2,7 @@
 //This is a special key type in order to have less hashmaps in user management
 //The idea is a token, a username, or an email will be able to get the same user in the same hashmap
 
-use std::{collections::HashMap, hash::Hash, sync::Arc};
+use std::{collections::HashMap, sync::Arc};
 use tokio::sync::Mutex;
 
 use super::user_manage::User;

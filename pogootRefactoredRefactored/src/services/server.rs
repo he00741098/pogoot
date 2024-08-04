@@ -14,9 +14,9 @@ use self::{
 use pogoots::login_server_server::LoginServerServer;
 use pogoots::notecard_service_server::NotecardServiceServer;
 use pogoots::*;
+use std::pin::Pin;
 use std::sync::Arc;
 use std::time::Duration;
-use std::{clone, pin::Pin};
 use tokio::sync::mpsc;
 use tokio_stream::{wrappers::ReceiverStream, Stream};
 use tonic::{
@@ -57,7 +57,9 @@ pub async fn start_serving(mut secrets: AwsSecrets) {
     let login_server = LoginService {
         send_channel: ltx.clone(),
     };
-    let login_server = LoginServerServer::new(login_server);
+    let login_server = LoginServerServer::new(login_server)
+        .send_compressed(tonic::codec::CompressionEncoding::Zstd)
+        .accept_compressed(tonic::codec::CompressionEncoding::Zstd);
 
     let (tx, rx) = tokio::sync::mpsc::channel(100);
     tokio::spawn(async move {
@@ -65,8 +67,8 @@ pub async fn start_serving(mut secrets: AwsSecrets) {
     });
     let notecard_server = NotecardServer { send_channel: tx };
     let notecard_server = NotecardServiceServer::new(notecard_server)
-        .send_compressed(tonic::codec::CompressionEncoding::Gzip)
-        .accept_compressed(tonic::codec::CompressionEncoding::Gzip);
+        .send_compressed(tonic::codec::CompressionEncoding::Zstd)
+        .accept_compressed(tonic::codec::CompressionEncoding::Zstd);
 
     println!("Server listening on {}", addr);
     let result = Server::builder()
