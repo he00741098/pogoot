@@ -39,7 +39,7 @@ document.addEventListener("astro:page-load", () => {
       fetch_request.setAuthToken(auth_cookie);
       send_alert("green", "Loading...", "");
       client.fetch(fetch_request, {}, (err, response) => {
-        console.log(response);
+        // console.log(response);
         if (response == null) {
           console.log("Load failed");
           send_alert("red", "Loading Failed", "Please reload");
@@ -53,7 +53,7 @@ document.addEventListener("astro:page-load", () => {
     }
   });
 
-  console.log(search_bar);
+  // console.log(search_bar);
   search_bar.addEventListener("input", (ev) => {
     let val = search_bar.value;
     if (val == null || val == "undefined") {
@@ -61,18 +61,18 @@ document.addEventListener("astro:page-load", () => {
     }
     val = val.trim().toLowerCase();
 
-    console.log("Searching... for " + val);
+    // console.log("Searching... for " + val);
     let nodes = main.childNodes;
     for (var i = 7; i < nodes.length; i++) {
       let z = nodes[i];
-      console.log(z);
+      // console.log(z);
       if (z.classList[0] == "placeholderLibraryEntry") {
-        console.log(
-          "matched:" +
-            z.childNodes[3].childNodes[1].innerText +
-            ". / :" +
-            z.childNodes[5].childNodes[1].innerText,
-        );
+        // console.log(
+        //   "matched:" +
+        //     z.childNodes[3].childNodes[1].innerText +
+        //     ". / :" +
+        //     z.childNodes[5].childNodes[1].innerText,
+        // );
         if (
           !z.childNodes[3].childNodes[1].innerText
             .trim()
@@ -83,10 +83,10 @@ document.addEventListener("astro:page-load", () => {
             .toLowerCase()
             .includes(val)
         ) {
-          console.log("hidden");
+          // console.log("hidden");
           z.classList.add("hidden");
         } else {
-          console.log("removed");
+          // console.log("removed");
           z.classList.remove("hidden");
         }
       } else if (z.classList[0] == "placeholderLibraryEntryNoDesc") {
@@ -127,7 +127,7 @@ document.addEventListener("astro:page-load", () => {
       }
       cur_dex++;
     }
-    console.log("Visible: " + filtered_nodes.length + " Dates:" + dates.length);
+    // console.log("Visible: " + filtered_nodes.length + " Dates:" + dates.length);
     if (filtered_nodes.length == dates.length - 1) {
       for (var d of dates) {
         d.classList.add("hidden");
@@ -211,7 +211,7 @@ document.addEventListener("astro:page-load", () => {
     var alerts = document.getElementById("Alerts");
     let box = alertBox.cloneNode(true);
     box.style.outline = color + " solid 3px";
-    console.log(box.childNodes);
+    // console.log(box.childNodes);
     box.childNodes[1].innerText = header;
     box.childNodes[3].innerText = text;
     box.style.display = "grid";
@@ -239,7 +239,7 @@ document.addEventListener("astro:page-load", () => {
         cached = false;
       } else {
         response = JSON.parse(library_data);
-        console.log("JSON parse successfully!");
+        // console.log("JSON parse successfully!");
         cached = true;
       }
     } catch (err) {
@@ -265,7 +265,7 @@ document.addEventListener("astro:page-load", () => {
     fetch_request.setAuthToken(auth_cookie);
     send_alert("green", "Loading...", "");
     client.fetch(fetch_request, {}, (err, response) => {
-      console.log(response);
+      // console.log(response);
       if (response == null) {
         console.log("Load failed");
         send_alert("red", "Loading Failed", "Please reload");

@@ -203,7 +203,7 @@ import AlertBox from "../components/AlertBox.astro";
     display: flex;
     flex-direction: column;
     /* grid-template-columns: 100%; */
-    row-gap: 10px;
+    /* row-gap: 10px; */
     margin-bottom: 20px;
   }
   :global(#footer) {
@@ -246,6 +246,7 @@ import AlertBox from "../components/AlertBox.astro";
     justify-items: center;
     align-items: center;
     justify-content: center;
+    margin-bottom: 5px;
     /* box-shadow: 2px 2px 1px black; */
     /* margin:5px; */
   }
@@ -265,7 +266,8 @@ import AlertBox from "../components/AlertBox.astro";
   }
 
   main {
-    display: grid;
+    display: flex;
+    flex-direction: column;
     position: relative;
     width: 50%;
     top: 100px;
