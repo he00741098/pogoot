@@ -655,6 +655,9 @@ document.addEventListener("astro:page-load", function () {
   if (document.URL.indexOf("notecards") < 1) {
     return;
   }
+  let data = JSON.parse(document.getElementById("rawData").innerText);
+  //add the list
+
   let edit_button = document.getElementById("edit");
   edit_button.addEventListener("click", function (e) {
     console.log("Sending request....");

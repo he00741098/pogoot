@@ -3,13 +3,7 @@ const { class: className, ...rest } = Astro.props;
 ---
 
 <div class="Searchbar">
-    <input
-        id="search-input"
-        class={className}
-        placeholder="Search"
-        transition:persist
-        {...rest}
-    />
+    <input id="search-input" class={className} placeholder="Search" {...rest} />
 </div>
 
 <style>

@@ -30,8 +30,8 @@
 <script>
   import { prefetch } from "astro:prefetch";
   import { navigate } from "astro:transitions/client";
-
   document.addEventListener("astro:page-load", function () {
+    // console.log("NavEvents Added");
     const home_btn = document.getElementById("home_button");
     home_btn.addEventListener("click", () => {
       navigate("/");
@@ -64,25 +64,15 @@
     });
     const account_btn = document.getElementById("account_button");
     account_btn.addEventListener("click", () => {
-      // console.log("Clicked!");
       document.getElementById("login_popup").showModal();
-      // navigate("/account");
     });
     account_btn.addEventListener("mouseover", () => {
       prefetch("/account");
     });
     document.addEventListener("click", function (e) {
-      // console.log(e);
-      // console.log(":" + e.target.type + ":");
-      // if (e.target.type == "submit") {
-      // console.log("Submit button");
-      // return;
-      // }
       if (e.target.id != "login_popup") {
-        // console.log("Not login popup: " + e.target.id);
         return;
       }
-      // console.log("Closing");
       document.getElementById("login_popup").close();
     });
     let login_tabs = document.getElementById("loginTabs");
