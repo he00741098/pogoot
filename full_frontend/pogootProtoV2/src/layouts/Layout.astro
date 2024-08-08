@@ -240,6 +240,9 @@ const { title } = Astro.props;
     </script>
     <script>
       import { navigate } from "astro:transitions/client";
+      window.redirect = function redirect() {
+        navigate("/library");
+      };
       window.redirect_to = function redirect_to(url) {
         navigate(url);
       };

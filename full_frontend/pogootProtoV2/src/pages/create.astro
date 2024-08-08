@@ -1,8 +1,6 @@
 ---
 export const prerender = true;
 import Layout from "../layouts/Layout.astro";
-import NavBar from "../components/NavBar.astro";
-import AlertBox from "../components/AlertBox.astro";
 ---
 
 <Layout title="Create | Pogoot">
@@ -52,7 +50,7 @@ import AlertBox from "../components/AlertBox.astro";
         class="notecardHeaderRight"
         style="display:none"
       >
-        <strong>X</strong>
+        <strong><mdui-icon name="delete_outline"></mdui-icon></strong>
       </div>
 
       <div id="end_cap">
@@ -60,7 +58,6 @@ import AlertBox from "../components/AlertBox.astro";
       </div>
     </div>
   </main>
-  <!-- <AlertBox /> -->
 </Layout>
 
 <style>
