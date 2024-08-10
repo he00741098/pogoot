@@ -8,6 +8,7 @@ import * as fzstd from "fzstd";
 
 let data = "";
 let other_data = "";
+let debug_data = "";
 let len = 0;
 console.log("Trying...");
 try {
@@ -31,10 +32,12 @@ try {
     const decoded = utf8decoder.decode(decompressed);
     console.log("decoded", decoded);
     data = decoded;
+    debug_data = data;
     let temp_data = JSON.parse(data);
 
     data = temp_data[1];
     other_data = temp_data[2];
+
     // len = data.length;
   }
 } catch (error) {
@@ -50,7 +53,7 @@ let other_counter = 1;
 ---
 
 <Layout title="Notecard | Sweep.rs">
-  <div id="infoTitle">{other_data.title}</div>
+  <div id="infoTitle">{debug_data}</div>
   <main id="main">
     {
       data.map((item) => (
@@ -85,8 +88,8 @@ let other_counter = 1;
     >
   </div>
   <div id="info">
-    <div id="author">Author</div>
-    <div id="infoDesc">{other_data.desc}</div>
+    <!-- <div id="author">Author</div> -->
+    <!-- <div id="infoDesc">{other_data.desc}</div> -->
     <!-- <div id="infoSchool">{other_data.desc}</div> -->
     <!-- <div id="infoTags">{other_data.tags}</div> -->
   </div>
