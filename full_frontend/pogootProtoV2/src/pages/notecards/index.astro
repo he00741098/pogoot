@@ -7,12 +7,14 @@ let len = 0;
 data = JSON.parse(
   '[{"front":["Error loading Notecards"],"back":["Error loading Notecards Back"]}, {"front":["Error loading Notecards 2"],"back":["Error loading Notecards 2 Back"]},{"front":["Error loading Notecards"],"back":["Error loading Notecards Back"]}, {"front":["Error loading Notecards"],"back":["Error loading Notecards Back"]}, {"front":["Error loading Notecards"],"back":["Error loading Notecards Back"]}, {"front":["Error loading Notecards"],"back":["Error loading Notecards Back"]}, {"front":["Error loading Notecards"],"back":["Error loading Notecards Back"]}, {"front":["Error loading Notecards"],"back":["Error loading Notecards Back"]}, {"front":["Error loading Notecards"],"back":["Error loading Notecards Back"]}, {"front":["Error loading Notecards"],"back":["Error loading Notecards Back"]},{"front":["Error loading Notecards"],"back":["Error loading Notecards Back"]}, {"front":["Error loading Notecards"],"back":["Error loading Notecards Back"]}, {"front":["Error loading Notecards"],"back":["Error loading Notecards Back"]}, {"front":["Error loading Notecards"],"back":["Error loading Notecards Back"]}, {"front":["Error loading Notecards"],"back":["Error loading Notecards Back"]}]',
 );
+let other_data = JSON.parse('{"title":"Error", "desc":"Errored"}');
 len = data.length;
 let counter = 1;
 let other_counter = 1;
 ---
 
 <Layout title="Notecard | Sweep.rs">
+  <div id="infoTitle"><h1>{other_data.title}</h1></div>
   <main id="main">
     {
       data.map((item) => (
@@ -46,6 +48,10 @@ let other_counter = 1;
       >Copy</mdui-button
     >
   </div>
+  <div id="info">
+    <div id="infoDesc">{other_data.desc}</div>
+  </div>
+
   <div id="termlist">
     {
       data.map((item) => (
@@ -53,6 +59,15 @@ let other_counter = 1;
           <div class="termcount">{other_counter++}</div>
           <div class="termfront">{item.front}</div>
           <div class="termback">{item.back}</div>
+          <div class="termstar">
+            <mdui-button-icon
+              selectable
+              icon="star_border"
+              id={"star" + (other_counter - 1)}
+            >
+              <mdui-icon slot="selected-icon" name="star" />
+            </mdui-button-icon>
+          </div>
         </div>
       ))
     }
@@ -60,6 +75,15 @@ let other_counter = 1;
   <div id="rawData">{JSON.stringify(data)}</div>
 </Layout>
 <style>
+  .termcount {
+    padding-left: 20px;
+    text-align: left;
+  }
+  #infoTitle {
+    width: 50%;
+    left: 25%;
+    position: relative;
+  }
   .actionButton {
     border-radius: var(--mdui-shape-corner-small);
   }
@@ -73,6 +97,15 @@ let other_counter = 1;
     min-height: 100vh;
     margin-top: 150px;
   }
+  #info {
+    height: fit-content;
+    width: 50%;
+    left: 25%;
+    position: relative;
+    margin-bottom: 32px;
+    margin-top: 32px;
+    padding-left: 5px;
+  }
   #termlist {
     position: relative;
     /* top: 84%; */
@@ -83,17 +116,25 @@ let other_counter = 1;
   }
   .termitem {
     display: grid;
-    grid-template-columns: 10% 45% 45%;
+    grid-template-columns: 10% 40% 40% 10%;
     padding: 4px;
     margin-bottom: 6px;
     background-color: white;
     height: fit-content;
     color: black;
-    text-align: center;
+    text-align: left;
     border-radius: 2px;
-    height: 30px;
+    min-height: 30px;
     align-items: center;
+    word-wrap: break-word;
+    hyphens: auto;
   }
+  .termstar {
+    text-align: right;
+  }
+  /* .termitem:nth-child(1) { */
+  /*   float: left; */
+  /* } */
   #actionbar {
     margin-top: 15px;
     margin-bottom: 15px;
@@ -139,6 +180,7 @@ let other_counter = 1;
     text-align: center;
     outline: white solid 2px;
     margin-bottom: 10px;
+    overflow: scroll;
   }
   #controlbar {
     position: relative;

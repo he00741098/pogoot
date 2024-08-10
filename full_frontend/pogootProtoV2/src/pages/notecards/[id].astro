@@ -98,6 +98,15 @@ let other_counter = 1;
           <div class="termcount">{other_counter++}</div>
           <div class="termfront">{item.front}</div>
           <div class="termback">{item.back}</div>
+          <div class="termstar">
+            <mdui-button-icon
+              selectable
+              icon="star_border"
+              id={"star" + (other_counter - 1)}
+            >
+              <mdui-icon slot="selected-icon" name="star" />
+            </mdui-button-icon>
+          </div>
         </div>
       ))
     }
@@ -105,6 +114,10 @@ let other_counter = 1;
   <div id="rawData">{JSON.stringify(data)}</div>
 </Layout>
 <style>
+  .termcount {
+    padding-left: 20px;
+    text-align: left;
+  }
   #infoTitle {
     width: 50%;
     left: 25%;
@@ -128,7 +141,8 @@ let other_counter = 1;
     width: 50%;
     left: 25%;
     position: relative;
-    margin-bottom: 10px;
+    margin-bottom: 32px;
+    margin-top: 32px;
     padding-left: 5px;
   }
   #termlist {
@@ -141,17 +155,25 @@ let other_counter = 1;
   }
   .termitem {
     display: grid;
-    grid-template-columns: 10% 45% 45%;
+    grid-template-columns: 10% 40% 40% 10%;
     padding: 4px;
     margin-bottom: 6px;
     background-color: white;
     height: fit-content;
     color: black;
-    text-align: center;
+    text-align: left;
     border-radius: 2px;
-    height: 30px;
+    min-height: 30px;
     align-items: center;
+    word-wrap: break-word;
+    hyphens: auto;
   }
+  .termstar {
+    text-align: right;
+  }
+  /* .termitem:nth-child(1) { */
+  /*   float: left; */
+  /* } */
   #actionbar {
     margin-top: 15px;
     margin-bottom: 15px;
@@ -197,6 +219,7 @@ let other_counter = 1;
     text-align: center;
     outline: white solid 2px;
     margin-bottom: 10px;
+    overflow: scroll;
   }
   #controlbar {
     position: relative;
