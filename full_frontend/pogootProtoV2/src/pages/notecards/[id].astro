@@ -36,7 +36,7 @@ try {
     let temp_data = JSON.parse(data);
 
     data = temp_data[1];
-    other_data = temp_data[2];
+    other_data = temp_data[0];
 
     // len = data.length;
   }
@@ -53,7 +53,7 @@ let other_counter = 1;
 ---
 
 <Layout title="Notecard | Sweep.rs">
-  <div id="infoTitle">{debug_data}</div>
+  <div id="infoTitle">{other_data.title}</div>
   <main id="main">
     {
       data.map((item) => (
@@ -88,10 +88,7 @@ let other_counter = 1;
     >
   </div>
   <div id="info">
-    <!-- <div id="author">Author</div> -->
-    <!-- <div id="infoDesc">{other_data.desc}</div> -->
-    <!-- <div id="infoSchool">{other_data.desc}</div> -->
-    <!-- <div id="infoTags">{other_data.tags}</div> -->
+    <div id="infoDesc">{other_data.desc}</div>
   </div>
 
   <div id="termlist">
@@ -120,6 +117,14 @@ let other_counter = 1;
     justify-content: space-evenly;
     min-height: 100vh;
     margin-top: 150px;
+  }
+  #info {
+    height: fit-content;
+    width: 50%;
+    left: 25%;
+    position: relative;
+    margin-bottom: 10px;
+    padding-left: 5px;
   }
   #termlist {
     position: relative;
