@@ -113,12 +113,19 @@ pub async fn store_notecards(
     data: NotecardData,
 ) -> Result<String, ()> {
     let set_len = notes.len();
+    let data = data.sanitize();
+    let data_json = serde_json::to_string(&data);
     let json = serde_json::to_string(&notes);
     if json.is_err() {
         println!("Serde To String Error");
         return Err(());
+    } else if data_json.is_err() {
+        println!("Serde To String Error with Data");
+        return Err(());
     }
     let json = json.unwrap();
+    let data_json = data_json.unwrap();
+    let json = format!("[{},{}]", data_json, json);
     let compressed = zstd::stream::encode_all(json.as_bytes(), 0);
     if compressed.is_err() {
         return Err(());

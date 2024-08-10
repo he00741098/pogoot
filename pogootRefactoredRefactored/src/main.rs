@@ -27,7 +27,7 @@ async fn main() {
     }
     let aws_secrets = aws_secrets.unwrap();
 
-    println!("Secrets:\n {:?}", aws_secrets);
+    println!("Secrets Read!");
     let aws_secrets = serde_json::from_str::<AwsSecrets>(&aws_secrets).unwrap();
 
     // let aws_secrets = AwsSecrets::default();

@@ -1,14 +1,13 @@
 ---
 export const prerender = false;
 import Layout from "../../layouts/Layout.astro";
-import NavBar from "../../components/NavBar.astro";
 import Notecard from "../../components/Notecard.astro";
-import AlertBox from "../../components/AlertBox.astro";
 const { env } = Astro.locals.runtime;
 const { id } = Astro.params;
 import * as fzstd from "fzstd";
 
 let data = "";
+let other_data = "";
 let len = 0;
 console.log("Trying...");
 try {
@@ -32,7 +31,10 @@ try {
     const decoded = utf8decoder.decode(decompressed);
     console.log("decoded", decoded);
     data = decoded;
-    data = JSON.parse(data);
+    let temp_data = JSON.parse(data);
+
+    data = temp_data[1];
+    other_data = temp_data[2];
     // len = data.length;
   }
 } catch (error) {
@@ -48,6 +50,7 @@ let other_counter = 1;
 ---
 
 <Layout title="Notecard | Sweep.rs">
+  <div id="infoTitle">{other_data.title}</div>
   <main id="main">
     {
       data.map((item) => (
@@ -71,16 +74,26 @@ let other_counter = 1;
     </div>
   </div>
   <div id="actionbar">
-    <button id="edit">Edit</button>
+    <mdui-button variant="elevated" id="edit" class="actionButton"
+      >Edit</mdui-button
+    >
+    <mdui-button variant="elevated" id="export" class="actionButton"
+      >Export</mdui-button
+    >
+    <mdui-button variant="elevated" id="copy" class="actionButton"
+      >Copy</mdui-button
+    >
   </div>
+  <div id="info">
+    <div id="author">Author</div>
+    <div id="infoDesc">{other_data.desc}</div>
+    <!-- <div id="infoSchool">{other_data.desc}</div> -->
+    <!-- <div id="infoTags">{other_data.tags}</div> -->
+  </div>
+
   <div id="termlist">
     {
       data.map((item) => (
-        // <Notecard
-        //   front_text={item.front}
-        //   back_text={item.back}
-        //   idcount={counter++}
-        // />
         <div class="termitem">
           <div class="termcount">{other_counter++}</div>
           <div class="termfront">{item.front}</div>
@@ -92,29 +105,56 @@ let other_counter = 1;
   <div id="rawData">{JSON.stringify(data)}</div>
 </Layout>
 <style>
+  .actionButton {
+    border-radius: var(--mdui-shape-corner-small);
+  }
+  :global(#footer) {
+    /* position: relative; */
+  }
+  :global(#slot_container) {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly;
+    min-height: 100vh;
+    margin-top: 150px;
+  }
   #termlist {
-    position: absolute;
-    top: 84%;
+    position: relative;
+    /* top: 84%; */
     left: 25%;
     width: 50%;
     display: block;
+    margin-bottom: 20px;
   }
   .termitem {
     display: grid;
     grid-template-columns: 10% 45% 45%;
     padding: 4px;
-    margin-bottom: 4px;
+    margin-bottom: 6px;
     background-color: white;
     height: fit-content;
     color: black;
     text-align: center;
     border-radius: 2px;
+    height: 30px;
+    align-items: center;
   }
   #actionbar {
-    position: absolute;
-    top: 80%;
+    margin-top: 15px;
+    margin-bottom: 15px;
+    position: relative;
+    display: grid;
+    grid-template-columns: repeat(10, calc(calc(50% - 20px) / 6));
+    column-gap: 10px;
+    background-color: white;
+    padding: 10px;
+    /* padding-right: 0px; */
+    border-radius: 4px 4px 4px 4px;
+    height: 30px;
+    align-content: center;
+    /* justify-content: center; */
     left: 25%;
-    width: 50%;
+    width: calc(50% - 20px);
   }
   #rawData {
     display: none;
@@ -135,17 +175,19 @@ let other_counter = 1;
   }
 
   main {
-    position: absolute;
-    width: 50%;
-    height: 50%;
-    top: 25%;
-    left: 25%;
+    position: relative;
+    width: calc(50% - 4px);
+    height: 700px;
+    /* top: 200px; */
+    /* top: 25%; */
+    left: calc(25% + 2px);
     text-align: center;
     outline: white solid 2px;
+    margin-bottom: 10px;
   }
   #controlbar {
-    position: absolute;
-    top: 76%;
+    position: relative;
+    /* top: 76%; */
     width: 50%;
     left: 25%;
     display: grid;
