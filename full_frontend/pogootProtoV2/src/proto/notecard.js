@@ -238,7 +238,8 @@ document.addEventListener("astro:page-load", function () {
         //unstarred
         stars[ins] = false;
       }
-      update_progress_store();
+      star.loading=true;
+      update_progress_store(star);
       // console.log(stars)
       // console.log(ins)
     };
@@ -246,7 +247,7 @@ document.addEventListener("astro:page-load", function () {
   }
 
 
-  async function update_progress_store(){
+  async function update_progress_store(star){
     if(username==null){
       console.log("Not logged in");
       // clearInterval(updateStarsInterval);
@@ -256,12 +257,12 @@ document.addEventListener("astro:page-load", function () {
     important = important[important.length-1];
     let encodable = important+username;
     digestMessage(encodable).then((digestHex) => {
-      fetcher(digestHex);
+      fetcher(digestHex, star);
     });
-    localStorage.setItem("progressUpdate", Date.now());
-    localStorage.setItem("progress", encode(stars));
   }
-  async function fetcher(digestHex){
+  async function fetcher(digestHex, star){
+    localStorage.setItem("progressUpdate"+digestHex, Date.now());
+    localStorage.setItem("progress"+digestHex, encode(stars));
     try {
       let response = await fetch("https://api.counterapi.dev/v1/"+digestHex+"/progress/set?count="+encode(stars));
       if (!response.ok) {
@@ -269,8 +270,11 @@ document.addEventListener("astro:page-load", function () {
       }
       const json = await response.json();
       console.log(json);
+      star.loading=false;
     } catch (error) {
+      star.loading=false;
       console.error(error.message);
+      send_alert("red", "Save Failed", "Try again later");
     }
   }
   function update_stars(){
@@ -282,7 +286,7 @@ document.addEventListener("astro:page-load", function () {
   }
 
   async function fetcher2(digestHex){
-    if(Date.now()-parseInt(localStorage.getItem("progressUpdate"))>60000){
+    if(localStorage.getItem("progressUpdate"+digestHex)!=null&&Date.now()-parseInt(localStorage.getItem("progressUpdate"+digestHex))>60000){
     try {
       let response = await fetch("https://api.counterapi.dev/v1/"+digestHex+"/progress");
       if (!response.ok) {
@@ -298,7 +302,7 @@ document.addEventListener("astro:page-load", function () {
       console.error(error.message);
     }
     }else{
-      let progress = localStorage.getItem("progress");
+      let progress = localStorage.getItem("progress"+digestHex);
       progress = parseInt(progress);
       stars = decode(progress);
       update_stars();
