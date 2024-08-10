@@ -10,6 +10,20 @@ document.addEventListener("astro:page-load", function () {
     return;
   }
 
+  let url = window.location.href;
+  let username = cookie_get("username");
+  // console.log("Not logged in")
+
+  let stars = [];
+  for(var i=0;i<document.getElementsByClassName("termstar").length;i++){
+    stars.push(false);
+  }
+
+
+  // let updateStarsInterval;
+  get_progress();
+
+
   // console.log("activating!!!!!");
   let maxlen = document.getElementById("maxlen").innerHTML;
   let main = document.getElementById("main");
@@ -157,4 +171,153 @@ document.addEventListener("astro:page-load", function () {
   };
   // document.removeEventListener("keydown", keycap);
   // document.addEventListener("keydown", keycap);
+
+  function encode(array){
+    let total_num = 0;
+    for (var i = 0; i<array.length;i++){
+      if (array[i]){
+        total_num+=Math.pow(2, i);
+      }
+    }
+    return total_num
+  }
+  function decode(num){
+    let decoded = num.toString(2).split("").reverse().join("");
+    decoded = decoded.split("");
+    decoded = decoded.map((f)=>{if(f=="1"){return true}else{return false}});
+    return decoded;
+  }
+
+  async function digestMessage(message) {
+    const msgUint8 = new TextEncoder().encode(message); // encode as (utf-8) Uint8Array
+    const hashBuffer = await window.crypto.subtle.digest("SHA-256", msgUint8); // hash the message
+    const hashArray = Array.from(new Uint8Array(hashBuffer)); // convert buffer to byte array
+    const hashHex = hashArray
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join(""); // convert bytes to hex string
+    return hashHex;
+  }
+
+  function cookie_get(key) {
+    let cookies = document.cookie;
+    let split = cookies.split(";");
+    for (var cookie of split) {
+      let cook = cookie.trim().split("=");
+      if (cook[0] == key) {
+        return cook[1];
+      }
+    }
+  }
+
+  function send_alert(color, header, text) {
+    var alertBox = document.getElementById("exampleAlert");
+    var alerts = document.getElementById("Alerts");
+    let box = alertBox.cloneNode(true);
+    box.style.outline = color + " solid 3px";
+    console.log(box.childNodes);
+    box.childNodes[1].innerText = header;
+    box.childNodes[3].innerText = text;
+    box.style.display = "grid";
+    alerts.appendChild(box);
+    setTimeout(() => {
+      alerts.removeChild(box);
+    }, 5000);
+  }
+  let index = 0;
+  for(var b of document.getElementsByClassName("termstar")){
+    let star = b.childNodes[1];
+    let ins = index;
+    star.onclick = function(e){
+      if(username==null){
+        send_alert("red", "Not Logged In", "Login to save stars");
+      }
+      if (star.selected){
+        //starred
+        stars[ins] = true;
+      }else{
+        //unstarred
+        stars[ins] = false;
+      }
+      update_progress_store();
+      // console.log(stars)
+      // console.log(ins)
+    };
+    index++;
+  }
+
+
+  async function update_progress_store(){
+    if(username==null){
+      console.log("Not logged in");
+      // clearInterval(updateStarsInterval);
+      return;
+    }
+    let important = url.split("/");
+    important = important[important.length-1];
+    let encodable = important+username;
+    digestMessage(encodable).then((digestHex) => {
+      fetcher(digestHex);
+    });
+    localStorage.setItem("progressUpdate", Date.now());
+    localStorage.setItem("progress", encode(stars));
+  }
+  async function fetcher(digestHex){
+    try {
+      let response = await fetch("https://api.counterapi.dev/v1/"+digestHex+"/progress/set?count="+encode(stars));
+      if (!response.ok) {
+        throw new Error(`Response status: ${response.status}`);
+      }
+      const json = await response.json();
+      console.log(json);
+    } catch (error) {
+      console.error(error.message);
+    }
+  }
+  function update_stars(){
+    for(var i =0; i<stars.length;i++){
+      if (stars[i]){
+        document.getElementsByClassName("termstar")[i].childNodes[1].selected = true;
+      }
+    }
+  }
+
+  async function fetcher2(digestHex){
+    if(Date.now()-parseInt(localStorage.getItem("progressUpdate"))>60000){
+    try {
+      let response = await fetch("https://api.counterapi.dev/v1/"+digestHex+"/progress");
+      if (!response.ok) {
+        throw new Error(`Response status: ${response.status}`);
+      }
+      const json = await response.json();
+      console.log(json);
+      stars = decode(json.count);
+      update_stars();
+
+      // updateStarsInterval= setInterval( update_progress_store, 10000)
+    } catch (error) {
+      console.error(error.message);
+    }
+    }else{
+      let progress = localStorage.getItem("progress");
+      progress = parseInt(progress);
+      stars = decode(progress);
+      update_stars();
+    }
+  }
+  async function get_progress(){
+    if(username==null){
+      console.log("Not logged in");
+      // clearInterval(updateStarsInterval);
+      return;
+    }
+    let important = url.split("/");
+    important = important[important.length-1];
+    let encodable = important+username;
+    digestMessage(encodable).then((digestHex) => {
+      fetcher2(digestHex);
+    });
+  }
+
+
+
 });
