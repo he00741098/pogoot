@@ -3,6 +3,8 @@ document.addEventListener("astro:page-load", () => {
     return;
   }
 
+
+
   if (localStorage.getItem("updated") == null) {
     localStorage.setItem("updated", false);
   }

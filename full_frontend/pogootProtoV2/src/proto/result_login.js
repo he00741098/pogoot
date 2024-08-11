@@ -1,5 +1,20 @@
 (function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
 document.addEventListener("astro:page-load", () => {
+
+  let turn = null;
+  let loginTime = cookie_get("auth");
+  if (loginTime == null || loginTime.length <= 5) {
+    window.onloadTurnstileCallback = function () {
+      turnstile.render('.captcha', {
+        sitekey: '0x4AAAAAAAg-XBCL8WUE5rPr',
+        callback: function(token) {
+          console.log(`Challenge Success ${token}`);
+          turn = token;
+        },
+      });
+    };
+  }
+
   var alertBox = document.getElementById("exampleAlert");
   alertBox.style.display = "none";
   const {
@@ -17,6 +32,22 @@ document.addEventListener("astro:page-load", () => {
 
   let register_function = function (event) {
     event.preventDefault();
+
+    let usernameReg = document.getElementById("usernameReg");
+    let usernameConfirm = document.getElementById("usernameRegConfirm");
+    let passReg = document.getElementById("passReg");
+    let passConfirm = document.getElementById("passRegConfirm");
+    if(turn==null){
+      usernameReg.innerText = 
+      usernameConfirm.innerText = 
+      passReg.innerText = 
+      passConfirm.innerText = "CAPTCHA Invalid";
+    }else{
+      usernameReg.innerText = 
+      usernameConfirm.innerText = 
+      passReg.innerText = 
+      passConfirm.innerText = "";
+    }
     let email = document.getElementById("emailRegister").value;
     let emailConfirm = document.getElementById("emailRegisterConfirm").value;
     let password = document.getElementById("passwordRegister").value;
@@ -24,10 +55,6 @@ document.addEventListener("astro:page-load", () => {
       "passwordRegisterConfirm",
     ).value;
 
-    let usernameReg = document.getElementById("usernameReg");
-    let usernameConfirm = document.getElementById("usernameRegConfirm");
-    let passReg = document.getElementById("passReg");
-    let passConfirm = document.getElementById("passRegConfirm");
     if (email != emailConfirm) {
       // send_alert("red", "Emails do not match", "Please try again");
       document
@@ -153,13 +180,23 @@ document.addEventListener("astro:page-load", () => {
         send_alert("green", "Login Success", "Redirecting...");
         cookie_set("auth", response.array[1]);
         cookie_set("username", email);
+        // localStorage.setItem("loginTime") = Date.now();
         redirect();
       }
     });
   };
   let login_function = function (event) {
     event.preventDefault();
-
+        let passLog = document.getElementById("usernameLogConfirm");
+        let userLog = document.getElementById("passLogConfirm");
+    if(turn==null){
+        passLog.innerText = "CAPTCHA Invalid";
+        userLog.innerText = "CAPTCHA Invalid";
+      return;
+    }else{
+        passLog.innerText = "";
+        userLog.innerText = "";
+    }
     let email = document.getElementById("emailLogin").value;
     let password = document.getElementById("passwordLogin").value;
 
@@ -167,6 +204,7 @@ document.addEventListener("astro:page-load", () => {
     let regReq = new UserLoginRequest();
     regReq.setEmail(email);
     regReq.setPassword(password);
+    regReq.setTurn(turn);
     client.login(regReq, {}, (err, response) => {
       console.log(response);
       if (response.array[0]) {
@@ -174,10 +212,9 @@ document.addEventListener("astro:page-load", () => {
         cookie_set("auth", response.array[1]);
         localStorage.setItem("updated","true");
         cookie_set("username", email);
+        // localStorage.setItem("loginTime") = Date.now();
         redirect();
       } else {
-        let passLog = document.getElementById("usernameLogConfirm");
-        let userLog = document.getElementById("passLogConfirm");
         passLog.innerText = "Incorrect credentials";
         userLog.innerText = "Incorrect credentials";
         // send_alert("red", "Incorrect credentials", "");
@@ -254,9 +291,8 @@ document.addEventListener("astro:page-load", () => {
       alerts.removeChild(box);
     }, 5000);
   }
-  // function redirect() {
-  //   window.location.href = "/library";
-  // }
+
+
 });
 
 },{"./pogoots_grpc_web_pb.js":4,"./pogoots_pb.js":5}],2:[function(require,module,exports){
@@ -4967,7 +5003,8 @@ proto.pogootRefactoredRefactored.UserRegisterWithEmailRequest.toObject = functio
   var f, obj = {
     email: jspb.Message.getFieldWithDefault(msg, 1, ""),
     password: jspb.Message.getFieldWithDefault(msg, 2, ""),
-    username: jspb.Message.getFieldWithDefault(msg, 3, "")
+    username: jspb.Message.getFieldWithDefault(msg, 3, ""),
+    turn: jspb.Message.getFieldWithDefault(msg, 4, "")
   };
 
   if (includeInstance) {
@@ -5016,6 +5053,10 @@ proto.pogootRefactoredRefactored.UserRegisterWithEmailRequest.deserializeBinaryF
       var value = /** @type {string} */ (reader.readString());
       msg.setUsername(value);
       break;
+    case 4:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setTurn(value);
+      break;
     default:
       reader.skipField();
       break;
@@ -5063,6 +5104,13 @@ proto.pogootRefactoredRefactored.UserRegisterWithEmailRequest.serializeBinaryToW
   if (f.length > 0) {
     writer.writeString(
       3,
+      f
+    );
+  }
+  f = message.getTurn();
+  if (f.length > 0) {
+    writer.writeString(
+      4,
       f
     );
   }
@@ -5123,6 +5171,24 @@ proto.pogootRefactoredRefactored.UserRegisterWithEmailRequest.prototype.setUsern
 };
 
 
+/**
+ * optional string turn = 4;
+ * @return {string}
+ */
+proto.pogootRefactoredRefactored.UserRegisterWithEmailRequest.prototype.getTurn = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 4, ""));
+};
+
+
+/**
+ * @param {string} value
+ * @return {!proto.pogootRefactoredRefactored.UserRegisterWithEmailRequest} returns this
+ */
+proto.pogootRefactoredRefactored.UserRegisterWithEmailRequest.prototype.setTurn = function(value) {
+  return jspb.Message.setProto3StringField(this, 4, value);
+};
+
+
 
 
 
@@ -5156,7 +5222,8 @@ proto.pogootRefactoredRefactored.UserLoginRequest.prototype.toObject = function(
 proto.pogootRefactoredRefactored.UserLoginRequest.toObject = function(includeInstance, msg) {
   var f, obj = {
     email: jspb.Message.getFieldWithDefault(msg, 1, ""),
-    password: jspb.Message.getFieldWithDefault(msg, 2, "")
+    password: jspb.Message.getFieldWithDefault(msg, 2, ""),
+    turn: jspb.Message.getFieldWithDefault(msg, 4, "")
   };
 
   if (includeInstance) {
@@ -5201,6 +5268,10 @@ proto.pogootRefactoredRefactored.UserLoginRequest.deserializeBinaryFromReader = 
       var value = /** @type {string} */ (reader.readString());
       msg.setPassword(value);
       break;
+    case 4:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setTurn(value);
+      break;
     default:
       reader.skipField();
       break;
@@ -5244,6 +5315,13 @@ proto.pogootRefactoredRefactored.UserLoginRequest.serializeBinaryToWriter = func
       f
     );
   }
+  f = message.getTurn();
+  if (f.length > 0) {
+    writer.writeString(
+      4,
+      f
+    );
+  }
 };
 
 
@@ -5280,6 +5358,24 @@ proto.pogootRefactoredRefactored.UserLoginRequest.prototype.getPassword = functi
  */
 proto.pogootRefactoredRefactored.UserLoginRequest.prototype.setPassword = function(value) {
   return jspb.Message.setProto3StringField(this, 2, value);
+};
+
+
+/**
+ * optional string turn = 4;
+ * @return {string}
+ */
+proto.pogootRefactoredRefactored.UserLoginRequest.prototype.getTurn = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 4, ""));
+};
+
+
+/**
+ * @param {string} value
+ * @return {!proto.pogootRefactoredRefactored.UserLoginRequest} returns this
+ */
+proto.pogootRefactoredRefactored.UserLoginRequest.prototype.setTurn = function(value) {
+  return jspb.Message.setProto3StringField(this, 4, value);
 };
 
 

@@ -1,4 +1,19 @@
 document.addEventListener("astro:page-load", () => {
+
+  let turn = null;
+  let loginTime = cookie_get("auth");
+  if (loginTime == null || loginTime.length <= 5) {
+    window.onloadTurnstileCallback = function () {
+      turnstile.render('.captcha', {
+        sitekey: '0x4AAAAAAAg-XBCL8WUE5rPr',
+        callback: function(token) {
+          console.log(`Challenge Success ${token}`);
+          turn = token;
+        },
+      });
+    };
+  }
+
   var alertBox = document.getElementById("exampleAlert");
   alertBox.style.display = "none";
   const {
@@ -16,6 +31,22 @@ document.addEventListener("astro:page-load", () => {
 
   let register_function = function (event) {
     event.preventDefault();
+
+    let usernameReg = document.getElementById("usernameReg");
+    let usernameConfirm = document.getElementById("usernameRegConfirm");
+    let passReg = document.getElementById("passReg");
+    let passConfirm = document.getElementById("passRegConfirm");
+    if(turn==null){
+      usernameReg.innerText = 
+      usernameConfirm.innerText = 
+      passReg.innerText = 
+      passConfirm.innerText = "CAPTCHA Invalid";
+    }else{
+      usernameReg.innerText = 
+      usernameConfirm.innerText = 
+      passReg.innerText = 
+      passConfirm.innerText = "";
+    }
     let email = document.getElementById("emailRegister").value;
     let emailConfirm = document.getElementById("emailRegisterConfirm").value;
     let password = document.getElementById("passwordRegister").value;
@@ -23,10 +54,6 @@ document.addEventListener("astro:page-load", () => {
       "passwordRegisterConfirm",
     ).value;
 
-    let usernameReg = document.getElementById("usernameReg");
-    let usernameConfirm = document.getElementById("usernameRegConfirm");
-    let passReg = document.getElementById("passReg");
-    let passConfirm = document.getElementById("passRegConfirm");
     if (email != emailConfirm) {
       // send_alert("red", "Emails do not match", "Please try again");
       document
@@ -152,13 +179,23 @@ document.addEventListener("astro:page-load", () => {
         send_alert("green", "Login Success", "Redirecting...");
         cookie_set("auth", response.array[1]);
         cookie_set("username", email);
+        // localStorage.setItem("loginTime") = Date.now();
         redirect();
       }
     });
   };
   let login_function = function (event) {
     event.preventDefault();
-
+        let passLog = document.getElementById("usernameLogConfirm");
+        let userLog = document.getElementById("passLogConfirm");
+    if(turn==null){
+        passLog.innerText = "CAPTCHA Invalid";
+        userLog.innerText = "CAPTCHA Invalid";
+      return;
+    }else{
+        passLog.innerText = "";
+        userLog.innerText = "";
+    }
     let email = document.getElementById("emailLogin").value;
     let password = document.getElementById("passwordLogin").value;
 
@@ -166,6 +203,7 @@ document.addEventListener("astro:page-load", () => {
     let regReq = new UserLoginRequest();
     regReq.setEmail(email);
     regReq.setPassword(password);
+    regReq.setTurn(turn);
     client.login(regReq, {}, (err, response) => {
       console.log(response);
       if (response.array[0]) {
@@ -173,10 +211,9 @@ document.addEventListener("astro:page-load", () => {
         cookie_set("auth", response.array[1]);
         localStorage.setItem("updated","true");
         cookie_set("username", email);
+        // localStorage.setItem("loginTime") = Date.now();
         redirect();
       } else {
-        let passLog = document.getElementById("usernameLogConfirm");
-        let userLog = document.getElementById("passLogConfirm");
         passLog.innerText = "Incorrect credentials";
         userLog.innerText = "Incorrect credentials";
         // send_alert("red", "Incorrect credentials", "");
@@ -253,7 +290,6 @@ document.addEventListener("astro:page-load", () => {
       alerts.removeChild(box);
     }, 5000);
   }
-  // function redirect() {
-  //   window.location.href = "/library";
-  // }
+
+
 });

@@ -31,6 +31,16 @@
   import { prefetch } from "astro:prefetch";
   import { navigate } from "astro:transitions/client";
   document.addEventListener("astro:page-load", function () {
+    function cookie_get(key) {
+      let cookies = document.cookie;
+      let split = cookies.split(";");
+      for (var cookie of split) {
+        let cook = cookie.trim().split("=");
+        if (cook[0] == key) {
+          return cook[1];
+        }
+      }
+    }
     // console.log("NavEvents Added");
     const home_btn = document.getElementById("home_button");
     home_btn.addEventListener("click", () => {
@@ -64,7 +74,12 @@
     });
     const account_btn = document.getElementById("account_button");
     account_btn.addEventListener("click", () => {
-      document.getElementById("login_popup").showModal();
+      let loginTime = cookie_get("auth");
+      if (loginTime != null && loginTime.length > 5) {
+        navigate("/account");
+      } else {
+        document.getElementById("login_popup").showModal();
+      }
     });
     account_btn.addEventListener("mouseover", () => {
       prefetch("/account");

@@ -4997,7 +4997,8 @@ proto.pogootRefactoredRefactored.UserRegisterWithEmailRequest.toObject = functio
   var f, obj = {
     email: jspb.Message.getFieldWithDefault(msg, 1, ""),
     password: jspb.Message.getFieldWithDefault(msg, 2, ""),
-    username: jspb.Message.getFieldWithDefault(msg, 3, "")
+    username: jspb.Message.getFieldWithDefault(msg, 3, ""),
+    turn: jspb.Message.getFieldWithDefault(msg, 4, "")
   };
 
   if (includeInstance) {
@@ -5046,6 +5047,10 @@ proto.pogootRefactoredRefactored.UserRegisterWithEmailRequest.deserializeBinaryF
       var value = /** @type {string} */ (reader.readString());
       msg.setUsername(value);
       break;
+    case 4:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setTurn(value);
+      break;
     default:
       reader.skipField();
       break;
@@ -5093,6 +5098,13 @@ proto.pogootRefactoredRefactored.UserRegisterWithEmailRequest.serializeBinaryToW
   if (f.length > 0) {
     writer.writeString(
       3,
+      f
+    );
+  }
+  f = message.getTurn();
+  if (f.length > 0) {
+    writer.writeString(
+      4,
       f
     );
   }
@@ -5153,6 +5165,24 @@ proto.pogootRefactoredRefactored.UserRegisterWithEmailRequest.prototype.setUsern
 };
 
 
+/**
+ * optional string turn = 4;
+ * @return {string}
+ */
+proto.pogootRefactoredRefactored.UserRegisterWithEmailRequest.prototype.getTurn = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 4, ""));
+};
+
+
+/**
+ * @param {string} value
+ * @return {!proto.pogootRefactoredRefactored.UserRegisterWithEmailRequest} returns this
+ */
+proto.pogootRefactoredRefactored.UserRegisterWithEmailRequest.prototype.setTurn = function(value) {
+  return jspb.Message.setProto3StringField(this, 4, value);
+};
+
+
 
 
 
@@ -5186,7 +5216,8 @@ proto.pogootRefactoredRefactored.UserLoginRequest.prototype.toObject = function(
 proto.pogootRefactoredRefactored.UserLoginRequest.toObject = function(includeInstance, msg) {
   var f, obj = {
     email: jspb.Message.getFieldWithDefault(msg, 1, ""),
-    password: jspb.Message.getFieldWithDefault(msg, 2, "")
+    password: jspb.Message.getFieldWithDefault(msg, 2, ""),
+    turn: jspb.Message.getFieldWithDefault(msg, 4, "")
   };
 
   if (includeInstance) {
@@ -5231,6 +5262,10 @@ proto.pogootRefactoredRefactored.UserLoginRequest.deserializeBinaryFromReader = 
       var value = /** @type {string} */ (reader.readString());
       msg.setPassword(value);
       break;
+    case 4:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setTurn(value);
+      break;
     default:
       reader.skipField();
       break;
@@ -5274,6 +5309,13 @@ proto.pogootRefactoredRefactored.UserLoginRequest.serializeBinaryToWriter = func
       f
     );
   }
+  f = message.getTurn();
+  if (f.length > 0) {
+    writer.writeString(
+      4,
+      f
+    );
+  }
 };
 
 
@@ -5310,6 +5352,24 @@ proto.pogootRefactoredRefactored.UserLoginRequest.prototype.getPassword = functi
  */
 proto.pogootRefactoredRefactored.UserLoginRequest.prototype.setPassword = function(value) {
   return jspb.Message.setProto3StringField(this, 2, value);
+};
+
+
+/**
+ * optional string turn = 4;
+ * @return {string}
+ */
+proto.pogootRefactoredRefactored.UserLoginRequest.prototype.getTurn = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 4, ""));
+};
+
+
+/**
+ * @param {string} value
+ * @return {!proto.pogootRefactoredRefactored.UserLoginRequest} returns this
+ */
+proto.pogootRefactoredRefactored.UserLoginRequest.prototype.setTurn = function(value) {
+  return jspb.Message.setProto3StringField(this, 4, value);
 };
 
 
