@@ -14,74 +14,92 @@ let other_counter = 1;
 ---
 
 <Layout title="Notecard | Sweep.rs">
-  <div id="infoTitle"><h1>{other_data.title}</h1></div>
-  <main id="main">
-    <mdui-button-icon selectable icon="fullscreen" id="full">
-      <mdui-icon slot="selected-icon" name="fullscreen_exit"></mdui-icon>
-    </mdui-button-icon>
+  <div id="notecardView">
+    <div id="infoTitle"><h1>{other_data.title}</h1></div>
+    <main id="main">
+      <mdui-button-icon selectable icon="fullscreen" id="full">
+        <mdui-icon slot="selected-icon" name="fullscreen_exit"></mdui-icon>
+      </mdui-button-icon>
 
-    {
-      data.map((item) => (
-        <Notecard
-          front_text={item.front}
-          back_text={item.back}
-          idcount={counter++}
+      {
+        data.map((item) => (
+          <Notecard
+            front_text={item.front}
+            back_text={item.back}
+            idcount={counter++}
+          />
+        ))
+      }
+    </main>
+    <div id="controlbar">
+      <div id="counter">
+        <strong id="currentindex">1/</strong><strong id="maxlen">{len}</strong>
+      </div><div id="arrows">
+        <img id="leftarrow" class="svg" src="/arrowleft.svg" /><img
+          id="rightarrow"
+          class="svg"
+          src="/arrowright.svg"
         />
-      ))
-    }
-  </main>
-  <div id="controlbar">
-    <div id="counter">
-      <strong id="currentindex">1/</strong><strong id="maxlen">{len}</strong>
-    </div><div id="arrows">
-      <img id="leftarrow" class="svg" src="/arrowleft.svg" /><img
-        id="rightarrow"
-        class="svg"
-        src="/arrowright.svg"
-      />
+      </div>
     </div>
-  </div>
-  <div id="actionbar">
-    <mdui-button variant="elevated" id="edit" class="actionButton"
-      >Edit</mdui-button
-    >
-    <mdui-button variant="elevated" id="export" class="actionButton"
-      >Export</mdui-button
-    >
-    <mdui-button variant="elevated" id="copy" class="actionButton"
-      >Copy</mdui-button
-    >
-    <mdui-button variant="elevated" id="learn" class="actionButton"
-      >Learn</mdui-button
-    >
-  </div>
-  <div id="info">
-    <div id="infoDesc">{other_data.desc}</div>
-  </div>
+    <div id="actionbar">
+      <mdui-button variant="elevated" id="edit" class="actionButton">
+        <mdui-icon slot="icon" name="edit"></mdui-icon>
+        Edit</mdui-button
+      >
+      <mdui-button variant="elevated" id="export" class="actionButton">
+        <mdui-icon slot="icon" name="import_export"></mdui-icon>
+        Export</mdui-button
+      >
+      <mdui-button variant="elevated" id="copy" class="actionButton">
+        <mdui-icon slot="icon" name="content_copy"></mdui-icon>
+        Copy</mdui-button
+      >
+      <mdui-button variant="elevated" id="learn" class="actionButton">
+        <mdui-icon slot="icon" name="repeat"></mdui-icon>
+        Learn</mdui-button
+      >
+      <mdui-button variant="elevated" id="report" class="actionButton">
+        <mdui-icon slot="icon" name="warning"></mdui-icon>
+        Report</mdui-button
+      >
+      <mdui-button variant="elevated" id="random" class="actionButton">
+        <mdui-icon slot="icon" name="shuffle"></mdui-icon>
+        Shuffle</mdui-button
+      >
+    </div>
+    <div id="info">
+      <div id="infoDesc">{other_data.desc}</div>
+    </div>
 
-  <div id="termlist">
-    {
-      data.map((item) => (
-        <div class="termitem">
-          <div class="termcount">{other_counter++}</div>
-          <div class="termfront">{item.front}</div>
-          <div class="termback">{item.back}</div>
-          <div class="termstar">
-            <mdui-button-icon
-              selectable
-              icon="star_border"
-              id={"star" + (other_counter - 1)}
-            >
-              <mdui-icon slot="selected-icon" name="star" />
-            </mdui-button-icon>
+    <div id="termlist">
+      {
+        data.map((item) => (
+          <div class="termitem">
+            <div class="termcount">{other_counter++}</div>
+            <div class="termfront">{item.front}</div>
+            <div class="termback">{item.back}</div>
+            <div class="termstar">
+              <mdui-button-icon
+                selectable
+                icon="star_border"
+                id={"star" + (other_counter - 1)}
+              >
+                <mdui-icon slot="selected-icon" name="star" />
+              </mdui-button-icon>
+            </div>
           </div>
-        </div>
-      ))
-    }
+        ))
+      }
+    </div>
+    <div id="rawData">{JSON.stringify(data)}</div>
   </div>
-  <div id="rawData">{JSON.stringify(data)}</div>
 </Layout>
 <style>
+  #notecardView {
+    width: 100%;
+    height: 100%;
+  }
   #full {
     position: absolute;
     top: 5px;
@@ -98,7 +116,8 @@ let other_counter = 1;
     position: relative;
   }
   .actionButton {
-    border-radius: var(--mdui-shape-corner-small);
+    border-radius: var(--mdui-shape-corner-medium);
+    height: 40px;
   }
   :global(#footer) {
     /* position: relative; */
@@ -112,12 +131,16 @@ let other_counter = 1;
   }
   #info {
     height: fit-content;
-    width: 50%;
+    width: calc(50% - 10px);
     left: 25%;
     position: relative;
     margin-bottom: 32px;
     margin-top: 32px;
-    padding-left: 5px;
+    padding-left: 10px;
+    outline: gray solid 2px;
+    padding-top: 20px;
+    padding-bottom: 20px;
+    border-radius: 2px;
   }
   #termlist {
     position: relative;
@@ -153,15 +176,19 @@ let other_counter = 1;
     margin-top: 15px;
     margin-bottom: 15px;
     position: relative;
-    display: grid;
-    grid-template-columns: repeat(10, calc(calc(50% - 20px) / 6));
+    display: flex;
+    /* background-color: var(--mdui-color-secondary-container); */
+    /* flex-direction: column; */
+    /* grid-template-columns: repeat(10, calc(calc(50% - 20px) / 5)); */
+    /* overflow: scroll; */
     column-gap: 10px;
     background-color: white;
     padding: 10px;
     /* padding-right: 0px; */
     border-radius: 4px 4px 4px 4px;
-    height: 30px;
+    height: 40px;
     align-content: center;
+    justify-content: center;
     /* justify-content: center; */
     left: 25%;
     width: calc(50% - 20px);
