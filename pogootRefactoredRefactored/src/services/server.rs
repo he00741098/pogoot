@@ -52,6 +52,7 @@ pub async fn start_serving(mut secrets: AwsSecrets) {
     let user_manager = UserManager {
         map: Arc::new(Mutex::new(UserManageMap::new())),
         connection: con.clone(),
+        turnstile: std::mem::take(&mut secrets.turnstileSecret),
     };
     let (ltx, lrx) = tokio::sync::mpsc::channel(100);
     tokio::spawn(async move {

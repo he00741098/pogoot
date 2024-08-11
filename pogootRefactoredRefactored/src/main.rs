@@ -12,6 +12,7 @@ struct AwsSecrets {
     r2accountid: String,
     r2accesskeyid: String,
     r2secretaccesskey: String,
+    turnstileSecret: String,
 }
 
 #[tokio::main]

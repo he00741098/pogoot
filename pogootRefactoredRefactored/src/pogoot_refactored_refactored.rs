@@ -129,6 +129,8 @@ pub struct UserRegisterWithEmailRequest {
     pub password: ::prost::alloc::string::String,
     #[prost(string, tag = "3")]
     pub username: ::prost::alloc::string::String,
+    #[prost(string, tag = "4")]
+    pub turn: ::prost::alloc::string::String,
 }
 /// Email counts as either username or email
 #[allow(clippy::derive_partial_eq_without_eq)]
@@ -138,6 +140,8 @@ pub struct UserLoginRequest {
     pub email: ::prost::alloc::string::String,
     #[prost(string, tag = "2")]
     pub password: ::prost::alloc::string::String,
+    #[prost(string, tag = "4")]
+    pub turn: ::prost::alloc::string::String,
 }
 /// Email counts as either username or email
 #[allow(clippy::derive_partial_eq_without_eq)]

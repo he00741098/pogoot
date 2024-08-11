@@ -97,12 +97,14 @@ message UserRegisterWithEmailRequest{
   string email = 1;
   string password = 2;
   string username = 3;
+  string turn = 4;
 }
 
 //Email counts as either username or email
 message UserLoginRequest{
   string email = 1;
   string password = 2;
+  string turn = 4;
 }
 
 //Email counts as either username or email
