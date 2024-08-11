@@ -18,6 +18,21 @@ document.addEventListener("astro:page-load", function () {
   for(var i=0;i<document.getElementsByClassName("termstar").length;i++){
     stars.push(false);
   }
+  document.getElementById("full").onclick = function(e){
+    e.stopPropagation()
+    if (!document.fullscreenElement) {
+      document.querySelector("main").requestFullscreen();
+    }else{
+      document.exitFullscreen();
+    }
+  }
+  document.onfullscreenchange = (e)=>{
+    if (!document.fullscreenElement) {
+      document.getElementById("full").selected = false;
+    }else{
+      document.getElementById("full").selected = true;
+    }
+  };
 
 
   // let updateStarsInterval;

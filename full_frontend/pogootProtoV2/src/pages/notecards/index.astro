@@ -16,6 +16,10 @@ let other_counter = 1;
 <Layout title="Notecard | Sweep.rs">
   <div id="infoTitle"><h1>{other_data.title}</h1></div>
   <main id="main">
+    <mdui-button-icon selectable icon="fullscreen" id="full">
+      <mdui-icon slot="selected-icon" name="fullscreen_exit"></mdui-icon>
+    </mdui-button-icon>
+
     {
       data.map((item) => (
         <Notecard
@@ -47,6 +51,9 @@ let other_counter = 1;
     <mdui-button variant="elevated" id="copy" class="actionButton"
       >Copy</mdui-button
     >
+    <mdui-button variant="elevated" id="learn" class="actionButton"
+      >Learn</mdui-button
+    >
   </div>
   <div id="info">
     <div id="infoDesc">{other_data.desc}</div>
@@ -75,6 +82,12 @@ let other_counter = 1;
   <div id="rawData">{JSON.stringify(data)}</div>
 </Layout>
 <style>
+  #full {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    font-size: 50px;
+  }
   .termcount {
     padding-left: 20px;
     text-align: left;
@@ -128,6 +141,7 @@ let other_counter = 1;
     align-items: center;
     word-wrap: break-word;
     hyphens: auto;
+    white-space: pre-line;
   }
   .termstar {
     text-align: right;
@@ -171,6 +185,7 @@ let other_counter = 1;
   }
 
   main {
+    background-color: var(--blue);
     position: relative;
     width: calc(50% - 4px);
     height: 700px;
@@ -181,6 +196,7 @@ let other_counter = 1;
     outline: white solid 2px;
     margin-bottom: 10px;
     overflow: scroll;
+    white-space: pre-line;
   }
   #controlbar {
     position: relative;
