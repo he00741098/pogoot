@@ -7,7 +7,11 @@ import Layout from "../layouts/Layout.astro";
   <main class="LibraryMain">
     <div class="createTitle">
       <h1>Create A New Note Set</h1>
-      <div class="SaveButton" id="save">Save</div>
+      <!-- <div>Save</div> -->
+      <mdui-button class="SaveButton" id="save">
+        <mdui-icon slot="icon" name="save"></mdui-icon>
+        <div id="saveText">Save</div>
+      </mdui-button>
     </div>
     <div id="top">
       <input class="notecardInput" id="titleInput" placeholder="Title" />
@@ -73,12 +77,12 @@ import Layout from "../layouts/Layout.astro";
     align-content: center;
   }
   .SaveButton {
-    background-color: white;
-    color: var(--blue);
-    margin-bottom: 5px;
-    width: 50px;
-    height: 20px;
-    font-size: 25px;
+    /* background-color: white; */
+    /* color: var(--blue); */
+    /* margin-bottom: 5px; */
+    width: 100px;
+    /* height: 37px; */
+    font-size: 20px;
     padding-top: 6px;
     padding-bottom: 6px;
     padding-left: 4px;
@@ -88,6 +92,7 @@ import Layout from "../layouts/Layout.astro";
     cursor: pointer;
     justify-self: end;
     align-self: center;
+    /* vertical-align: center; */
     /* float: right; */
   }
   .button {
@@ -292,5 +297,14 @@ import Layout from "../layouts/Layout.astro";
     /* position:absolute; */
     /* left:100px; */
     float: right;
+  }
+  #saveText {
+    /* height: 100%; */
+    /* font-size: 25px; */
+    display: grid;
+    /* align-content: center; */
+    position: relative;
+    top: 1.3px;
+    /* vertical-align: baseline; */
   }
 </style>
