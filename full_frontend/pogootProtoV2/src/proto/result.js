@@ -216,8 +216,8 @@ document.addEventListener("astro:page-load", () => {
     save_button.loading=true;
     save_button.disabled=true;
     client.upload(request, {}, (err, response) => {
-    save_button.loading=false;
-    save_button.disabled=false;
+      save_button.loading=false;
+      save_button.disabled=false;
       if (err == null && response.array[0]) {
         localStorage.setItem("updated", "true");
         //the request was a success

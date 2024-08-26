@@ -1,17 +1,26 @@
 document.addEventListener("astro:page-load", () => {
-
+  // console.log(window.turnstile);
   let turn = null;
   let loginTime = cookie_get("auth");
   if (loginTime == null || loginTime.length <= 5) {
-    window.onloadTurnstileCallback = function () {
-      turnstile.render('.captcha', {
-        sitekey: '0x4AAAAAAAg-XBCL8WUE5rPr',
-        callback: function(token) {
-          console.log(`Challenge Success ${token}`);
-          turn = token;
-        },
-      });
-    };
+    console.log("Callback...")
+    console.log(window.onloadTurnstileCallback);
+    console.log(window.turnstile);
+    if(window.onloadTurnstileCallback==null){
+      window.onloadTurnstileCallback = function () {
+        window.id = turnstile.render('.captcha', {
+          sitekey: '0x4AAAAAAAg-XBCL8WUE5rPr',
+          callback: function(token) {
+            console.log(`Challenge Success ${token}`);
+            turn = token;
+          },
+        });
+      };
+    }else{
+      turnstile.remove(window.id);
+      window.onloadTurnstileCallback();
+    }
+
   }
 
   var alertBox = document.getElementById("exampleAlert");

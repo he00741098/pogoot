@@ -247,13 +247,13 @@ const { title } = Astro.props;
         navigate(url);
       };
     </script>
+    <script
+      src="https://challenges.cloudflare.com/turnstile/v0/api.js?onload=onloadTurnstileCallback"
+      defer></script>
     <script src="../proto/result.js"></script>
     <script src="../proto/result_library.js"></script>
     <script src="../proto/result_login.js"></script>
     <script src="../proto/notecard.js"></script>
     <script src="../proto/result_notecards.js"></script>
-    <script
-      src="https://challenges.cloudflare.com/turnstile/v0/api.js?onload=onloadTurnstileCallback"
-      defer></script>
   </body>
 </html>
