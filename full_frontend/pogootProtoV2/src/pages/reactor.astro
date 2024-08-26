@@ -1,0 +1,683 @@
+---
+export const prerender = true;
+import Layout from "../layouts/Layout.astro";
+---
+
+<Layout title="Library | Pogoot">
+  <div id="fullContainer" class="mdui-theme-light">
+    <div id="displayPage">
+      <div id="tabs">
+        <div class="tab" selected>Reactor</div>
+        <div class="tab">Graphs</div>
+        <div class="tab">Extra</div>
+      </div>
+      <div id="reactorPage">
+        <h1 id="reactorTitle">Reactor Model</h1>
+        <canvas id="animationcanvas"></canvas>
+        <div id="actionBar">
+          <div class="circleButton" id="one">1x</div>
+          <div class="circleButton" id="two">2x</div>
+          <div class="circleButton" id="five">5x</div>
+          <mdui-button-icon icon="fast_rewind" class="playOptions"
+          ></mdui-button-icon>
+          <mdui-button-icon icon="pause" class="playOptions"></mdui-button-icon>
+          <mdui-button-icon icon="fast_forward" class="playOptions"
+          ></mdui-button-icon>
+        </div>
+      </div>
+      <div id="graphs" style="display: none;">
+        <h1 id="graphTitle">Graphs</h1>
+        <div class="graphContainer">
+          <canvas id="graphcanvas"></canvas>
+        </div>
+        <div class="graphContainer">
+          <canvas id="graphcanvas2"></canvas>
+        </div>
+      </div>
+    </div>
+    <div id="inputPage">
+      <h1 id="inputTitle">Input Parameters</h1>
+      <div id="form">
+        <mdui-text-field
+          clearable
+          type="number"
+          label="Starting Total number of Cu2+ in bath side"
+          value="900"
+          class="paramInput"></mdui-text-field>
+
+        <mdui-text-field
+          clearable
+          type="number"
+          label="Starting total number of H2(2+) in bath"
+          value="150"
+          class="paramInput"></mdui-text-field>
+
+        <mdui-text-field
+          clearable
+          type="number"
+          label="Starting SO4(2-) in bath"
+          value="1050"
+          class="paramInput"></mdui-text-field>
+
+        <mdui-text-field
+          clearable
+          type="number"
+          label="Reaction rate, per calculation"
+          value="10"
+          class="paramInput"></mdui-text-field>
+
+        <mdui-text-field
+          clearable
+          type="number"
+          label="Bath side consumption Cu2+, %"
+          value="100"
+          class="paramInput"></mdui-text-field>
+
+        <mdui-text-field
+          clearable
+          type="number"
+          label="Bath side SO4(2-) consumption, %"
+          value="0"
+          class="paramInput"></mdui-text-field>
+
+        <mdui-text-field
+          clearable
+          type="number"
+          label="Bath side consumptionH2(2+), %"
+          value="0"
+          class="paramInput"></mdui-text-field>
+
+        <mdui-text-field
+          clearable
+          type="number"
+          label="Bath side consumption Cu2+"
+          value="10"
+          class="paramInput"></mdui-text-field>
+
+        <mdui-text-field
+          clearable
+          type="number"
+          label="Bath side SO4(2-) consumption"
+          value="0"
+          class="paramInput"></mdui-text-field>
+
+        <mdui-text-field
+          clearable
+          type="number"
+          label="Bath side consumptionH2(2+)"
+          value="0"
+          class="paramInput"></mdui-text-field>
+
+        <mdui-text-field
+          clearable
+          type="number"
+          label="Starting total number of Cu2+ in anode side"
+          value="120"
+          class="paramInput"></mdui-text-field>
+
+        <mdui-text-field
+          clearable
+          type="number"
+          label="Starting H2(2+) in anode side"
+          value="20"
+          class="paramInput"></mdui-text-field>
+
+        <mdui-text-field
+          clearable
+          type="number"
+          label="Starting SO4(2-) in anode side"
+          value="140"
+          class="paramInput"></mdui-text-field>
+
+        <mdui-text-field
+          clearable
+          type="number"
+          label="Anode side Cu(2+) generation, %"
+          value="1"
+          class="paramInput"></mdui-text-field>
+
+        <mdui-text-field
+          clearable
+          type="number"
+          label="Anode side SO4(2-) generation, %"
+          value="0"
+          class="paramInput"></mdui-text-field>
+
+        <mdui-text-field
+          clearable
+          type="number"
+          label="Anode side H2(2+) generation, %"
+          value="0"
+          class="paramInput"></mdui-text-field>
+
+        <mdui-text-field
+          clearable
+          type="number"
+          label="Anode side Cu(2+) generation"
+          value="10"
+          class="paramInput"></mdui-text-field>
+
+        <mdui-text-field
+          clearable
+          type="number"
+          label="Anode side SO4(2-) generation"
+          value="0"
+          class="paramInput"></mdui-text-field>
+
+        <mdui-text-field
+          clearable
+          type="number"
+          label="Anode side H2(2+) generation "
+          value="0"
+          class="paramInput"></mdui-text-field>
+
+        <mdui-text-field
+          clearable
+          type="number"
+          label="Membrane passing probablity, Cu2+, %"
+          value="27"
+          class="paramInput"></mdui-text-field>
+
+        <mdui-text-field
+          clearable
+          type="number"
+          label="Membrane passing probablity, H2(2+), %"
+          value="73"
+          class="paramInput"></mdui-text-field>
+
+        <mdui-text-field
+          clearable
+          type="number"
+          label="Membrane passing probablity, SO4(2-), %"
+          value="0"
+          class="paramInput"></mdui-text-field>
+        <mdui-button id="formSubmit">Submit</mdui-button>
+        <mdui-button id="resetForm" variant="outlined">Reset</mdui-button>
+      </div>
+    </div>
+  </div>
+</Layout>
+
+<script
+  src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"
+  is:inline></script>
+<script>
+  // const chart = window.chart;
+</script>
+<script>
+  let graph;
+  let graph2;
+  console.log(window);
+  // const chart = window.Chart;
+  let tabs = document.getElementsByClassName("tab");
+  let graphsPage = document.getElementById("graphs");
+  let reactor = document.getElementById("reactorPage");
+  tabs[0].onclick = function (e) {
+    graphsPage.style.display = "none";
+    reactor.style.display = "block";
+    tabs[0].setAttribute("selected", true);
+    tabs[1].removeAttribute("selected");
+    resize_canvas();
+  };
+  tabs[1].onclick = function (e) {
+    graphsPage.style.display = "block";
+    tabs[1].setAttribute("selected", true);
+    tabs[0].removeAttribute("selected");
+    reactor.style.display = "none";
+  };
+
+  // mdui.setColorScheme("#FFFFFF");
+  const canvas = document.getElementById("animationcanvas");
+  const ctx = canvas.getContext("2d");
+  window.onresize = resize_canvas;
+  //true sizes
+  const true_frame = [598, 726];
+  const true_shadow = [598, 46.2];
+  const true_box = [472.84, 702.9];
+  const true_plate = [354.63, 33];
+  let scaling_factor = [
+    canvas.width / true_frame[0],
+    canvas.height / true_frame[1],
+  ];
+  function resize_canvas() {
+    canvas.height = document.getElementById("animationcanvas").offsetHeight;
+    canvas.width = document.getElementById("animationcanvas").offsetWidth;
+    scaling_factor = [
+      canvas.width / true_frame[0],
+      canvas.height / true_frame[1],
+    ];
+    console.log(scaling_factor);
+    render_frame();
+  }
+  resize_canvas();
+  function render_frame() {
+    render_base();
+  }
+  function render_base() {
+    draw_shadow();
+    draw_box();
+    draw_plates();
+    draw_membrane();
+    // ctx.fillStyle = "green";
+    // ctx.fillRect(10, 10, 150, 100);
+  }
+  function draw_shadow() {
+    ctx.fillStyle = "#C5C5C5";
+    ctx.beginPath();
+    ctx.moveTo(0, 700 * scaling_factor[1]);
+    ctx.bezierCurveTo(
+      canvas.width / 64,
+      canvas.height,
+      (63 * canvas.width) / 64,
+      canvas.height,
+      canvas.width,
+      700 * scaling_factor[1],
+    );
+    ctx.bezierCurveTo(
+      (canvas.width * 63) / 64,
+      canvas.height - 2 * (canvas.height - 700 * scaling_factor[1]),
+      canvas.width / 64,
+      canvas.height - 2 * (canvas.height - 700 * scaling_factor[1]),
+      0,
+      700 * scaling_factor[1],
+    );
+    ctx.fill();
+    // ctx.stroke();
+  }
+  function draw_box() {
+    ctx.fillStyle = "#00BBC7";
+    ctx.fillRect(
+      ((true_frame[0] - true_box[0]) * scaling_factor[0]) / 2,
+      1,
+      true_box[0] * scaling_factor[0],
+      canvas.height - (canvas.height - 700 * scaling_factor[1]) - 1,
+    );
+    ctx.strokeRect(
+      ((true_frame[0] - true_box[0]) * scaling_factor[0]) / 2,
+      1,
+      true_box[0] * scaling_factor[0],
+      canvas.height - (canvas.height - 700 * scaling_factor[1]) - 1,
+    );
+  }
+  function draw_plates() {
+    ctx.fillStyle = "#D8F8FF";
+    ctx.fillRect(
+      (true_frame[0] - true_box[0]) * scaling_factor[0],
+      2,
+      true_plate[0] * scaling_factor[0],
+      true_plate[1] * scaling_factor[1],
+    );
+    ctx.fillStyle = "#CF9500";
+    ctx.fillRect(
+      (true_frame[0] - true_box[0]) * scaling_factor[0],
+      700 * scaling_factor[1] - 1 - true_plate[1] * scaling_factor[1],
+      true_plate[0] * scaling_factor[0],
+      true_plate[1] * scaling_factor[1],
+    );
+  }
+  function draw_membrane() {
+    ctx.beginPath();
+    ctx.moveTo(
+      ((true_frame[0] - true_box[0]) * scaling_factor[0]) / 2 + 1,
+      canvas.height / 2 - 20,
+    );
+    ctx.lineTo(
+      ((true_frame[0] - true_box[0]) / 2) * scaling_factor[0] +
+        (true_box[0] * scaling_factor[0]) / 2,
+      canvas.height / 2 + 40,
+    );
+    ctx.lineTo(
+      (true_frame[0] - (true_frame[0] - true_box[0]) / 2) * scaling_factor[0] -
+        1,
+      canvas.height / 2 - 20,
+    );
+    ctx.stroke();
+  }
+
+  function reset_values() {
+    let values = document.getElementsByClassName("paramInput");
+    values[0].value = 900;
+    values[1].value = 150;
+    values[2].value = 1050;
+    values[3].value = 10;
+    values[4].value = 100;
+    values[5].value = 0;
+    values[6].value = 0;
+    values[7].value = 10;
+    values[8].value = 0;
+    values[9].value = 0;
+    values[10].value = 120;
+    values[11].value = 20;
+    values[12].value = 140;
+    values[13].value = 1;
+    values[14].value = 0;
+    values[15].value = 0;
+    values[16].value = 10;
+    values[17].value = 0;
+    values[18].value = 0;
+    values[19].value = 27;
+    values[20].value = 73;
+    values[21].value = 0;
+    grab_values();
+  }
+  document.getElementById("resetForm").onclick = reset_values;
+
+  function grab_values() {
+    const values = document.getElementsByClassName("paramInput");
+    const Starting_Total_number_of_Cu2_in_bath_side = parseInt(values[0].value); //900
+    const Starting_total_number_of_H2_in_bath = parseInt(values[1].value); //150
+    const Starting_SO4_in_bath = parseInt(values[2].value); //1050
+    const Reaction_rate_per_calculation = parseInt(values[3].value); //10
+    // const Bath_side_consumption_Cu2_percent = parseInt(values[4].value); //100
+    // const Bath_side_SO4_consumption_percent = parseInt(values[5].value); //0
+    // const Bath_side_consumptionH2_percent = parseInt(values[6].value); //0
+    const Bath_side_consumption_Cu2 = parseInt(values[7].value); //10
+    const Bath_side_SO4_consumption = parseInt(values[8].value); //0
+    const Bath_side_consumptionH2 = parseInt(values[9].value); //0
+    const Starting_total_number_of_Cu2_in_anode_side = parseInt(
+      values[10].value,
+    ); //120
+    const Starting_H2_in_anode_side = parseInt(values[11].value); //20
+    const Starting_SO4_in_anode_side = parseInt(values[12].value); //140
+    // const Anode_side_Cu_generation_percent = parseInt(values[13].value); //1
+    // const Anode_side_SO4_generation_percent = parseInt(values[14].value); //0
+    // const Anode_side_H2_generation_percent = parseInt(values[15].value); //0
+    const Anode_side_Cu_generation = parseInt(values[16].value); //10
+    const Anode_side_SO4_generation = parseInt(values[17].value); //0
+    const Anode_side_H2_generation_ = parseInt(values[18].value); //0
+    const Membrane_passing_probablity_Cu = parseInt(values[19].value); //27
+    const Membrane_passing_probablity_H2 = parseInt(values[20].value); //73
+    const Membrane_passing_probablity_SO4 = parseInt(values[21].value); //0
+    let data = [];
+    let bath_side_cu = Starting_Total_number_of_Cu2_in_bath_side;
+    let bath_side_h2 = Starting_total_number_of_H2_in_bath;
+    let bath_side_so4 = Starting_SO4_in_bath;
+
+    let sac_side_cu = Starting_total_number_of_Cu2_in_anode_side;
+    let sac_side_acid = Starting_H2_in_anode_side;
+    let sac_side_so4 = Starting_SO4_in_anode_side;
+    for (var i = 0; i < 100; i++) {
+      let cu_passing_rate =
+        (sac_side_cu *
+          Membrane_passing_probablity_Cu *
+          Reaction_rate_per_calculation) /
+        (sac_side_cu * Membrane_passing_probablity_Cu +
+          sac_side_acid * Membrane_passing_probablity_H2 +
+          sac_side_so4 * Membrane_passing_probablity_SO4);
+      let h2_passing_rate =
+        (sac_side_acid *
+          Membrane_passing_probablity_H2 *
+          Reaction_rate_per_calculation) /
+        (sac_side_cu * Membrane_passing_probablity_Cu +
+          sac_side_acid * Membrane_passing_probablity_H2 +
+          sac_side_so4 * Membrane_passing_probablity_SO4);
+      let so4_passing_rate =
+        (sac_side_so4 *
+          Membrane_passing_probablity_SO4 *
+          Reaction_rate_per_calculation) /
+        (sac_side_cu * Membrane_passing_probablity_Cu +
+          sac_side_acid * Membrane_passing_probablity_H2 +
+          sac_side_so4 * Membrane_passing_probablity_SO4);
+      data.push({
+        time: i,
+        bath_side_cu: bath_side_cu,
+        bath_side_h2: bath_side_h2,
+        bath_side_so4: bath_side_so4,
+        sac_side_cu: sac_side_cu,
+        sac_side_acid: sac_side_acid,
+        sac_side_so4: sac_side_so4,
+        cu_passing_rate: cu_passing_rate,
+        h2_passing_rate: h2_passing_rate,
+        so4_passing_rate: so4_passing_rate,
+      });
+
+      //next round;
+      bath_side_cu = bath_side_cu - Bath_side_consumption_Cu2 + cu_passing_rate;
+      bath_side_h2 = bath_side_h2 - Bath_side_consumptionH2 + h2_passing_rate;
+      bath_side_so4 =
+        bath_side_so4 - Bath_side_SO4_consumption + so4_passing_rate;
+
+      sac_side_cu = sac_side_cu - cu_passing_rate + Anode_side_Cu_generation;
+      sac_side_acid =
+        sac_side_acid - h2_passing_rate + Anode_side_H2_generation_;
+      sac_side_so4 =
+        sac_side_so4 - so4_passing_rate + Anode_side_SO4_generation;
+    }
+    let bob = data.map((x) => x.time);
+    let bath_side_cu_data = data.map((x) => x.bath_side_cu);
+    let bath_side_so4_data = data.map((x) => x.bath_side_so4);
+    let bath_side_acid_data = data.map((x) => x.bath_side_h2);
+    let sac_side_cu_data = data.map((x) => x.sac_side_cu);
+    let sac_side_so4_data = data.map((x) => x.sac_side_so4);
+    let sac_side_acid_data = data.map((x) => x.sac_side_acid);
+
+    if (graph == null && graph2 == null) {
+      graph = new window.Chart(document.getElementById("graphcanvas"), {
+        type: "line",
+        data: {
+          labels: bob,
+          datasets: [
+            {
+              label: "Bath Side Cu",
+              data: bath_side_cu_data,
+            },
+            {
+              label: "Bath Side So4",
+              data: bath_side_so4_data,
+            },
+            { label: "Bath Side Acid", data: bath_side_acid_data },
+          ],
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            title: {
+              display: true,
+              text: "Bath side Cu2 vs SO4 concentrations",
+            },
+          },
+          scales: {
+            y: {
+              // min: 0,
+            },
+          },
+        },
+      });
+      graph2 = new window.Chart(document.getElementById("graphcanvas2"), {
+        type: "line",
+        data: {
+          labels: bob,
+          datasets: [
+            {
+              label: "SAC Side Cu",
+              data: sac_side_cu_data,
+            },
+            {
+              label: "SAC Side So4",
+              data: sac_side_so4_data,
+            },
+            { label: "SAC Side Acid", data: sac_side_acid_data },
+          ],
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            title: {
+              display: true,
+              text: "SAC side Cu2 vs SO4 concentrations",
+            },
+          },
+          scales: {
+            y: {
+              min: 0,
+            },
+          },
+        },
+      });
+    } else {
+      graph.data.datasets = [
+        {
+          label: "Bath Side Cu",
+          data: bath_side_cu_data,
+        },
+        {
+          label: "Bath Side So4",
+          data: bath_side_so4_data,
+        },
+        { label: "Bath Side Acid", data: bath_side_acid_data },
+      ];
+      graph2.data.datasets = [
+        {
+          label: "SAC Side Cu",
+          data: sac_side_cu_data,
+        },
+        {
+          label: "SAC Side So4",
+          data: sac_side_so4_data,
+        },
+        { label: "SAC Side Acid", data: sac_side_acid_data },
+      ];
+      graph.update();
+      graph2.update();
+    }
+  }
+  document.getElementById("formSubmit").onclick = grab_values;
+  grab_values();
+</script>
+<style>
+  h1 {
+    margin: 0;
+  }
+  #fullContainer {
+    width: 100%;
+    min-height: 100%;
+    display: grid;
+    grid-template-columns: 50% 50%;
+  }
+  #displayPage {
+    background-color: #d9d9d9;
+  }
+  #inputPage {
+    background-color: white;
+    color: black;
+  }
+  #inputTitle {
+    position: relative;
+    text-align: center;
+    margin-top: 60px;
+  }
+  #tabs {
+    margin-left: 25%;
+    width: 50%;
+    background-color: #bab8b8;
+    outline: #a59f9f solid 1px;
+    display: grid;
+    height: 30px;
+    align-content: center;
+    grid-template-columns: repeat(3, 33.33333%);
+    margin-top: 5px;
+    border-radius: 15px 15px 15px 15px;
+    /* justify-content: space-between; */
+  }
+  .tab {
+    display: grid;
+    justify-content: center;
+    align-content: center;
+    /* width: 33%; */
+    height: 30px;
+    color: black;
+    outline: #a59f9f solid 1px;
+    cursor: pointer;
+  }
+  .tab:nth-of-type(1) {
+    border-radius: 15px 0px 0px 15px;
+  }
+  .tab:nth-of-type(3) {
+    border-radius: 0px 15px 15px 0px;
+  }
+  .tab[selected] {
+    background-color: #a9a5a5;
+  }
+  #reactorTitle {
+    color: black;
+    text-align: center;
+  }
+  #reactorPage {
+    height: calc(100vh - 30px);
+    top: 30px;
+    position: relative;
+  }
+  #actionBar {
+    /* width: calc(75% - 10px); */
+    width: calc(50%);
+    background-color: #edecec;
+    display: grid;
+    grid-template-columns: repeat(6, 15%);
+    /* padding-left: 10px; */
+    /* justify-content: space-evenly; */
+    position: relative;
+    left: 25%;
+    box-shadow: 0px 1px 5px 0px gray;
+    height: 70px;
+    align-content: center;
+    justify-content: center;
+    /* border-radius: 5px; */
+  }
+  .circleButton {
+    background-color: #c7c5c5;
+    height: 40px;
+    width: 40px;
+    border-radius: 100px;
+    text-align: center;
+    align-content: center;
+    display: grid;
+    color: black;
+    cursor: pointer;
+  }
+  #animationcanvas {
+    width: 75%;
+    left: 12.5%;
+    position: relative;
+    height: 75%;
+  }
+
+  .graphContainer {
+    width: 75%;
+    left: 12.5%;
+    position: relative;
+    height: 75%;
+  }
+  .playOptions {
+    color: black;
+    font-size: 35px;
+  }
+  #form {
+    width: 50%;
+    left: 25%;
+    height: 75%;
+    position: relative;
+    margin-top: 20px;
+    display: grid;
+    grid-template-columns: 47% 47%;
+    column-gap: 6%;
+    /* background-color: gray; */
+    /* display: flex; */
+    /* flex-direction: column; */
+    /* justify-content: space-evenly; */
+  }
+  #formSubmit,
+  #resetForm {
+    grid-column: 1/3;
+  }
+  .paramInput {
+    margin-bottom: 10px;
+    /* background-color: gray !important; */
+  }
+  #graphsPage {
+  }
+  #graphTitle {
+    margin-top: 20px;
+    margin-bottom: 20px;
+    text-align: center;
+  }
+</style>
