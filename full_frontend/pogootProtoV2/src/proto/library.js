@@ -2,9 +2,6 @@ document.addEventListener("astro:page-load", () => {
   if (document.URL.indexOf("library") < 1) {
     return;
   }
-
-
-
   if (localStorage.getItem("updated") == null) {
     localStorage.setItem("updated", false);
   }

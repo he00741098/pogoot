@@ -184,12 +184,15 @@ document.addEventListener("astro:page-load", () => {
         .setCustomValidity("Please enter an email address.");
         usernameReg.innerText = usernameConfirm.innerText = "Invalid Email";
       } else if (response.array[0]) {
+
         localStorage.setItem("library_cache","");
-        send_alert("green", "Login Success", "Redirecting...");
         cookie_set("auth", response.array[1]);
         cookie_set("username", email);
-        // localStorage.setItem("loginTime") = Date.now();
-        redirect();
+        if(!document.URL.includes("create")){
+          send_alert("green", "Login Success", "Redirecting...");
+          redirect();
+        }
+
       }
     });
   };
