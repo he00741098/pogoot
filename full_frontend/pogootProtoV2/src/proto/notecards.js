@@ -17,6 +17,7 @@ document.addEventListener("astro:page-load", function () {
   url = url[url.length-1];
   //attempt to grab progress data 
   let progressData = localStorage.getItem("LearnProgress"+url);
+  let current_turn = 0;
   if (progressData!=null){
     progressData = JSON.parse(progressData);
   }else{
@@ -27,7 +28,8 @@ document.addEventListener("astro:page-load", function () {
         back:d.back,
         rights:0,
         wrongs:0,
-        ratio:0
+        ratio:0,
+        lastTurn:0
       });
     }
     // console.log(progressData)
@@ -94,9 +96,10 @@ document.addEventListener("astro:page-load", function () {
     }
     return randoms;
   }
-  function sort_progress_data(progressData){
+  function sort_progress_data(progressData, current_turn){
     let positive_list = [];
     let negative_list = [];
+    let last_seen = [];
     for (var p of progressData){
       let rights = p.rights;
       let wrongs = p.wrongs;
@@ -105,7 +108,9 @@ document.addEventListener("astro:page-load", function () {
       }
       let ratio = rights/wrongs;
       p.ratio = ratio;
-      if (ratio>1){
+      if(p.lastTurn!=0&&current_turn-p.lastTurn<3){
+        last_seen.push(p);
+      }else if (ratio>1){
         positive_list.push(p);
       }else{
         negative_list.push(p);
@@ -116,6 +121,9 @@ document.addEventListener("astro:page-load", function () {
     });
     negative_list = negative_list.sort((a,b)=>{
       return b.ratio*100 - a.ratio*100
+    });
+    last_seen = last_seen.sort((a,b)=>{
+      return (current_turn-b.lastTurn) - (current_turn-a.lastTurn);
     });
 
     // let length = progressData.length;
@@ -130,10 +138,14 @@ document.addEventListener("astro:page-load", function () {
     if (positive_list.length>0){
       progressData = progressData.concat(positive_list.reverse());
     }
+    if(last_seen.length>0){
+      progressData = progressData.concat(last_seen);
+    }
     return progressData
   }
   let saves = 0;
   function show_next_card(){
+    current_turn++;
     document.getElementById("shortAnswerInput").setCustomValidity("");
     document.getElementById("correctAnswer").style.display = "none";
     if(saves%3==0){
@@ -145,8 +157,8 @@ document.addEventListener("astro:page-load", function () {
     //start learning proccess
     //sort the progressData by rights/wrongs
     let hinted = false;
-    progressData = sort_progress_data(progressData);
-
+    progressData = sort_progress_data(progressData, current_turn);
+    progressData[0].lastTurn = current_turn;
     questionText.innerText = progressData[0].front.join("\n");
     if((progressData[0].rights+progressData[0].wrongs>2 && progressData[0].wrongs>0 && progressData[0].rights/progressData[0].wrongs > 0.5)||(progressData[0].rights+progressData[0].wrongs>2 && progressData[0].wrongs==0)){
       
