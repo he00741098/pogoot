@@ -112,10 +112,10 @@ document.addEventListener("astro:page-load", function () {
       }
     }
     positive_list = positive_list.sort((a,b)=>{
-      b.ratio - a.ratio 
+      b.ratio*100 - a.ratio*100
     });
     negative_list = negative_list.sort((a,b)=>{
-      b.ratio - a.ratio 
+      b.ratio*100 - a.ratio*100
     });
 
     // let length = progressData.length;
