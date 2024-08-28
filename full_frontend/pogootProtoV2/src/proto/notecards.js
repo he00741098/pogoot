@@ -145,7 +145,7 @@ document.addEventListener("astro:page-load", function () {
     //start learning proccess
     //sort the progressData by rights/wrongs
     let hinted = false;
-    sort_progress_data(progressData);
+    progressData = sort_progress_data(progressData);
 
     questionText.innerText = progressData[0].front.join("\n");
     if((progressData[0].rights+progressData[0].wrongs>2 && progressData[0].wrongs>0 && progressData[0].rights/progressData[0].wrongs > 0.5)||(progressData[0].rights+progressData[0].wrongs>2 && progressData[0].wrongs==0)){
