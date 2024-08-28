@@ -168,7 +168,7 @@ document.addEventListener("astro:page-load", function () {
       curdex.innerHTML = current_index + "/";
       showing_front = true;
     } else if (e.key == " ") {
-      if (document.URL.indexOf("notecards") > 0) {
+      if (document.URL.indexOf("notecards") > 0 && document.getElementById("learnView").style.display!="grid") {
         e.preventDefault();
       }
 
@@ -213,31 +213,7 @@ document.addEventListener("astro:page-load", function () {
     return hashHex;
   }
 
-  function cookie_get(key) {
-    let cookies = document.cookie;
-    let split = cookies.split(";");
-    for (var cookie of split) {
-      let cook = cookie.trim().split("=");
-      if (cook[0] == key) {
-        return cook[1];
-      }
-    }
-  }
 
-  function send_alert(color, header, text) {
-    var alertBox = document.getElementById("exampleAlert");
-    var alerts = document.getElementById("Alerts");
-    let box = alertBox.cloneNode(true);
-    box.style.outline = color + " solid 3px";
-    console.log(box.childNodes);
-    box.childNodes[1].innerText = header;
-    box.childNodes[3].innerText = text;
-    box.style.display = "grid";
-    alerts.appendChild(box);
-    setTimeout(() => {
-      alerts.removeChild(box);
-    }, 5000);
-  }
   let index = 0;
   for(var b of document.getElementsByClassName("termstar")){
     let star = b.childNodes[1];

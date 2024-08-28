@@ -53,6 +53,43 @@ let other_counter = 1;
 ---
 
 <Layout title="Notecard | Sweep.rs">
+  <div id="learnView">
+    <div id="learnContainer">
+      <div id="close_learn">
+        <mdui-button-icon icon="close" id="learnCloseButton"></mdui-button-icon>
+      </div>
+
+      <div id="question">
+        <h3 id="definition">Definition</h3>
+        <h2 id="questionText">PlaceHolder Question</h2>
+        <mdui-button variant="outlined" id="revealHintButton">Hint</mdui-button>
+      </div>
+      <div id="answerSection">
+        <div id="multipleChoice">
+          <div class="multipleChoiceOption" id="choice1"></div>
+          <div class="multipleChoiceOption" id="choice2"></div>
+          <div class="multipleChoiceOption" id="choice3"></div>
+          <div class="multipleChoiceOption" id="choice4"></div>
+        </div>
+        <div id="shortAnswer">
+          <!-- <div id="textField"> -->
+          <mdui-text-field
+            label="Your Answer"
+            variant="outlined"
+            id="shortAnswerInput"></mdui-text-field>
+          <!-- </div> -->
+
+          <div id="correctAnswer"></div>
+          <div id="progressButtons">
+            <mdui-button variant="text" id="hintButton">Don't Know?</mdui-button
+            >
+            <mdui-button variant="filled" id="answerButton">Answer</mdui-button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div id="notecardView">
     <div id="infoTitle"><h1>{other_data.title}</h1></div>
     <main id="main">
@@ -133,149 +170,269 @@ let other_counter = 1;
     </div>
     <div id="rawData">{JSON.stringify(data)}</div>
   </div>
-</Layout>
-<style>
-  #notecardView {
-    width: 100%;
-    height: 100%;
-  }
-  #full {
-    position: absolute;
-    top: 5px;
-    right: 5px;
-    font-size: 50px;
-  }
-  .termcount {
-    padding-left: 20px;
-    text-align: left;
-  }
-  #infoTitle {
-    width: 50%;
-    left: 25%;
-    position: relative;
-  }
-  .actionButton {
-    border-radius: var(--mdui-shape-corner-medium);
-    height: 40px;
-  }
-  :global(#footer) {
-    /* position: relative; */
-  }
-  :global(#slot_container) {
-    display: flex;
-    flex-direction: column;
-    justify-content: space-evenly;
-    min-height: 100vh;
-    margin-top: 150px;
-  }
-  #info {
-    height: fit-content;
-    width: calc(50% - 10px);
-    left: 25%;
-    position: relative;
-    margin-bottom: 32px;
-    margin-top: 32px;
-    padding-left: 10px;
-    outline: gray solid 2px;
-    padding-top: 20px;
-    padding-bottom: 20px;
-    border-radius: 2px;
-  }
-  #termlist {
-    position: relative;
-    /* top: 84%; */
-    left: 25%;
-    width: 50%;
-    display: block;
-    margin-bottom: 20px;
-  }
-  .termitem {
-    display: grid;
-    grid-template-columns: 10% 40% 40% 10%;
-    padding: 4px;
-    margin-bottom: 6px;
-    background-color: white;
-    height: fit-content;
-    color: black;
-    text-align: left;
-    border-radius: 2px;
-    min-height: 30px;
-    align-items: center;
-    word-wrap: break-word;
-    hyphens: auto;
-    white-space: pre-line;
-  }
-  .termstar {
-    text-align: right;
-  }
-  /* .termitem:nth-child(1) { */
-  /*   float: left; */
-  /* } */
-  #actionbar {
-    margin-top: 15px;
-    margin-bottom: 15px;
-    position: relative;
-    display: flex;
-    /* background-color: var(--mdui-color-secondary-container); */
-    /* flex-direction: column; */
-    /* grid-template-columns: repeat(10, calc(calc(50% - 20px) / 5)); */
-    /* overflow: scroll; */
-    column-gap: 10px;
-    background-color: white;
-    padding: 10px;
-    /* padding-right: 0px; */
-    border-radius: 4px 4px 4px 4px;
-    height: 40px;
-    align-content: center;
-    justify-content: center;
-    /* justify-content: center; */
-    left: 25%;
-    width: calc(50% - 20px);
-  }
-  #rawData {
-    display: none;
-  }
-  .svg {
-    top: 20px;
-    width: 20px;
-  }
-  body {
-    display: grid;
-    width: 100%;
-    height: 100%;
-    margin: 0;
-    background-color: var(--blue);
-    color: white;
-    font-family: LeagueSpartan;
-    font-size: 20px;
-  }
 
-  main {
-    background-color: var(--blue);
-    position: relative;
-    width: calc(50% - 4px);
-    height: 700px;
-    /* top: 200px; */
-    /* top: 25%; */
-    left: calc(25% + 2px);
-    text-align: center;
-    outline: white solid 2px;
-    margin-bottom: 10px;
-    overflow: scroll;
-    white-space: pre-line;
-  }
-  #controlbar {
-    position: relative;
-    /* top: 76%; */
-    width: 50%;
-    left: 25%;
-    display: grid;
-    grid-template-columns: 50% 50%;
-  }
-  #counter {
-    width: 10%;
-  }
-  #arrows {
-    text-align: right;
-  }
-</style>
+  <style>
+    #close_learn {
+      position: fixed;
+      top: 20px;
+      right: 40px;
+      width: 25px;
+      height: 25px;
+    }
+    #learnView {
+      width: 100%;
+      height: 100%;
+      min-height: 100vh;
+      display: none;
+      /* display: grid; */
+      /* justify-content: center; */
+    }
+    #learnContainer {
+      justify-self: center;
+      align-self: center;
+      width: 50%;
+      height: fit-content;
+      min-height: 40%;
+      position: relative;
+      border: 2px solid white;
+      border-radius: 10px 10px 10px 10px;
+      padding: 20px 20px 20px 20px;
+      /* top: 25%; */
+      display: grid;
+      grid-template-rows: 30% 70%;
+    }
+    /* :global(.container) { */
+    /* background-color: none !important; */
+    /* } */
+    #question {
+      width: 100%;
+      font-size: 2rem;
+      align-self: center;
+      margin-bottom: 20px;
+    }
+    #definition {
+      margin: 0;
+      color: gray;
+    }
+    #questionText {
+      margin: 0;
+    }
+    .multipleChoiceOption {
+      outline: lightgray solid 2px;
+      padding: 20px;
+      border-radius: 5px;
+      cursor: pointer;
+      height: fit-content;
+      /* min-height: 100%; */
+
+      /* text-align: center; */
+    }
+    #multipleChoice {
+      display: none;
+      grid-template-columns: 47.5% 47.5%;
+      column-gap: 5%;
+      row-gap: 20px;
+      align-self: end;
+      /* grid-template-rows: 20px; */
+      /* height: */
+    }
+    #shortAnswer {
+      margin-bottom: 10px;
+      display: none;
+      align-self: end;
+    }
+    #correctAnswer {
+      display: none;
+      outline: green dashed 2px;
+      border-radius: 5px;
+      padding: 15px;
+      height: fit-content;
+      margin-top: 10px;
+    }
+    #shortAnswerInput::part(label) {
+      background-color: var(--blue);
+      color: white;
+      /* color: white; */
+      /* height: 50px; */
+    }
+    /* #textField { */
+    /* height: 100px; */
+    /* } */
+    #progressButtons {
+      width: 100%;
+      /* display: flex; */
+      display: none;
+      justify-content: right;
+      gap: 10px;
+      margin-top: 10px;
+      /* grid-template-columns: 50px 50px; */
+      /* float: right; */
+      /* display: block; */
+    }
+    #answerButton,
+    #hintButton,
+    #revealHintButton {
+      border-radius: 5px;
+    }
+    #revealHintButton {
+      margin-top: 10px;
+      width: 15px;
+    }
+    #answerSection {
+      display: grid;
+      /* align-content: baseline; */
+      height: fit-content;
+      min-height: 100%;
+      /* justify-self: baseline; */
+      /* position: relative; */
+    }
+    /* :global(.label) { */
+    /*   background-color: none !important; */
+    /*   color: rgb(var(--mdui-color-on-surface-variant)) !important; */
+    /* } */
+    #notecardView {
+      width: 100%;
+      height: 100%;
+    }
+    #full {
+      position: absolute;
+      top: 5px;
+      right: 5px;
+      font-size: 50px;
+    }
+    .termcount {
+      padding-left: 20px;
+      text-align: left;
+    }
+    #infoTitle {
+      width: 50%;
+      left: 25%;
+      position: relative;
+    }
+    .actionButton {
+      border-radius: var(--mdui-shape-corner-medium);
+      margin-top:10px
+      height: 40px;
+    }
+    :global(#footer) {
+      /* position: relative; */
+    }
+    :global(#slot_container) {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-evenly;
+      min-height: 100vh;
+      margin-top: 150px;
+    }
+    #info {
+      height: fit-content;
+      width: calc(50% - 10px);
+      left: 25%;
+      position: relative;
+      margin-bottom: 32px;
+      margin-top: 32px;
+      padding-left: 10px;
+      outline: gray solid 2px;
+      padding-top: 20px;
+      padding-bottom: 20px;
+      border-radius: 2px;
+    }
+    #termlist {
+      position: relative;
+      /* top: 84%; */
+      left: 25%;
+      width: 50%;
+      display: block;
+      margin-bottom: 20px;
+    }
+    .termitem {
+      display: grid;
+      grid-template-columns: 10% 40% 40% 10%;
+      padding: 4px;
+      margin-bottom: 6px;
+      background-color: white;
+      height: fit-content;
+      color: black;
+      text-align: left;
+      border-radius: 2px;
+      min-height: 30px;
+      align-items: center;
+      word-wrap: break-word;
+      hyphens: auto;
+      white-space: pre-line;
+    }
+    .termstar {
+      text-align: right;
+    }
+    /* .termitem:nth-child(1) { */
+    /*   float: left; */
+    /* } */
+    #actionbar {
+      margin-top: 15px;
+      margin-bottom: 15px;
+      position: relative;
+      display: flex;
+      /* background-color: var(--mdui-color-secondary-container); */
+      /* flex-direction: column; */
+      /* grid-template-columns: repeat(10, calc(calc(50% - 20px) / 5)); */
+      /* overflow: scroll; */
+      column-gap: 10px;
+      background-color: white;
+      padding: 10px;
+      /* padding-right: 0px; */
+      border-radius: 4px 4px 4px 4px;
+      height: 40px;
+      align-content: center;
+      justify-content: center;
+      /* justify-content: center; */
+      left: 25%;
+      width: calc(50% - 20px);
+    }
+    #rawData {
+      display: none;
+    }
+    .svg {
+      top: 20px;
+      width: 20px;
+    }
+    body {
+      display: grid;
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      background-color: var(--blue);
+      color: white;
+      font-family: LeagueSpartan;
+      font-size: 20px;
+    }
+
+    main {
+      background-color: var(--blue);
+      position: relative;
+      width: calc(50% - 4px);
+      height: 700px;
+      /* top: 200px; */
+      /* top: 25%; */
+      left: calc(25% + 2px);
+      text-align: center;
+      outline: white solid 2px;
+      margin-bottom: 10px;
+      overflow: scroll;
+      white-space: pre-line;
+    }
+    #controlbar {
+      position: relative;
+      /* top: 76%; */
+      width: 50%;
+      left: 25%;
+      display: grid;
+      grid-template-columns: 50% 50%;
+    }
+    #counter {
+      width: 10%;
+    }
+    #arrows {
+      text-align: right;
+    }
+  </style>
+</Layout>

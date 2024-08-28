@@ -44,7 +44,7 @@ document.addEventListener("astro:page-load", () => {
       return;
     }
     char_count = Math.round(front_input.clientWidth / 15.15);
-    for (input of refresh_inputs) {
+    for (var input of refresh_inputs) {
       flex_input(input);
     }
   });
@@ -196,6 +196,7 @@ document.addEventListener("astro:page-load", () => {
       list.push(notecard);
     }
     var notecardList = new NotecardList();
+    list = list.reverse();
     notecardList.setNotecardsList(list);
 
     console.log(notecardList);
@@ -228,69 +229,6 @@ document.addEventListener("astro:page-load", () => {
     });
   }
 
-  function send_alert(color, header, text) {
-    let box = alertBox.cloneNode(true);
-    box.style.outline = color + " solid 3px";
-    // console.log(box.childNodes);
-    box.childNodes[1].innerText = header;
-    box.childNodes[3].innerText = text;
-    box.style.display = "grid";
-    alerts.appendChild(box);
-    setTimeout(() => {
-      alerts.removeChild(box);
-    }, 5000);
-  }
-  // function redirect() {
-  //   window.location.href = "/library";
-  // }
-  // function redirect_to(url){
-  //   window.location.href = url;
-  // }
-
-  function cookie_set(key, value) {
-    var date = new Date();
-    date.setTime(date.getTime() + 3 * 24 * 60 * 60 * 1000);
-    let cookies = document.cookie;
-    let split = cookies.split(";");
-    let validCookies = false;
-    for (var cookie of split) {
-      if (cookie.trim().split("=")[0] == "validCookies") {
-        validCookies = true;
-        break;
-      }
-    }
-
-    if (!validCookies) {
-      console.log("no cookies");
-      document.cookie =
-        "auth=; SameSite=None; Secure; expires=" + date.toUTCString() + ";";
-      document.cookie =
-        "username=; SameSite=None; Secure; expires=" + date.toUTCString() + ";";
-      document.cookie =
-        "validCookies=; SameSite=None; Secure; expires=" +
-        date.toUTCString() +
-        ";";
-    }
-    cookies = document.cookie;
-    document.cookie =
-      key +
-      "=" +
-      value +
-      "; SameSite=None; Secure; expires=" +
-      date.toUTCString() +
-      ";";
-  }
-
-  function cookie_get(key) {
-    let cookies = document.cookie;
-    let split = cookies.split(";");
-    for (var cookie of split) {
-      let cook = cookie.trim().split("=");
-      if (cook[0] == key) {
-        return cook[1];
-      }
-    }
-  }
 });
 
 },{"./pogoots_grpc_web_pb.js":4,"./pogoots_pb.js":5}],2:[function(require,module,exports){
