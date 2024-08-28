@@ -94,7 +94,7 @@ document.addEventListener("astro:page-load", function () {
     }
     return randoms;
   }
-  function sort_progress_data(){
+  function sort_progress_data(progressData){
     let positive_list = [];
     let negative_list = [];
     for (var p of progressData){
@@ -112,10 +112,10 @@ document.addEventListener("astro:page-load", function () {
       }
     }
     positive_list = positive_list.sort((a,b)=>{
-      b.ratio*100 - a.ratio*100
+      return b.ratio*100 - a.ratio*100
     });
     negative_list = negative_list.sort((a,b)=>{
-      b.ratio*100 - a.ratio*100
+      return b.ratio*100 - a.ratio*100
     });
 
     // let length = progressData.length;
@@ -130,7 +130,7 @@ document.addEventListener("astro:page-load", function () {
     if (positive_list.length>0){
       progressData = progressData.concat(positive_list.reverse());
     }
-
+    return progressData
   }
   let saves = 0;
   function show_next_card(){
@@ -145,7 +145,7 @@ document.addEventListener("astro:page-load", function () {
     //start learning proccess
     //sort the progressData by rights/wrongs
     let hinted = false;
-    sort_progress_data();
+    sort_progress_data(progressData);
 
     questionText.innerText = progressData[0].front.join("\n");
     if((progressData[0].rights+progressData[0].wrongs>2 && progressData[0].wrongs>0 && progressData[0].rights/progressData[0].wrongs > 0.5)||(progressData[0].rights+progressData[0].wrongs>2 && progressData[0].wrongs==0)){
