@@ -1,6 +1,6 @@
 document.addEventListener("astro:page-load", () => {
   // console.log(window.turnstile);
-  let turn = null;
+  var turn = null;
   let loginTime = cookie_get("auth");
   if (loginTime == null || loginTime.length <= 5) {
     console.log("Callback...")
@@ -11,14 +11,20 @@ document.addEventListener("astro:page-load", () => {
         window.id = turnstile.render('.captcha', {
           sitekey: '0x4AAAAAAAg-XBCL8WUE5rPr',
           callback: function(token) {
-            console.log(`Challenge Success ${token}`);
+            // console.log(`Challenge Success ${token}`);
             turn = token;
+            window.turn = token;
+
+            // console.log(`Challenge Success ${turn}`);
+            // console.log("Turn3: "+window.turn);
           },
         });
       };
     }else{
+      // console.log("Turn1: "+turn);
       turnstile.remove(window.id);
       window.onloadTurnstileCallback();
+      // console.log("Turn2: "+turn);
     }
 
   }
@@ -45,7 +51,7 @@ document.addEventListener("astro:page-load", () => {
     let usernameConfirm = document.getElementById("usernameRegConfirm");
     let passReg = document.getElementById("passReg");
     let passConfirm = document.getElementById("passRegConfirm");
-    if(turn==null){
+    if(window.turn==null){
       usernameReg.innerText = 
       usernameConfirm.innerText = 
       passReg.innerText = 
@@ -161,6 +167,7 @@ document.addEventListener("astro:page-load", () => {
     let regReq = new UserRegisterWithEmailRequest();
     regReq.setEmail(email);
     regReq.setPassword(password);
+    regReq.setTurn(window.turn);
     if (document.getElementById("RegisterButton").disabled) {
       return;
     }
@@ -200,7 +207,9 @@ document.addEventListener("astro:page-load", () => {
     event.preventDefault();
         let passLog = document.getElementById("usernameLogConfirm");
         let userLog = document.getElementById("passLogConfirm");
-    if(turn==null){
+    if(window.turn==null){
+      // console.log("Login Turn" + turn);
+      // console.log("Window Turn" + window.turn);
         passLog.innerText = "CAPTCHA Invalid";
         userLog.innerText = "CAPTCHA Invalid";
       return;
@@ -215,7 +224,7 @@ document.addEventListener("astro:page-load", () => {
     let regReq = new UserLoginRequest();
     regReq.setEmail(email);
     regReq.setPassword(password);
-    regReq.setTurn(turn);
+    regReq.setTurn(window.turn);
     client.login(regReq, {}, (err, response) => {
       console.log(response);
       if (response.array[0]) {
