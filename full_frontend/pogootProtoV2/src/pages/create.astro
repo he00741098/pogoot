@@ -47,7 +47,7 @@ import Layout from "../layouts/Layout.astro";
 
       <div id="created" class="notecardContainer" style="display:none"></div>
       <div id="notecardHeaderLeft" class="notecardHeaderLeft">
-        <input class="orderNumber" value="1" disabled style="display:none" />
+        <input class="orderNumber" value="1" disabled />
       </div>
       <div
         id="notecardHeaderRight"
@@ -169,6 +169,7 @@ import Layout from "../layouts/Layout.astro";
     font-size: 25px;
     text-align: center;
     border: none;
+    background-color: transparent;
     border-bottom: 2px solid grey;
   }
   .notecardHeaderLeft {

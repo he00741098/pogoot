@@ -144,6 +144,7 @@ pub async fn upload_proccessor(
                 let clonecon = conn.clone();
                 let verifyerclone = verifyer.clone();
                 let secrets_clone = secrets.clone();
+                let cfid = request.cfid.clone();
 
                 let temp_connection = clonecon.connect();
                 if temp_connection.is_err() {
@@ -165,8 +166,20 @@ pub async fn upload_proccessor(
                         request,
                     )
                     .await;
-                    if result.is_err() {
-                        println!("Modify set failed");
+                    let callback_result = if result.is_ok() {
+                        callback.send(NotecardUploadResponse {
+                            success: true,
+                            id: cfid,
+                        })
+                    } else {
+                        callback.send(NotecardUploadResponse {
+                            success: false,
+                            id: "Modify failed".to_string(),
+                        })
+                    };
+
+                    if callback_result.is_err() {
+                        println!("Callback failed");
                     }
                 });
                 // todo!()
@@ -186,6 +199,7 @@ pub struct NotecardData {
 impl NotecardData {
     pub fn sanitize(mut self) -> Self {
         self.auth = String::with_capacity(0);
+        self.username = String::with_capacity(0);
         self
     }
 }

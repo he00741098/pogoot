@@ -38,19 +38,45 @@ document.addEventListener("astro:page-load", function () {
 
   let edit_button = document.getElementById("edit");
   edit_button.addEventListener("click", function (e) {
-    console.log("Sending request....");
-    let client = new NotecardServiceClient("https://bigpogoot.sweep.rs");
-    var request = new NotecardModifyRequest();
-    let notecardList = new NotecardList();
-    request.setNotecards(notecardList);
-    request.setAuthToken(cookie_get("auth"));
-    request.setTitle(document.getElementById("titleInput").value);
-    request.setDescription(document.getElementById("description").value);
-    request.setTags(document.getElementById("tags").value);
-    request.setSchool(document.getElementById("school"));
-    request.setUsername(cookie_get("username"));
-    request.setCfid(document.URL.split("notecards")[1].split("/")[1]);
-    client.modify(edit_request);
+
+    //example data
+    //{
+    //    title:String
+    //    description:String
+    //    cfid:String
+    //    tags:String
+    //    school:String
+    //    Notecards: [
+    //        {
+    //          fronts:[]
+    //          backs:[]
+    //        }
+    //    ]
+    //
+    //}
+    //
+    let save_data = {
+      title:document.getElementById("infoTitle").innerText,
+      description:document.getElementById("infoDesc").innerText,
+      cfid:document.URL.split("notecards")[1].split("/")[1],
+      tags:document.getElementById("tags").innerText,
+      school:document.getElementById("school").innerText,
+      notecards:JSON.parse(document.getElementById("rawData").innerText)
+    };
+    // let client = new NotecardServiceClient("https://bigpogoot.sweep.rs");
+    // var request = new NotecardModifyRequest();
+    // let notecardList = new NotecardList();
+    // request.setNotecards(notecardList);
+    // request.setAuthToken(cookie_get("auth"));
+    // request.setTitle(document.getElementById("titleInput").value);
+    // request.setDescription(document.getElementById("description").value);
+    // request.setTags(document.getElementById("tags").value);
+    // request.setSchool(document.getElementById("school"));
+    // request.setUsername(cookie_get("username"));
+    // request.setCfid();
+    // client.modify(edit_request);
+    localStorage.setItem("to_edit", JSON.stringify(save_data));
+    redirect_to("/create");
   });
 
   let learn_button = document.getElementById("learn");

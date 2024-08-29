@@ -130,6 +130,8 @@ let other_counter = 1;
       }
     </div>
     <div id="rawData">{JSON.stringify(data)}</div>
+    <div id="tags">{other_data.tags}</div>
+    <div id = "school">{other_data.school}</div>
   </div>
 
   <style>
@@ -349,7 +351,7 @@ let other_counter = 1;
       left: 25%;
       width: calc(50% - 20px);
     }
-    #rawData {
+    #rawData, #tags, #school {
       display: none;
     }
     .svg {
