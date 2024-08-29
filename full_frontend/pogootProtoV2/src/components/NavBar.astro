@@ -31,16 +31,20 @@
   import { prefetch } from "astro:prefetch";
   import { navigate } from "astro:transitions/client";
   document.addEventListener("astro:page-load", function () {
-    function cookie_get(key) {
-      let cookies = document.cookie;
-      let split = cookies.split(";");
-      for (var cookie of split) {
-        let cook = cookie.trim().split("=");
-        if (cook[0] == key) {
-          return cook[1];
-        }
-      }
+    let loginTime = cookie_get("auth");
+    if (loginTime != null && loginTime.length > 5) {
+      document.getElementById("account_button").icon = "settings";
     }
+    // function cookie_get(key) {
+    //   let cookies = document.cookie;
+    //   let split = cookies.split(";");
+    //   for (var cookie of split) {
+    //     let cook = cookie.trim().split("=");
+    //     if (cook[0] == key) {
+    //       return cook[1];
+    //     }
+    //   }
+    // }
     // console.log("NavEvents Added");
     const home_btn = document.getElementById("home_button");
     home_btn.addEventListener("click", () => {

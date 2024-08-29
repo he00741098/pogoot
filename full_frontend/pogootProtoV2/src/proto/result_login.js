@@ -193,12 +193,15 @@ document.addEventListener("astro:page-load", () => {
         usernameReg.innerText = usernameConfirm.innerText = "Invalid Email";
       } else if (response.array[0]) {
 
+        document.getElementById("account_button").icon = "settings";
         localStorage.setItem("library_cache","");
         cookie_set("auth", response.array[1]);
         cookie_set("username", email);
         if(!document.URL.includes("create")){
           send_alert("green", "Login Success", "Redirecting...");
           redirect();
+        }else{
+          send_alert("green", "Login Success", "");
         }
 
       }
@@ -229,12 +232,16 @@ document.addEventListener("astro:page-load", () => {
     client.login(regReq, {}, (err, response) => {
       console.log(response);
       if (response.array[0]) {
-        send_alert("green", "Login Success", "Redirecting...");
+        document.getElementById("account_button").icon = "settings";
         cookie_set("auth", response.array[1]);
         localStorage.setItem("updated","true");
         cookie_set("username", email);
-        // localStorage.setItem("loginTime") = Date.now();
-        redirect();
+        if(!document.URL.includes("create")){
+          redirect();
+          send_alert("green", "Login Success", "Redirecting...");
+        }else{
+          send_alert("green", "Login Success", "");
+        }
       } else {
         passLog.innerText = "Incorrect credentials";
         userLog.innerText = "Incorrect credentials";

@@ -152,7 +152,7 @@ document.addEventListener("astro:page-load", function () {
       localStorage.setItem("LearnProgress"+url, JSON.stringify(progressData));
     }
 
-  //sort study queue based on study sets.
+    //sort study queue based on study sets.
 
     //start learning proccess
     //sort the progressData by rights/wrongs
@@ -161,8 +161,41 @@ document.addEventListener("astro:page-load", function () {
     progressData[0].lastTurn = current_turn;
     questionText.innerText = progressData[0].front.join("\n");
     if((progressData[0].rights+progressData[0].wrongs>2 && progressData[0].wrongs>0 && progressData[0].rights/progressData[0].wrongs > 0.5)||(progressData[0].rights+progressData[0].wrongs>2 && progressData[0].wrongs==0)){
-      
+
       show_short_answer();
+      document.getElementById("shortAnswerInput").onkeyup = function(e){
+        if (e.key!="Enter"){
+          return;
+        }
+        let answer = document.getElementById("shortAnswerInput").value;
+        let correct = false;
+        for(var b of progressData[0].back){
+          if (answer == b){
+            correct = true;
+          }
+        }
+        if (correct){
+          progressData[0].rights++;
+          document.getElementById("correctAnswer").innerText = "Correct!";
+          document.getElementById("correctAnswer").style.display = "block";
+        }else{
+          progressData[0].wrongs++;
+          document.getElementById("shortAnswerInput").setCustomValidity("Incorrect");
+          let reveal = "";
+          if(progressData[0].back.length>1){
+            document.getElementById("correctAnswer").innerText = "Answers:\n- "+progressData[0].back.join(" or\n- ");
+          }else{
+            document.getElementById("correctAnswer").innerText = "Answer:\n"+progressData[0].back[0];
+          }
+          document.getElementById("correctAnswer").style.display = "block";
+        }
+        document.getElementById("answerButton").innerText = "Continue";
+        document.getElementById("shortAnswerInput").onkeyup = document.getElementById("answerButton").onclick = function(e){
+          document.getElementById("answerButton").value = "Answer";
+          document.getElementById("shortAnswerInput").value = "";
+          show_next_card();
+        }
+      }
       document.getElementById("answerButton").onclick = function(e){
         let answer = document.getElementById("shortAnswerInput").value;
         let correct = false;
@@ -180,20 +213,31 @@ document.addEventListener("astro:page-load", function () {
           document.getElementById("shortAnswerInput").setCustomValidity("Incorrect");
           let reveal = "";
           if(progressData[0].back.length>1){
-          document.getElementById("correctAnswer").innerText = "Answers:\n- "+progressData[0].back.join(" or\n- ");
+            document.getElementById("correctAnswer").innerText = "Answers:\n- "+progressData[0].back.join(" or\n- ");
           }else{
-          document.getElementById("correctAnswer").innerText = "Answer:\n"+progressData[0].back[0];
+            document.getElementById("correctAnswer").innerText = "Answer:\n"+progressData[0].back[0];
           }
           document.getElementById("correctAnswer").style.display = "block";
         }
         document.getElementById("answerButton").innerText = "Continue";
+        document.getElementById("shortAnswerInput").onkeyup = function(e){
+          if (e.key!="Enter"){
+            return;
+          }
+          document.getElementById("answerButton").value = "Answer";
+          document.getElementById("shortAnswerInput").value = "";
+          show_next_card();
+        }
         document.getElementById("answerButton").onclick = function(e){
-        document.getElementById("answerButton").value = "Answer";
-        document.getElementById("shortAnswerInput").value = "";
+          document.getElementById("answerButton").value = "Answer";
+          document.getElementById("shortAnswerInput").value = "";
           show_next_card();
         }
       }
+
     }else{
+      // document.getElementById("shortAnswerInput").onkeyup = function(e){}
+
       let randoms = generate_unique_randoms(progressData.length, 1, 3);
       let positions = generate_unique_randoms(5, 1 , 3);
       // console.log(randoms);
@@ -238,7 +282,7 @@ document.addEventListener("astro:page-load", function () {
                 document.getElementById("choice"+positions[2]).style.outline = "red solid 2px";
 
             document.getElementById("choice"+remaining_position).style.outline = "green solid 2px";
-            
+
           };
 
       document.getElementById("choice"+remaining_position).onclick = function(e){
@@ -258,7 +302,7 @@ document.addEventListener("astro:page-load", function () {
     }
   }
   show_next_card();
-  
+
 
 
 });
