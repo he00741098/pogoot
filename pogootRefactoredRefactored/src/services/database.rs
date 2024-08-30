@@ -384,6 +384,16 @@ pub async fn update_notecard_data(
     let tags = request.tags;
     let school = request.school;
     let cfid = request.cfid;
+    let notecard_data_json = NotecardData {
+        auth: "".to_string(),
+        title: title.clone().unwrap_or("No Title".to_string()),
+        school: school.clone().unwrap_or("".to_string()),
+        tags: tags.clone().unwrap_or("".to_string()),
+        desc: description.clone().unwrap_or("".to_string()),
+        username: "".to_string(),
+    };
+    let data_json = serde_json::to_string(&notecard_data_json);
+
     let query = "UPDATE NOTECARDS SET".to_string();
     let ending = "WHERE CFID=?;";
     // let now = chrono::Utc::now();
@@ -421,8 +431,17 @@ pub async fn update_notecard_data(
         );
         temp_formatter
     };
-    let strings = strings.into_iter().map(|x| x.1).collect::<Vec<String>>();
-    let result = conn.query(query.as_str(), params_from_iter(strings)).await;
+    let mut strings = strings.into_iter().map(|x| x.1).collect::<Vec<String>>();
+    let now = chrono::Utc::now();
+    let now = now.to_string();
+    strings.insert(0, now);
+
+    println!("SQL Update Query: \n{}", query.as_str());
+    println!("SQL Update Params: \n{:?}", strings);
+
+    let result = conn
+        .execute(query.as_str(), params_from_iter(strings))
+        .await;
     if result.is_err() {
         return Err(());
     }
@@ -442,6 +461,13 @@ pub async fn update_notecard_data(
         return Err(());
     }
     let json = json.unwrap();
+    if data_json.is_err() {
+        println!("Serde To String Error with Data");
+        return Err(());
+    }
+    let data_json = data_json.unwrap();
+
+    let json = format!("[{},{}]", data_json, json);
     let compressed = zstd::stream::encode_all(json.as_bytes(), 0);
     if compressed.is_err() {
         return Err(());

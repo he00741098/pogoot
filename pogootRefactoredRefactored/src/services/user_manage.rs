@@ -1,7 +1,7 @@
 use argon2::{Argon2, PasswordHash, PasswordVerifier};
-use libsql::{Connection, Database};
+use libsql::Database;
 use serde_json::Value;
-use std::{collections::HashMap, sync::Arc, time::Duration};
+use std::{sync::Arc, time::Duration};
 use tokio::sync::{oneshot::Sender, Mutex};
 
 use chrono::Utc;

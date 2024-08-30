@@ -267,6 +267,11 @@ document.addEventListener("astro:page-load", () => {
       skip_front_input = true;
       new_card(true);
     }
+    char_count = Math.round(front_input.clientWidth / 15.15);
+    for (var input of refresh_inputs) {
+      flex_input(input);
+    }
+
     save_button.onclick = function (ev) {
       var fronts = document.getElementsByClassName("frontNotecardInput");
       var backs = document.getElementsByClassName("backNotecardInput");
