@@ -179,9 +179,9 @@ document.addEventListener("astro:page-load", () => {
       send_alert("red", "No Title", "Please add a title");
       return;
     }
-    if (fronts.length < 2) {
+    if (fronts.length < 5) {
       // console.log("no content");
-      send_alert("red", "No Content", "Please add at least 1 card");
+      send_alert("red", "Not Enough Content", "Please add at least 5 cards");
       return;
     }
     if (cookie_get("auth").length < 2 || cookie_get("username").length < 2) {
@@ -237,6 +237,7 @@ document.addEventListener("astro:page-load", () => {
   }else{
     let data = JSON.parse(editing);
     localStorage.setItem("to_edit", null);
+    document.getElementsByClassName("createTitle")[0].childNodes[1].innerText = "Edit"
     //example data
     //{
     //    title:String
@@ -280,9 +281,9 @@ document.addEventListener("astro:page-load", () => {
         send_alert("red", "No Title", "Please add a title");
         return;
       }
-      if (fronts.length < 2) {
+      if (fronts.length < 5) {
         // console.log("no content");
-        send_alert("red", "No Content", "Please add at least 1 card");
+        send_alert("red", "Not Enough Content", "Please add at least 5 cards");
         return;
       }
       if (cookie_get("auth").length < 2 || cookie_get("username").length < 2) {

@@ -829,7 +829,7 @@ document.addEventListener("astro:page-load", function () {
     progressData = sort_progress_data(progressData, current_turn);
     progressData[0].lastTurn = current_turn;
     questionText.innerText = progressData[0].front.join("\n");
-    if((progressData[0].rights+progressData[0].wrongs>2 && progressData[0].wrongs>0 && progressData[0].rights/progressData[0].wrongs > 0.5)||(progressData[0].rights+progressData[0].wrongs>2 && progressData[0].wrongs==0)){
+    if((progressData[0].rights+progressData[0].wrongs>2 && progressData[0].ratio > 0.5)){
 
       show_short_answer();
       document.getElementById("shortAnswerInput").onkeyup = function(e){
