@@ -19,7 +19,6 @@ document.addEventListener("astro:page-load", () => {
     let nodes = main.childNodes;
     for (var i = nodes.length - 1; i >= 7; i--) {
       let z = nodes[i];
-      // console.log(z);
       main.removeChild(z);
     }
     let auth_cookie = cookie_get("auth");
@@ -38,7 +37,6 @@ document.addEventListener("astro:page-load", () => {
       fetch_request.setAuthToken(auth_cookie);
       send_alert("green", "Loading...", "");
       client.fetch(fetch_request, {}, (err, response) => {
-        // console.log(response);
         if (response == null) {
           console.log("Load failed");
           send_alert("red", "Loading Failed", "Please reload");
@@ -52,7 +50,6 @@ document.addEventListener("astro:page-load", () => {
     }
   });
 
-  // console.log(search_bar);
   search_bar.addEventListener("input", (ev) => {
     let val = search_bar.value;
     if (val == null || val == "undefined") {
@@ -60,13 +57,10 @@ document.addEventListener("astro:page-load", () => {
     }
     val = val.trim().toLowerCase();
 
-    // console.log("Searching... for " + val);
     let nodes = main.childNodes;
     for (var i = 7; i < nodes.length; i++) {
       let z = nodes[i];
-      // console.log(z);
       if (z.classList[0] == "placeholderLibraryEntry") {
-        // console.log(
         //   "matched:" +
         //     z.childNodes[3].childNodes[1].innerText +
         //     ". / :" +
@@ -82,10 +76,8 @@ document.addEventListener("astro:page-load", () => {
             .toLowerCase()
             .includes(val)
         ) {
-          // console.log("hidden");
           z.classList.add("hidden");
         } else {
-          // console.log("removed");
           z.classList.remove("hidden");
         }
       } else if (z.classList[0] == "placeholderLibraryEntryNoDesc") {
@@ -126,7 +118,6 @@ document.addEventListener("astro:page-load", () => {
       }
       cur_dex++;
     }
-    // console.log("Visible: " + filtered_nodes.length + " Dates:" + dates.length);
     if (filtered_nodes.length == dates.length - 1) {
       for (var d of dates) {
         d.classList.add("hidden");
@@ -156,72 +147,7 @@ document.addEventListener("astro:page-load", () => {
   } = require("./pogoots_pb.js");
   const { NotecardServiceClient } = require("./pogoots_grpc_web_pb.js");
 
-  function cookie_set(key, value) {
-    var date = new Date();
-    date.setTime(date.getTime() + 3 * 24 * 60 * 60 * 1000);
-    let cookies = document.cookie;
-    let split = cookies.split(";");
-    let validCookies = false;
-    for (var cookie of split) {
-      if (cookie.trim().split("=")[0] == "validCookies") {
-        validCookies = true;
-        break;
-      }
-    }
 
-    if (!validCookies) {
-      console.log("no cookies");
-      document.cookie =
-        "auth=; SameSite=None; Secure; expires=" +
-        date.toUTCString() +
-        "; path=/";
-      document.cookie =
-        "username=; SameSite=None; Secure; expires=" +
-        date.toUTCString() +
-        "; path=/";
-      document.cookie =
-        "validCookies=; SameSite=None; Secure; expires=" +
-        date.toUTCString() +
-        "; path=/";
-    }
-    cookies = document.cookie;
-    document.cookie =
-      key +
-      "=" +
-      value +
-      "; SameSite=None; Secure; expires=" +
-      date.toUTCString() +
-      "; path=/";
-  }
-
-  function cookie_get(key) {
-    let cookies = document.cookie;
-    let split = cookies.split(";");
-    for (var cookie of split) {
-      let cook = cookie.trim().split("=");
-      if (cook[0] == key) {
-        return cook[1];
-      }
-    }
-  }
-
-  function send_alert(color, header, text) {
-    var alertBox = document.getElementById("exampleAlert");
-    var alerts = document.getElementById("Alerts");
-    let box = alertBox.cloneNode(true);
-    box.style.outline = color + " solid 3px";
-    // console.log(box.childNodes);
-    box.childNodes[1].innerText = header;
-    box.childNodes[3].innerText = text;
-    box.style.display = "grid";
-    alerts.appendChild(box);
-    setTimeout(() => {
-      alerts.removeChild(box);
-    }, 5000);
-  }
-  // function redirect() {
-  //   window.location.href = "/library";
-  // }
 
   var alertBox = document.getElementById("exampleAlert");
   alertBox.style.display = "none";
@@ -238,7 +164,6 @@ document.addEventListener("astro:page-load", () => {
         cached = false;
       } else {
         response = JSON.parse(library_data);
-        // console.log("JSON parse successfully!");
         cached = true;
       }
     } catch (err) {
@@ -264,7 +189,6 @@ document.addEventListener("astro:page-load", () => {
     fetch_request.setAuthToken(auth_cookie);
     send_alert("green", "Loading...", "");
     client.fetch(fetch_request, {}, (err, response) => {
-      // console.log(response);
       if (response == null) {
         console.log("Load failed");
         send_alert("red", "Loading Failed", "Please reload");
@@ -345,9 +269,9 @@ document.addEventListener("astro:page-load", () => {
       sorting.push(g);
     }
     sorted = sorting.sort(function (a, b) {
-      return new Date(b.date) - new Date(a.date);
+      return b - a;
     });
-    sorted = sorted.reverse();
+    // sorted = sorted.reverse();
     let last_date = "";
     for (var c of sorted) {
       let dater = c.toJSON().split("-");
