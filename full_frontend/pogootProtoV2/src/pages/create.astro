@@ -48,6 +48,14 @@ import Layout from "../layouts/Layout.astro";
       <div id="created" class="notecardContainer" style="display:none"></div>
       <div id="notecardHeaderLeft" class="notecardHeaderLeft">
         <input class="orderNumber" value="1" disabled />
+        <div class="move_up_button_container">
+          <mdui-button-icon icon="arrow_drop_up" class="move_up_button"
+          ></mdui-button-icon>
+        </div>
+        <div class="move_down_button_container">
+          <mdui-button-icon icon="arrow_drop_down" class="move_down_button"
+          ></mdui-button-icon>
+        </div>
       </div>
       <div
         id="notecardHeaderRight"
@@ -70,6 +78,15 @@ import Layout from "../layouts/Layout.astro";
   #notecardHeaderRight {
     display: none;
   }
+  .move_up_button,
+  .move_down_button {
+    color: var(--blue);
+  }
+  /* #move_up_button[disabled], */
+  /* #move_down_button[disabled] { */
+  /*   color: gray; */
+  /* } */
+
   .createTitle {
     display: grid;
     grid-template-columns: 50% 50%;
@@ -165,7 +182,7 @@ import Layout from "../layouts/Layout.astro";
   }
   .orderNumber {
     width: 40px;
-    height: 20px;
+    height: 30px;
     font-size: 25px;
     text-align: center;
     border: none;
