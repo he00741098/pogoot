@@ -414,7 +414,7 @@ pub async fn update_notecard_data(
         )
     } else if strings.len() == 2 {
         format!(
-            "{} {}=?, {}=? {}",
+            "{} CREATION_DATE=?, {}=?, {}=? {}",
             query, conversion[strings[0].0], conversion[strings[1].0], ending
         )
     } else {
