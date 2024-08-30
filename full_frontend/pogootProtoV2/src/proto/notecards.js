@@ -81,6 +81,12 @@ document.addEventListener("astro:page-load", function () {
 
   let learn_button = document.getElementById("learn");
   learn_button.addEventListener("click", function(e){
+
+    if(data.length<5){
+      send_alert("red", "Not Available", "Learn mode is not available for sets of less than 5 cards");
+      return;
+    }
+
     document.getElementById("notecardView").style.display = "none";
     document.getElementById("slot_container").style.marginTop = "0px";
     document.getElementById("footer-line").style.display = "none";
@@ -327,7 +333,9 @@ document.addEventListener("astro:page-load", function () {
       show_multiple_choice();
     }
   }
-  show_next_card();
+  if(data.length>4){
+    show_next_card();
+  }
 
 
 
