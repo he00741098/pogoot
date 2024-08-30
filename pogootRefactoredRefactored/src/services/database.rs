@@ -406,20 +406,22 @@ pub async fn update_notecard_data(
         .map(|x| (x.0, x.1.unwrap()))
         .collect::<Vec<(usize, String)>>();
     let query = if strings.is_empty() {
-        format!("{} CREATION_DATE=? {}", query, ending)
+        format!("{} CREATION_DATE=?,SETLEN=? {}", query, ending)
     } else if strings.len() == 1 {
         format!(
-            "{} CREATION_DATE=?,{}=? {}",
+            "{} CREATION_DATE=?,SETLEN=?,{}=? {}",
             query, conversion[strings[0].0], ending
         )
     } else if strings.len() == 2 {
         format!(
-            "{} CREATION_DATE=?, {}=?, {}=? {}",
+            "{} CREATION_DATE=?,SETLEN=?, {}=?, {}=? {}",
             query, conversion[strings[0].0], conversion[strings[1].0], ending
         )
     } else {
-        let mut temp_formatter =
-            format!("{} CREATION_DATE=?,{}=?,", query, conversion[strings[0].0]);
+        let mut temp_formatter = format!(
+            "{} CREATION_DATE=?,SETLEN=?,{}=?,",
+            query, conversion[strings[0].0]
+        );
         for b in 1..strings.len() - 1 {
             temp_formatter = format!("{}{}=?,", temp_formatter, conversion[strings[b].0]);
         }
@@ -431,10 +433,17 @@ pub async fn update_notecard_data(
         );
         temp_formatter
     };
+
+    if notecards.is_none() {
+        return Ok(());
+    }
+    let notecards = notecards.unwrap();
     let mut strings = strings.into_iter().map(|x| x.1).collect::<Vec<String>>();
     let now = chrono::Utc::now();
     let now = now.to_string();
     strings.insert(0, now);
+    strings.insert(1, notecards.notecards.len().to_string());
+    strings.push(cfid.clone());
 
     println!("SQL Update Query: \n{}", query.as_str());
     println!("SQL Update Params: \n{:?}", strings);
@@ -444,12 +453,10 @@ pub async fn update_notecard_data(
         .await;
     if result.is_err() {
         return Err(());
+    } else {
+        println!("SQL succeeded in modifying {} rows", result.unwrap());
     }
 
-    if notecards.is_none() {
-        return Ok(());
-    }
-    let notecards = notecards.unwrap();
     let notes = notecards
         .notecards
         .into_iter()

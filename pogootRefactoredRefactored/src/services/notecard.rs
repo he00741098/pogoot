@@ -199,7 +199,7 @@ pub struct NotecardData {
 impl NotecardData {
     pub fn sanitize(mut self) -> Self {
         self.auth = String::with_capacity(0);
-        self.username = String::with_capacity(0);
+        // self.username = String::with_capacity(0);
         self
     }
 }
