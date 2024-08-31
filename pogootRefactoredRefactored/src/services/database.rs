@@ -384,13 +384,45 @@ pub async fn update_notecard_data(
     let tags = request.tags;
     let school = request.school;
     let cfid = request.cfid;
+    let username = request.username;
+
+    //Verify ownership and permissions
+    let verification_query = "SELECT OWNER, PERMISSIONS_JSON FROM NOTECARDS WHERE CFID=? LIMIT 1;";
+    let query_result = conn.query(verification_query, [cfid.clone()]).await;
+    if query_result.is_err() {
+        println!("VERIFICATION QUERY FAILED");
+        //TODO: Make better error handling system
+        return Err(());
+    }
+    let mut query_result = query_result.unwrap();
+    if let Ok(Some(row)) = query_result.next().await {
+        let owner = row.get::<String>(0);
+        if let Ok(o) = owner {
+            if o != username {
+                println!("Usernames Don't Match: {} vs. {}", o, username);
+                return Err(());
+            }
+        } else {
+            println!("Owner not ok...");
+            let permissions = row.get::<String>(1);
+            println!(
+                "Permissions not implemented yet...Permissions{:?}",
+                permissions
+            );
+            return Err(());
+        }
+    } else {
+        println!("Verification query yielded no results... FAILED OR RETRIEVED NOTHING");
+        return Err(());
+    }
+
     let notecard_data_json = NotecardData {
         auth: "".to_string(),
         title: title.clone().unwrap_or("No Title".to_string()),
         school: school.clone().unwrap_or("".to_string()),
         tags: tags.clone().unwrap_or("".to_string()),
         desc: description.clone().unwrap_or("".to_string()),
-        username: "".to_string(),
+        username,
     };
     let data_json = serde_json::to_string(&notecard_data_json);
 
