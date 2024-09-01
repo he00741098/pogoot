@@ -44,8 +44,29 @@ function check_boot_time(){
     });
   }
   function reset_auth(){
+    document.getElementById("account_button").icon = "account_circle";
     cookie_set("auth", "");
     send_alert("red", "Server Updated", "Suggested: reload and sign in again");
+    if(window.onloadTurnstileCallback==null){
+      window.onloadTurnstileCallback = function () {
+        window.id = turnstile.render('.captcha', {
+          sitekey: '0x4AAAAAAAg-XBCL8WUE5rPr',
+          callback: function(token) {
+            // console.log(`Challenge Success ${token}`);
+            turn = token;
+            window.turn = token;
+
+            // console.log(`Challenge Success ${turn}`);
+            // console.log("Turn3: "+window.turn);
+          },
+        });
+      };
+    }else{
+      // console.log("Turn1: "+turn);
+      turnstile.remove(window.id);
+      window.onloadTurnstileCallback();
+      // console.log("Turn2: "+turn);
+    }
   }
 
 

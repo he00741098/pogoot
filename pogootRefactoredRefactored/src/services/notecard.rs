@@ -294,7 +294,7 @@ async fn modify_set(
     mut request: NotecardModifyRequest,
 ) -> Result<(), ()> {
     let auth_token = std::mem::take(&mut request.auth_token);
-    let username = std::mem::take(&mut request.username);
+    let username = request.username.clone();
     let verified = verify_credentials(verifyer, auth_token, username).await;
 
     if verified.is_err() {
