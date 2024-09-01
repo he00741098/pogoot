@@ -403,7 +403,7 @@ pub async fn update_notecard_data(
                 return Err(());
             }
         } else {
-            println!("Owner not ok...");
+            println!("Owner not ok... :{:?}", owner);
             let permissions = row.get::<String>(1);
             println!(
                 "Permissions not implemented yet...Permissions{:?}",

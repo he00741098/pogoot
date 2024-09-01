@@ -91,8 +91,15 @@ service LoginServer{
   rpc Login(UserLoginRequest) returns (LoginResponse);
   rpc Register(UserRegisterWithEmailRequest) returns (LoginResponse);
   rpc Update(UserPasswordUpdateRequest) returns (LoginResponse);
+  rpc Boot(Empty) returns (date);
+}
+message Empty{
 
 }
+message date{
+  string utc = 1;
+}
+
 message UserRegisterWithEmailRequest{
   string email = 1;
   string password = 2;

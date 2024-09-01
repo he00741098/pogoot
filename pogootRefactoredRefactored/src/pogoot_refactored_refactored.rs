@@ -121,6 +121,15 @@ pub struct NotecardUploadResponse {
     pub id: ::prost::alloc::string::String,
 }
 #[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+pub struct Empty {}
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct Date {
+    #[prost(string, tag = "1")]
+    pub utc: ::prost::alloc::string::String,
+}
+#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct UserRegisterWithEmailRequest {
     #[prost(string, tag = "1")]
@@ -616,6 +625,30 @@ pub mod login_server_client {
             req.extensions_mut()
                 .insert(
                     GrpcMethod::new("pogootRefactoredRefactored.LoginServer", "Update"),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        pub async fn boot(
+            &mut self,
+            request: impl tonic::IntoRequest<super::Empty>,
+        ) -> std::result::Result<tonic::Response<super::Date>, tonic::Status> {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/pogootRefactoredRefactored.LoginServer/Boot",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new("pogootRefactoredRefactored.LoginServer", "Boot"),
                 );
             self.inner.unary(req, path, codec).await
         }
@@ -1371,6 +1404,10 @@ pub mod login_server_server {
             &self,
             request: tonic::Request<super::UserPasswordUpdateRequest>,
         ) -> std::result::Result<tonic::Response<super::LoginResponse>, tonic::Status>;
+        async fn boot(
+            &self,
+            request: tonic::Request<super::Empty>,
+        ) -> std::result::Result<tonic::Response<super::Date>, tonic::Status>;
     }
     /// User stuff
     #[derive(Debug)]
@@ -1569,6 +1606,49 @@ pub mod login_server_server {
                     let inner = self.inner.clone();
                     let fut = async move {
                         let method = UpdateSvc(inner);
+                        let codec = tonic::codec::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/pogootRefactoredRefactored.LoginServer/Boot" => {
+                    #[allow(non_camel_case_types)]
+                    struct BootSvc<T: LoginServer>(pub Arc<T>);
+                    impl<T: LoginServer> tonic::server::UnaryService<super::Empty>
+                    for BootSvc<T> {
+                        type Response = super::Date;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::Empty>,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                <T as LoginServer>::boot(&inner, request).await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let method = BootSvc(inner);
                         let codec = tonic::codec::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
                             .apply_compression_config(

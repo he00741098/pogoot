@@ -1,4 +1,55 @@
 document.addEventListener("astro:page-load", () => {
+
+  const {
+    LoginResponse,
+    UserLoginRequest,
+    UserPasswordUpdateRequest,
+    UserRegisterWithEmailRequest,
+    Empty,
+    date
+  } = require("./pogoots_pb.js");
+  const {
+    LoginServerClient,
+  } = require("./pogoots_grpc_web_pb.js");
+
+  if(window.lastChecked == null){
+    window.lastChecked = new Date();
+    check_boot_time();
+  }else if(new Date() - window.lastChecked>300000){
+    window.lastChecked = new Date();
+    check_boot_time();
+  }
+
+function check_boot_time(){
+    let client = new LoginServerClient("https://bigpogoot.sweep.rs");
+    let req = new Empty();
+    client.boot(req, {}, (err, response) => {
+      console.log(response);
+      let date = response.array[0];
+      let sign_in_date = localStorage.getItem("signInDate");
+      if(sign_in_date==null){
+        reset_auth()
+        return;
+      }else{
+        sign_in_date = new Date(sign_in_date);
+        date = new Date(date);
+        if(date-sign_in_date>0){
+          //the server date is newer than the sign in date, auth is reset
+          reset_auth()
+          return;
+        }else{
+          //valid
+        }
+      }
+    });
+  }
+  function reset_auth(){
+    cookie_set("auth", "");
+    send_alert("red", "Server Updated", "Suggested: reload and sign in again");
+  }
+
+
+
   // console.log(window.turnstile);
   var turn = null;
   let loginTime = cookie_get("auth");
@@ -31,15 +82,6 @@ document.addEventListener("astro:page-load", () => {
 
   var alertBox = document.getElementById("exampleAlert");
   alertBox.style.display = "none";
-  const {
-    LoginResponse,
-    UserLoginRequest,
-    UserPasswordUpdateRequest,
-    UserRegisterWithEmailRequest,
-  } = require("./pogoots_pb.js");
-  const {
-    LoginServerClient,
-  } = require("./pogoots_grpc_web_pb.js");
 
   let register_button = document.getElementById("RegisterButton");
   let login_button = document.getElementById("LoginButton");
@@ -196,6 +238,10 @@ document.addEventListener("astro:page-load", () => {
         localStorage.setItem("library_cache","");
         cookie_set("auth", response.array[1]);
         cookie_set("username", email);
+        let now = new Date();
+        localStorage.setItem("signInDate", now.toUTCString());
+        window.lastChecked = new Date();
+
         if(!document.URL.includes("create")){
           send_alert("green", "Login Success", "Redirecting...");
           redirect();
@@ -235,6 +281,10 @@ document.addEventListener("astro:page-load", () => {
         cookie_set("auth", response.array[1]);
         localStorage.setItem("updated","true");
         cookie_set("username", email);
+        let now = new Date();
+        localStorage.setItem("signInDate", now.toUTCString());
+        window.lastChecked = new Date();
+
         if(!document.URL.includes("create")){
           redirect();
           send_alert("green", "Login Success", "Redirecting...");

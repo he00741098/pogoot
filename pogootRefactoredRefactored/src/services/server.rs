@@ -58,8 +58,10 @@ pub async fn start_serving(mut secrets: AwsSecrets) {
     tokio::spawn(async move {
         user_manager.proccess_user_auth(lrx).await;
     });
+    let boot_time = chrono::Utc::now();
     let login_server = LoginService {
         send_channel: ltx.clone(),
+        bootTime: boot_time.to_string(),
     };
     let login_server = LoginServerServer::new(login_server)
         .send_compressed(tonic::codec::CompressionEncoding::Zstd)
@@ -118,6 +120,7 @@ pub enum LoginDBRequest {
 #[derive(Debug)]
 struct LoginService {
     pub send_channel: mpsc::Sender<LoginDBRequest>,
+    pub bootTime: String,
 }
 
 #[derive(Debug)]
@@ -221,6 +224,12 @@ impl NotecardService for NotecardServer {
 
 #[tonic::async_trait]
 impl LoginServer for LoginService {
+    async fn boot(&self, _: Request<Empty>) -> Result<Response<Date>, Status> {
+        Ok(Response::new(Date {
+            utc: self.bootTime.clone(),
+        }))
+    }
+
     // rpc Login(UserLogin) returns (LoginResponse);
     // rpc Register(UserRegisterWithEmail) returns (LoginResponse);
     //rpc Update(UserPasswordUpdate) returns (LoginResponse);
