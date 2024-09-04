@@ -12,7 +12,7 @@ document.addEventListener("astro:page-load", () => {
     LoginServerClient,
   } = require("./pogoots_grpc_web_pb.js");
 
-  if(window.lastChecked == null){
+  if(window.lastChecked == null && cookie_get("auth")!=null&&cookie_get("auth").length>2){
     window.lastChecked = new Date();
     check_boot_time();
   }else if(new Date() - window.lastChecked>300000){
