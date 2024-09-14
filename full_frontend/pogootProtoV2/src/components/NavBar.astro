@@ -18,9 +18,9 @@
     <mdui-navigation-rail-item icon="bookmarks" id="library_button"
       >Library</mdui-navigation-rail-item
     >
-    <mdui-navigation-rail-item icon="auto_awesome" id="features_button"
-      >Features</mdui-navigation-rail-item
-    >
+    <!-- <mdui-navigation-rail-item icon="auto_awesome" id="features_button" -->
+    <!--   >Features</mdui-navigation-rail-item -->
+    <!-- > -->
     <mdui-navigation-rail-item icon="add" id="create_button"
       >Create</mdui-navigation-rail-item
     >
@@ -69,13 +69,13 @@
       prefetch("/create");
     });
 
-    const features_btn = document.getElementById("features_button");
-    features_btn.addEventListener("click", () => {
-      navigate("/features");
-    });
-    features_btn.addEventListener("mouseover", () => {
-      prefetch("/features");
-    });
+    // const features_btn = document.getElementById("features_button");
+    // features_btn.addEventListener("click", () => {
+    //   navigate("/features");
+    // });
+    // features_btn.addEventListener("mouseover", () => {
+    //   prefetch("/features");
+    // });
     const account_btn = document.getElementById("account_button");
     account_btn.addEventListener("click", () => {
       let loginTime = cookie_get("auth");
