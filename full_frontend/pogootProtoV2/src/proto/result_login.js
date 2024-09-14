@@ -13,7 +13,7 @@ document.addEventListener("astro:page-load", () => {
     LoginServerClient,
   } = require("./pogoots_grpc_web_pb.js");
 
-  if(window.lastChecked == null){
+  if(window.lastChecked == null && cookie_get("auth")!=null&&cookie_get("auth").length>2){
     window.lastChecked = new Date();
     check_boot_time();
   }else if(new Date() - window.lastChecked>300000){
@@ -268,6 +268,7 @@ function check_boot_time(){
           send_alert("green", "Login Success", "Redirecting...");
           redirect();
         }else{
+          document.getElementById("login_popup").close();
           send_alert("green", "Login Success", "");
         }
 
@@ -311,6 +312,7 @@ function check_boot_time(){
           redirect();
           send_alert("green", "Login Success", "Redirecting...");
         }else{
+          document.getElementById("login_popup").close();
           send_alert("green", "Login Success", "");
         }
       } else {
@@ -326,70 +328,6 @@ function check_boot_time(){
   login_button.addEventListener("click", login_function);
   document.getElementById("regform").onsubmit = register_function;
   document.getElementById("logform").onsubmit = login_function;
-
-  function cookie_set(key, value) {
-    var date = new Date();
-    date.setTime(date.getTime() + 3 * 24 * 60 * 60 * 1000);
-    let cookies = document.cookie;
-    let split = cookies.split(";");
-    let validCookies = false;
-    for (var cookie of split) {
-      if (cookie.trim().split("=")[0] == "validCookies") {
-        validCookies = true;
-        break;
-      }
-    }
-
-    if (!validCookies) {
-      console.log("no cookies");
-      document.cookie =
-        "auth=; SameSite=None; Secure; expires=" +
-        date.toUTCString() +
-        "; path=/";
-      document.cookie =
-        "username=; SameSite=None; Secure; expires=" +
-        date.toUTCString() +
-        "; path=/";
-      document.cookie =
-        "validCookies=; SameSite=None; Secure; expires=" +
-        date.toUTCString() +
-        "; path=/";
-    }
-    cookies = document.cookie;
-    document.cookie =
-      key +
-      "=" +
-      value +
-      "; SameSite=None; Secure; expires=" +
-      date.toUTCString() +
-      "; path=/";
-  }
-
-  function cookie_get(key) {
-    let cookies = document.cookie;
-    let split = cookies.split(";");
-    for (var cookie of split) {
-      let cook = cookie.trim().split("=");
-      if (cook[0] == key) {
-        return cook[1];
-      }
-    }
-  }
-
-  function send_alert(color, header, text) {
-    var alertBox = document.getElementById("exampleAlert");
-    var alerts = document.getElementById("Alerts");
-    let box = alertBox.cloneNode(true);
-    box.style.outline = color + " solid 3px";
-    console.log(box.childNodes);
-    box.childNodes[1].innerText = header;
-    box.childNodes[3].innerText = text;
-    box.style.display = "grid";
-    alerts.appendChild(box);
-    setTimeout(() => {
-      alerts.removeChild(box);
-    }, 5000);
-  }
 
 
 });

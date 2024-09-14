@@ -2,8 +2,6 @@
 export const prerender = false;
 import Layout from "../../layouts/Layout.astro";
 import Notecard from "../../components/Notecard.astro";
-const { env } = Astro.locals.runtime;
-const { id } = Astro.params;
 import * as fzstd from "fzstd";
 
 let data = "";
@@ -12,6 +10,9 @@ let debug_data = "";
 let len = 0;
 console.log("Trying...");
 try {
+  const { env } = Astro.locals.runtime;
+  const { id } = Astro.params;
+
   console.log("Getting...");
   data = await env.NOTECARDBUCKET.get("pogootdata/" + id);
   if (data == null) {
@@ -170,7 +171,7 @@ let other_counter = 1;
     </div>
     <div id="rawData">{JSON.stringify(data)}</div>
     <div id="tags">{other_data.tags}</div>
-    <div id = "school">{other_data.school}</div>
+    <div id="school">{other_data.school}</div>
   </div>
 
   <style>
@@ -313,8 +314,8 @@ let other_counter = 1;
     }
     .actionButton {
       border-radius: var(--mdui-shape-corner-medium);
-      margin-top:10px
-      height: 40px;
+      /* margin-top: 10px; */
+      /* height: 40px; */
     }
     :global(#footer) {
       /* position: relative; */
@@ -390,7 +391,9 @@ let other_counter = 1;
       left: 25%;
       width: calc(50% - 20px);
     }
-    #rawData, #tags, #school {
+    #rawData,
+    #tags,
+    #school {
       display: none;
     }
     .svg {

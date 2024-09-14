@@ -23,8 +23,8 @@ document.addEventListener("astro:page-load", () => {
   notecardHeaderRight.style.display = "none";
   var creates = document.getElementById("create");
   var alertBox = document.getElementById("exampleAlert");
-  var titleInput = document.getElementById("titleInput");
   alertBox.style.display = "none";
+  var titleInput = document.getElementById("titleInput");
   var alerts = document.getElementById("Alerts");
   var front_input = document.getElementById("createFrontInput");
   var back_input = document.getElementById("createBackInput");
@@ -229,8 +229,9 @@ document.addEventListener("astro:page-load", () => {
       send_alert("red", "Not Enough Content", "Please add at least 5 cards");
       return;
     }
-    if (cookie_get("auth").length < 2 || cookie_get("username").length < 2) {
+    if (cookie_get("auth")==null||cookie_get("auth").length < 2 || cookie_get("username").length < 2) {
       send_alert("red", "Login", "Please Login before uploading");
+      return;
     }
 
     var list = [];
