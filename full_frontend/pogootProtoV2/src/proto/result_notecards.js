@@ -843,7 +843,7 @@ document.addEventListener("astro:page-load", function () {
         }
         let answer = document.getElementById("shortAnswerInput").value;
         let correct = false;
-        for(var b of progressData[0].back){
+        for(var b of progressData[0].front){
           if (answer == b){
             correct = true;
           }
@@ -856,10 +856,10 @@ document.addEventListener("astro:page-load", function () {
           progressData[0].wrongs++;
           document.getElementById("shortAnswerInput").setCustomValidity("Incorrect");
           let reveal = "";
-          if(progressData[0].back.length>1){
-            document.getElementById("correctAnswer").innerText = "Answers:\n- "+progressData[0].back.join(" or\n- ");
+          if(progressData[0].front.length>1){
+            document.getElementById("correctAnswer").innerText = "Answers:\n- "+progressData[0].front.join(" or\n- ");
           }else{
-            document.getElementById("correctAnswer").innerText = "Answer:\n"+progressData[0].back[0];
+            document.getElementById("correctAnswer").innerText = "Answer:\n"+progressData[0].front[0];
           }
           document.getElementById("correctAnswer").style.display = "block";
         }
@@ -873,7 +873,7 @@ document.addEventListener("astro:page-load", function () {
       document.getElementById("answerButton").onclick = function(e){
         let answer = document.getElementById("shortAnswerInput").value;
         let correct = false;
-        for(var b of progressData[0].back){
+        for(var b of progressData[0].front){
           if (answer == b){
             correct = true;
           }
@@ -886,10 +886,10 @@ document.addEventListener("astro:page-load", function () {
           progressData[0].wrongs++;
           document.getElementById("shortAnswerInput").setCustomValidity("Incorrect");
           let reveal = "";
-          if(progressData[0].back.length>1){
-            document.getElementById("correctAnswer").innerText = "Answers:\n- "+progressData[0].back.join(" or\n- ");
+          if(progressData[0].front.length>1){
+            document.getElementById("correctAnswer").innerText = "Answers:\n- "+progressData[0].front.join(" or\n- ");
           }else{
-            document.getElementById("correctAnswer").innerText = "Answer:\n"+progressData[0].back[0];
+            document.getElementById("correctAnswer").innerText = "Answer:\n"+progressData[0].front[0];
           }
           document.getElementById("correctAnswer").style.display = "block";
         }
