@@ -834,7 +834,9 @@ document.addEventListener("astro:page-load", function () {
     let hinted = false;
     progressData = sort_progress_data(progressData, current_turn);
     progressData[0].lastTurn = current_turn;
+    //SHORT ANSWER
     if((progressData[0].rights+progressData[0].wrongs>1 && progressData[0].ratio > 0.5)){
+      //THE BACK IS THE ENGLISH PORTION
     questionText.innerText = progressData[0].back.join("\n");
       show_short_answer();
       document.getElementById("shortAnswerInput").onkeyup = function(e){
@@ -843,6 +845,7 @@ document.addEventListener("astro:page-load", function () {
         }
         let answer = document.getElementById("shortAnswerInput").value;
         let correct = false;
+        //THE FRONT IS THE SPANISH PART
         for(var b of progressData[0].front){
           if (answer == b){
             correct = true;
@@ -910,6 +913,7 @@ document.addEventListener("astro:page-load", function () {
       }
 
     }else{
+      //MULTIPLE CHOICE OPTIONS
 
     questionText.innerText = progressData[0].front.join("\n");
       // document.getElementById("shortAnswerInput").onkeyup = function(e){}
