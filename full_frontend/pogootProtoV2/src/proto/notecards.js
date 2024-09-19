@@ -93,7 +93,9 @@ document.addEventListener("astro:page-load", function () {
     document.getElementById("footer").style.display = "none";
     document.getElementById("learnView").style.display = "grid";
   });
+
   let close_button = document.getElementById("learnCloseButton");
+
   close_button.addEventListener("click", function(e){
     document.getElementById("notecardView").style.display = "block";
     document.getElementById("slot_container").style.marginTop = "150px";
@@ -175,6 +177,9 @@ document.addEventListener("astro:page-load", function () {
     }
     return progressData
   }
+  //SORT PROGRESS DATA END
+
+
   let saves = 0;
   function show_next_card(){
     current_turn++;
@@ -192,7 +197,7 @@ document.addEventListener("astro:page-load", function () {
     progressData = sort_progress_data(progressData, current_turn);
     progressData[0].lastTurn = current_turn;
     if((progressData[0].rights+progressData[0].wrongs>1 && progressData[0].ratio > 0.5)){
-    questionText.innerText = progressData[0].back.join("\n");
+      questionText.innerText = progressData[0].back.join("\n");
       show_short_answer();
       document.getElementById("shortAnswerInput").onkeyup = function(e){
         if (e.key!="Enter"){
@@ -268,7 +273,7 @@ document.addEventListener("astro:page-load", function () {
 
     }else{
 
-    questionText.innerText = progressData[0].front.join("\n");
+      questionText.innerText = progressData[0].front.join("\n");
       // document.getElementById("shortAnswerInput").onkeyup = function(e){}
 
       let randoms = generate_unique_randoms(progressData.length, 1, 3);
