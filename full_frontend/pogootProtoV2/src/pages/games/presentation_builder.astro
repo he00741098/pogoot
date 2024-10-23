@@ -1,0 +1,302 @@
+---
+
+---
+
+<!doctype html>
+<html>
+  <head
+    ><meta http-equiv="Content-Type" content="text/html;charset=UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Presentation Builder</title>
+    <link rel="preload" href="/images/presentation_1.png" as="image" />
+    <link rel="preload" href="/images/boeing.png" as="image" />
+    <link rel="preload" href="/images/map2.png" as="image" />
+    <link rel="preload" href="/images/map3.png" as="image" />
+    <link rel="preload" href="/images/cabo.svg" as="image" />
+  </head>
+  <body>
+    <main id="main">
+      <canvas id="presentationCanvas"> </canvas>
+    </main>
+    <style>
+      html {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        width: 100%;
+      }
+      body {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        width: 100%;
+      }
+      main {
+        background: lightblue;
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        width: 100%;
+        background-repeat: no-repeat;
+        background-size: cover;
+      }
+      canvas {
+        position: absolute;
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+
+        /* background-color: orange; */
+      }
+    </style>
+    <script is:inline>
+      console.log(window.innerWidth);
+      console.log(document.querySelector("html").clientHeight);
+      let percent = 0;
+      let slide = 0;
+      let slides = [intro_slide, airplane_slide, slide_3, slide_4];
+      let image = new Image();
+      var interval;
+      image.src = "/images/boeing.png";
+      // image.width = image.width * 0.2;
+      // image.width = image.width * 0.2;
+      console.log(image);
+      let canvas = document.getElementById("presentationCanvas");
+      let canon_objects = [];
+
+      function resize_canvas() {
+        // console.log(
+        //   "resizing: " + window.innerWidth + ", " + canvas.clientWidth,
+        // );
+        // canvas.clientWidth = window.innerWidth;
+        // canvas.clientHeight = (window.innerWidth * 9) / 16;
+        //
+        // canvas.width = window.innerWidth;
+        // canvas.height = (window.innerWidth * 9) / 16;
+        //rescale canvas
+        if (window.innerWidth / 16 < window.innerHeight / 9) {
+          document.getElementById("main").style.width =
+            window.innerWidth + "px";
+          document.getElementById("main").style.height =
+            (window.innerWidth * 9) / 16 + "px";
+
+          canvas.width = window.innerWidth;
+          canvas.height = (window.innerWidth * 9) / 16;
+          canvas.style.width = window.innerWidth + "px";
+          canvas.style.height = (window.innerWidth * 9) / 16 + "px";
+        } else {
+          document.getElementById("main").style.width =
+            (window.innerHeight * 16) / 9 + "px";
+          document.getElementById("main").style.height =
+            window.innerHeight + "px";
+
+          canvas.width = (window.innerHeight * 16) / 9;
+          canvas.height = window.innerHeight;
+          canvas.style.width = (window.innerHeight * 16) / 9 + "px";
+          canvas.style.height = window.innerHeight + "px";
+        }
+      }
+
+      resize_canvas();
+      window.onresize = (e) => {
+        resize_canvas();
+      };
+
+      //establish canvas
+      let ctx = canvas.getContext("2d");
+
+      //make sure canvas is correctly adjusted
+      //scale to 16:9 aspect ratio
+      //Make plotting system
+      //laditude -> divide y by 180
+      //longisted -> divide x by 320
+      //grid tool
+      // for (var j = 0; j < 180; j++) {
+      //   ctx.beginPath();
+      //   ctx.moveTo(0, (j * canvas.height) / 180);
+      //   ctx.lineTo(canvas.width, (j * canvas.height) / 180);
+      //   ctx.stroke();
+      // }
+      // for (var i = 0; i < 320; i++) {
+      //   ctx.beginPath();
+      //   ctx.moveTo((i * canvas.width) / 320, 0);
+      //   ctx.lineTo((i * canvas.width) / 320, canvas.height);
+      //   ctx.stroke();
+      // }
+
+      function draw_plane_line() {
+        ctx.beginPath();
+        ctx.lineWidth = (10 * canvas.width) / 2144;
+        let array = [];
+
+        for (var i = 1; i <= 7; i++) {
+          array.push(((10 * canvas.width) / 2144) * i);
+          array.push((30 * canvas.width) / 2144);
+        }
+        array.pop();
+        let reverse = [...array].reverse();
+        array.push((30 * canvas.width) / 2144);
+        array = array.concat(reverse);
+        ctx.setLineDash(array);
+        ctx.moveTo(
+          0.1783893985728848 * canvas.width,
+          0.11322463768115942 * canvas.height,
+        );
+        ctx.quadraticCurveTo(
+          0.3721202854230377 * canvas.width,
+          0.3416014492753623 * canvas.height,
+          0.34964322120285424 * canvas.width,
+          0.782608695652174 * canvas.height,
+        );
+        ctx.stroke();
+      }
+      function draw_plane(cx, cy, percent) {
+        ctx.drawImage(
+          image,
+          cx * canvas.width,
+          cy * canvas.height,
+          // * (1 / (5 * Math.abs(0.5 - percent)))
+          // * (1 / (5 * Math.abs(0.5 - percent)))
+          (82 * canvas.width) / 1376,
+          (57 * canvas.height) / 774,
+        );
+      }
+
+      function airplane_slide() {
+        document.getElementById("main").style.backgroundImage =
+          "url('/images/presentation_1.png')";
+
+        interval = setInterval(() => {
+          // console.log("running");
+          percent += 0.005;
+          requestAnimationFrame(animate_plane);
+          if (percent >= 1) {
+            clearInterval(interval);
+            console.log("clear");
+          }
+        }, 20);
+      }
+
+      function animate_plane() {
+        if (percent >= 1) {
+          percent = 1;
+        }
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        draw_plane_line();
+        // draw_plane(0.1483893985728848, 0.0542463768115942);
+        let initialX = 0.1483893985728848;
+        let initialY = 0.0542463768115942;
+        let controlX = 0.3421202854230377;
+        let controlY = 0.3416014492753623;
+        let finalX = 0.31968085106382976;
+        let finalY = 0.7304328922495274;
+        percent += 0.005;
+        var x =
+          Math.pow(1 - percent, 2) * initialX +
+          2 * (1 - percent) * percent * controlX +
+          Math.pow(percent, 2) * finalX;
+        var y =
+          Math.pow(1 - percent, 2) * initialY +
+          2 * (1 - percent) * percent * controlY +
+          Math.pow(percent, 2) * finalY;
+        draw_plane(x, y, percent);
+      }
+      function intro_slide() {
+        document.getElementById("main").style.backgroundImage =
+          "url('/images/cabo.svg')";
+      }
+      function slide_3() {
+        document.getElementById("main").style.backgroundImage =
+          "url('/images/map2.png')";
+      }
+      function draw_car() {}
+      function slide_4() {
+        document.getElementById("main").style.backgroundImage =
+          "url('/images/map3.png')";
+        let car_path = [
+          { cx: 0.3468085106382979, cy: 0.0444234404536862 },
+          { cx: 0.3515957446808511, cy: 0.055765595463137994 },
+          { cx: 0.35638297872340424, cy: 0.07655954631379962 },
+          { cx: 0.3617021276595745, cy: 0.09829867674858223 },
+          { cx: 0.36648936170212765, cy: 0.11720226843100189 },
+          { cx: 0.37127659574468086, cy: 0.1446124763705104 },
+          { cx: 0.375, cy: 0.15879017013232513 },
+          { cx: 0.3781914893617021, cy: 0.18525519848771266 },
+          { cx: 0.38138297872340426, cy: 0.1994328922495274 },
+          { cx: 0.38351063829787235, cy: 0.21455576559546313 },
+          { cx: 0.3861702127659574, cy: 0.23062381852551986 },
+          { cx: 0.3882978723404255, cy: 0.24763705103969755 },
+          { cx: 0.39095744680851063, cy: 0.2580340264650284 },
+          { cx: 0.39361702127659576, cy: 0.2731568998109641 },
+          { cx: 0.39574468085106385, cy: 0.29111531190926276 },
+          { cx: 0.39787234042553193, cy: 0.30151228733459357 },
+          { cx: 0.4, cy: 0.32136105860113423 },
+          { cx: 0.4021276595744681, cy: 0.33459357277882795 },
+          { cx: 0.40691489361702127, cy: 0.35822306238185253 },
+          { cx: 0.4127659574468085, cy: 0.3733459357277883 },
+          { cx: 0.41329787234042553, cy: 0.39224952741020797 },
+          { cx: 0.4148936170212766, cy: 0.4054820415879017 },
+          { cx: 0.41595744680851066, cy: 0.42533081285444235 },
+          { cx: 0.41702127659574467, cy: 0.44612476370510395 },
+          { cx: 0.41914893617021276, cy: 0.45935727788279773 },
+          { cx: 0.42021276595744683, cy: 0.47542533081285443 },
+          { cx: 0.4223404255319149, cy: 0.4962192816635161 },
+          { cx: 0.425531914893617, cy: 0.5094517958412098 },
+          { cx: 0.4297872340425532, cy: 0.5245746691871456 },
+          { cx: 0.43457446808510636, cy: 0.5434782608695652 },
+          { cx: 0.4377659574468085, cy: 0.5500945179584121 },
+          { cx: 0.4441489361702128, cy: 0.5708884688090737 },
+          { cx: 0.44840425531914896, cy: 0.5812854442344045 },
+          { cx: 0.45585106382978724, cy: 0.6001890359168242 },
+          { cx: 0.45904255319148934, cy: 0.6096408317580341 },
+          { cx: 0.4654255319148936, cy: 0.6323251417769377 },
+          { cx: 0.475, cy: 0.6540642722117203 },
+          { cx: 0.4803191489361702, cy: 0.6710775047258979 },
+          { cx: 0.48723404255319147, cy: 0.6862003780718336 },
+          { cx: 0.4920212765957447, cy: 0.7013232514177694 },
+          { cx: 0.4952127659574468, cy: 0.7088846880907372 },
+          { cx: 0.5010638297872341, cy: 0.7079395085066162 },
+          { cx: 0.502127659574468, cy: 0.7136105860113422 },
+          { cx: 0.5042553191489362, cy: 0.718336483931947 },
+          { cx: 0.5063829787234042, cy: 0.724007561436673 },
+        ];
+      }
+
+      //after plane proceed to next slide
+      function next_slide() {
+        clearInterval(interval);
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        slides[slide++]();
+      }
+      next_slide();
+      window.addEventListener("keyup", (e) => {
+        if (e.key == "ArrowRight" || e.key == " ") {
+          next_slide();
+        } else if (e.key == "ArrowLeft") {
+          slide -= 2;
+          next_slide();
+        } else if (e.key == "p") {
+          console.log(JSON.stringify(clicks));
+        }
+      });
+
+      let clicks = [];
+      function get_click(canvas, e) {
+        let rect = canvas.getBoundingClientRect();
+        let x = e.clientX - rect.left;
+        let y = e.clientY - rect.top;
+        // ctx.fillRect(x, y, 100, 100);
+        console.log("Coordinate x: " + x, "Coordinate y: " + y);
+        console.log(
+          "Canon x: " + x / canvas.width,
+          "Canon y: " + y / canvas.height,
+        );
+        clicks.push({ cx: x / canvas.width, cy: y / canvas.height });
+      }
+      canvas.addEventListener("mousedown", function (e) {
+        get_click(canvas, e);
+      });
+    </script>
+  </body>
+</html>
