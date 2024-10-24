@@ -6,5 +6,8 @@ import cloudflare from "@astrojs/cloudflare";
 export default defineConfig({
   output: "hybrid",
   adapter: cloudflare({imageService:"compile"}),
-  prefetch:true
+  prefetch:true,
+  devToolbar: {
+    enabled: false
+  }
 });

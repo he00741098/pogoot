@@ -1,0 +1,1231 @@
+---
+
+---
+
+<!doctype html>
+<html>
+  <head
+    ><meta http-equiv="Content-Type" content="text/html;charset=UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Presentation Builder</title>
+    <link rel="preload" href="/images/presentation_1.png" as="image" />
+    <link rel="preload" href="/images/boeing.png" as="image" />
+    <link rel="preload" href="/images/map2.png" as="image" />
+    <link rel="preload" href="/images/map3.png" as="image" />
+    <link rel="preload" href="/images/map4.png" as="image" />
+    <link rel="preload" href="/images/map45.png" as="image" />
+    <link rel="preload" href="/images/map5.png" as="image" />
+    <link rel="preload" href="/images/map6.png" as="image" />
+    <link rel="preload" href="/images/map7.png" as="image" />
+    <link rel="preload" href="/images/map8.png" as="image" />
+    <link rel="preload" href="/images/map9.png" as="image" />
+    <link rel="preload" href="/images/cabo.svg" as="image" />
+    <link rel="preload" href="/images/cabo_pictures.svg" as="image" />
+    <link rel="preload" href="/images/dia1.svg" as="image" />
+    <link rel="preload" href="/images/dia2.svg" as="image" />
+    <link rel="preload" href="/images/dia3.svg" as="image" />
+    <link rel="preload" href="/images/taxi.png" as="image" />
+    <link rel="preload" href="/images/plaza_paraiso.jpg" as="image" />
+    <link rel="preload" href="/images/arc.png" as="image" />
+    <link rel="preload" href="/images/divorcebeach.png" as="image" />
+    <link rel="preload" href="/images/loversbeach.png" as="image" />
+    <link rel="preload" href="/images/mountsolmar.png" as="image" />
+    <link rel="preload" href="/images/golf.svg" as="image" />
+    <link rel="preload" href="/images/palmilla.svg" as="image" />
+    <link rel="preload" href="/images/plazamijares.svg" as="image" />
+    <link rel="preload" href="/images/art.svg" as="image" />
+    <link rel="preload" href="/images/end.svg" as="image" />
+  </head>
+  <body>
+    <main id="main">
+      <canvas id="presentationCanvas"> </canvas>
+    </main>
+    <style>
+      html {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        width: 100%;
+      }
+      body {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        width: 100%;
+      }
+      main {
+        background: lightblue;
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        width: 100%;
+        background-repeat: no-repeat;
+        background-size: cover;
+      }
+      canvas {
+        position: absolute;
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+
+        /* background-color: orange; */
+      }
+    </style>
+    <script is:inline>
+      console.log(window.innerWidth);
+      console.log(document.querySelector("html").clientHeight);
+      let percent = 0;
+      let slide = 0;
+      let slides = [
+        intro_slide,
+        intro_slide_2,
+        day1,
+        airplane_slide,
+        slide_3,
+        slide_4,
+        plaza_paraiso,
+        slide_5,
+        day2,
+        go_to_beach,
+        got_to_beach_2,
+        lovers,
+        go_to_arch,
+        arc,
+        go_to_divorce,
+        divorce,
+        go_to_mount,
+        mount,
+        day3,
+        drive_to_golf,
+        golf,
+        drive_to_palmilla,
+        palmilla,
+        drive_to_art,
+        art,
+        go_to_mijares,
+        plazamijares,
+        end,
+      ];
+      let image = new Image();
+      var interval;
+      var t = 0;
+      var carInterval;
+      var walkInterval;
+
+      image.src = "/images/boeing.png";
+
+      let car_image = new Image();
+      car_image.src = "/images/taxi.png";
+      let walk_image = new Image();
+      walk_image.src = "/images/walk.png";
+
+      // image.width = image.width * 0.2;
+      // image.width = image.width * 0.2;
+      console.log(image);
+      let canvas = document.getElementById("presentationCanvas");
+      let canon_objects = [];
+
+      function resize_canvas() {
+        // console.log(
+        //   "resizing: " + window.innerWidth + ", " + canvas.clientWidth,
+        // );
+        // canvas.clientWidth = window.innerWidth;
+        // canvas.clientHeight = (window.innerWidth * 9) / 16;
+        //
+        // canvas.width = window.innerWidth;
+        // canvas.height = (window.innerWidth * 9) / 16;
+        //rescale canvas
+        if (window.innerWidth / 16 < window.innerHeight / 9) {
+          document.getElementById("main").style.width =
+            window.innerWidth + "px";
+          document.getElementById("main").style.height =
+            (window.innerWidth * 9) / 16 + "px";
+
+          canvas.width = window.innerWidth;
+          canvas.height = (window.innerWidth * 9) / 16;
+          canvas.style.width = window.innerWidth + "px";
+          canvas.style.height = (window.innerWidth * 9) / 16 + "px";
+        } else {
+          document.getElementById("main").style.width =
+            (window.innerHeight * 16) / 9 + "px";
+          document.getElementById("main").style.height =
+            window.innerHeight + "px";
+
+          canvas.width = (window.innerHeight * 16) / 9;
+          canvas.height = window.innerHeight;
+          canvas.style.width = (window.innerHeight * 16) / 9 + "px";
+          canvas.style.height = window.innerHeight + "px";
+        }
+      }
+
+      resize_canvas();
+      window.onresize = (e) => {
+        resize_canvas();
+      };
+
+      //establish canvas
+      let ctx = canvas.getContext("2d");
+
+      //make sure canvas is correctly adjusted
+      //scale to 16:9 aspect ratio
+      //Make plotting system
+      //laditude -> divide y by 180
+      //longisted -> divide x by 320
+      //grid tool
+      // for (var j = 0; j < 180; j++) {
+      //   ctx.beginPath();
+      //   ctx.moveTo(0, (j * canvas.height) / 180);
+      //   ctx.lineTo(canvas.width, (j * canvas.height) / 180);
+      //   ctx.stroke();
+      // }
+      // for (var i = 0; i < 320; i++) {
+      //   ctx.beginPath();
+      //   ctx.moveTo((i * canvas.width) / 320, 0);
+      //   ctx.lineTo((i * canvas.width) / 320, canvas.height);
+      //   ctx.stroke();
+      // }
+
+      function draw_plane_line() {
+        ctx.beginPath();
+        ctx.lineWidth = (10 * canvas.width) / 2144;
+        let array = [];
+
+        for (var i = 1; i <= 7; i++) {
+          array.push(((10 * canvas.width) / 2144) * i);
+          array.push((30 * canvas.width) / 2144);
+        }
+        array.pop();
+        let reverse = [...array].reverse();
+        array.push((30 * canvas.width) / 2144);
+        array = array.concat(reverse);
+        ctx.setLineDash(array);
+        ctx.moveTo(
+          0.1783893985728848 * canvas.width,
+          0.11322463768115942 * canvas.height,
+        );
+        ctx.quadraticCurveTo(
+          0.3721202854230377 * canvas.width,
+          0.3416014492753623 * canvas.height,
+          0.34964322120285424 * canvas.width,
+          0.782608695652174 * canvas.height,
+        );
+        ctx.stroke();
+      }
+      function draw_plane(cx, cy, percent) {
+        ctx.drawImage(
+          image,
+          cx * canvas.width,
+          cy * canvas.height,
+          // * (1 / (5 * Math.abs(0.5 - percent)))
+          // * (1 / (5 * Math.abs(0.5 - percent)))
+          (82 * canvas.width) / 1376,
+          (57 * canvas.height) / 774,
+        );
+      }
+
+      function airplane_slide() {
+        document.getElementById("main").style.backgroundImage =
+          "url('/images/presentation_1.png')";
+
+        interval = setInterval(() => {
+          // console.log("running");
+          percent += 0.005;
+          requestAnimationFrame(animate_plane);
+          if (percent >= 1) {
+            clearInterval(interval);
+            console.log("clear");
+          }
+        }, 20);
+      }
+
+      function animate_plane() {
+        if (percent >= 1) {
+          percent = 1;
+        }
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        draw_plane_line();
+        // draw_plane(0.1483893985728848, 0.0542463768115942);
+        let initialX = 0.1483893985728848;
+        let initialY = 0.0542463768115942;
+        let controlX = 0.3421202854230377;
+        let controlY = 0.3416014492753623;
+        let finalX = 0.31968085106382976;
+        let finalY = 0.7304328922495274;
+        percent += 0.005;
+        var x =
+          Math.pow(1 - percent, 2) * initialX +
+          2 * (1 - percent) * percent * controlX +
+          Math.pow(percent, 2) * finalX;
+        var y =
+          Math.pow(1 - percent, 2) * initialY +
+          2 * (1 - percent) * percent * controlY +
+          Math.pow(percent, 2) * finalY;
+        draw_plane(x, y, percent);
+      }
+      function intro_slide() {
+        document.getElementById("main").style.backgroundImage =
+          "url('/images/cabo.svg')";
+      }
+      function slide_3() {
+        document.getElementById("main").style.backgroundImage =
+          "url('/images/map2.png')";
+      }
+      function car_move(path) {
+        carInterval = setInterval(() => {
+          let car_pos = car_position(t, path);
+          if (!car_pos.found) {
+            clearInterval(carInterval);
+            return;
+          }
+          requestAnimationFrame(() => {
+            draw_car(car_pos.cx, car_pos.cy);
+          });
+        }, 60);
+      }
+      function car_position(t, path) {
+        path.reverse();
+        let point = path.pop();
+        path.reverse();
+        let velocity = 5 / canvas.width;
+        let time_passed = 0;
+
+        for (var p of path) {
+          let segment_len =
+            Math.pow(p.cx - point.cx, 2) + Math.pow(p.cy - point.cy, 2);
+          segment_len = Math.pow(segment_len, 0.5);
+          let angle = Math.atan(p.cy / p.cx);
+          //segment time
+          let segment_time = segment_len / velocity;
+          if (time_passed <= t && t <= segment_time + time_passed) {
+            return {
+              found: true,
+              cx: point.cx + velocity * Math.cos(angle) - 0.02,
+              cy: point.cy + velocity * Math.sin(angle) - 0.02,
+            };
+          }
+          point = p;
+        }
+
+        return { found: false };
+      }
+
+      function draw_car(x, y) {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(
+          car_image,
+          x * canvas.width,
+          y * canvas.height,
+          (41 * canvas.width) / 1376,
+          (28 * canvas.height) / 774,
+        );
+      }
+      function slide_4() {
+        document.getElementById("main").style.backgroundImage =
+          "url('/images/map3.png')";
+        let car_path = [
+          { cx: 0.3468085106382979, cy: 0.0444234404536862 },
+          { cx: 0.3515957446808511, cy: 0.055765595463137994 },
+          { cx: 0.35638297872340424, cy: 0.07655954631379962 },
+          { cx: 0.3617021276595745, cy: 0.09829867674858223 },
+          { cx: 0.36648936170212765, cy: 0.11720226843100189 },
+          { cx: 0.37127659574468086, cy: 0.1446124763705104 },
+          { cx: 0.375, cy: 0.15879017013232513 },
+          { cx: 0.3781914893617021, cy: 0.18525519848771266 },
+          { cx: 0.38138297872340426, cy: 0.1994328922495274 },
+          { cx: 0.38351063829787235, cy: 0.21455576559546313 },
+          { cx: 0.3861702127659574, cy: 0.23062381852551986 },
+          { cx: 0.3882978723404255, cy: 0.24763705103969755 },
+          { cx: 0.39095744680851063, cy: 0.2580340264650284 },
+          { cx: 0.39361702127659576, cy: 0.2731568998109641 },
+          { cx: 0.39574468085106385, cy: 0.29111531190926276 },
+          { cx: 0.39787234042553193, cy: 0.30151228733459357 },
+          { cx: 0.4, cy: 0.32136105860113423 },
+          { cx: 0.4021276595744681, cy: 0.33459357277882795 },
+          { cx: 0.40691489361702127, cy: 0.35822306238185253 },
+          { cx: 0.4127659574468085, cy: 0.3733459357277883 },
+          { cx: 0.41329787234042553, cy: 0.39224952741020797 },
+          { cx: 0.4148936170212766, cy: 0.4054820415879017 },
+          { cx: 0.41595744680851066, cy: 0.42533081285444235 },
+          { cx: 0.41702127659574467, cy: 0.44612476370510395 },
+          { cx: 0.41914893617021276, cy: 0.45935727788279773 },
+          { cx: 0.42021276595744683, cy: 0.47542533081285443 },
+          { cx: 0.4223404255319149, cy: 0.4962192816635161 },
+          { cx: 0.425531914893617, cy: 0.5094517958412098 },
+          { cx: 0.4297872340425532, cy: 0.5245746691871456 },
+          { cx: 0.43457446808510636, cy: 0.5434782608695652 },
+          { cx: 0.4377659574468085, cy: 0.5500945179584121 },
+          { cx: 0.4441489361702128, cy: 0.5708884688090737 },
+          { cx: 0.44840425531914896, cy: 0.5812854442344045 },
+          { cx: 0.45585106382978724, cy: 0.6001890359168242 },
+          { cx: 0.45904255319148934, cy: 0.6096408317580341 },
+          { cx: 0.4654255319148936, cy: 0.6323251417769377 },
+          { cx: 0.475, cy: 0.6540642722117203 },
+          { cx: 0.4803191489361702, cy: 0.6710775047258979 },
+          { cx: 0.48723404255319147, cy: 0.6862003780718336 },
+          { cx: 0.4920212765957447, cy: 0.7013232514177694 },
+          { cx: 0.4952127659574468, cy: 0.7088846880907372 },
+          { cx: 0.5010638297872341, cy: 0.7079395085066162 },
+          { cx: 0.502127659574468, cy: 0.7136105860113422 },
+          { cx: 0.5042553191489362, cy: 0.718336483931947 },
+          { cx: 0.5063829787234042, cy: 0.724007561436673 },
+        ];
+        car_move(car_path);
+      }
+
+      function slide_5() {
+        document.getElementById("main").style.backgroundImage =
+          "url('/images/map4.png')";
+        let walk_path = [
+          { cx: 0.5275200989486704, cy: 0.18571428571428572 },
+          { cx: 0.525664811379097, cy: 0.16373626373626374 },
+          { cx: 0.5238095238095238, cy: 0.14615384615384616 },
+          { cx: 0.5219542362399505, cy: 0.13296703296703297 },
+          { cx: 0.520717377860235, cy: 0.11758241758241758 },
+          { cx: 0.5200989486703772, cy: 0.10989010989010989 },
+          { cx: 0.5009276437847866, cy: 0.11538461538461539 },
+          { cx: 0.48794063079777367, cy: 0.11868131868131868 },
+          { cx: 0.47990105132962274, cy: 0.12967032967032968 },
+          { cx: 0.47557204700061845, cy: 0.11978021978021978 },
+          { cx: 0.4644403215831787, cy: 0.1021978021978022 },
+          { cx: 0.46382189239332094, cy: 0.11098901098901098 },
+          { cx: 0.45640074211502785, cy: 0.12197802197802197 },
+          { cx: 0.44712430426716143, cy: 0.13186813186813187 },
+          { cx: 0.4440321583178726, cy: 0.13626373626373625 },
+          { cx: 0.4409400123685838, cy: 0.13956043956043956 },
+          { cx: 0.43351886209029067, cy: 0.14395604395604394 },
+          { cx: 0.4236239950525665, cy: 0.15824175824175823 },
+          { cx: 0.4174397031539889, cy: 0.16593406593406593 },
+          { cx: 0.41434755720470007, cy: 0.17142857142857143 },
+          { cx: 0.4100185528756957, cy: 0.16263736263736264 },
+          { cx: 0.4056895485466914, cy: 0.15384615384615385 },
+          { cx: 0.4038342609771181, cy: 0.14725274725274726 },
+          { cx: 0.39579468150896724, cy: 0.13296703296703297 },
+          { cx: 0.3939393939393939, cy: 0.12197802197802197 },
+          { cx: 0.4069264069264069, cy: 0.1054945054945055 },
+          { cx: 0.4186765615337044, cy: 0.0989010989010989 },
+          { cx: 0.42238713667285094, cy: 0.0956043956043956 },
+          { cx: 0.4329004329004329, cy: 0.08351648351648351 },
+          { cx: 0.4440321583178726, cy: 0.07472527472527472 },
+          { cx: 0.45454545454545453, cy: 0.06813186813186813 },
+          { cx: 0.4582560296846011, cy: 0.08131868131868132 },
+          { cx: 0.4601113172541744, cy: 0.0912087912087912 },
+          { cx: 0.46567717996289426, cy: 0.1 },
+          { cx: 0.46567717996289426, cy: 0.10989010989010989 },
+          { cx: 0.4514533085961657, cy: 0.12857142857142856 },
+          { cx: 0.44155844155844154, cy: 0.13516483516483516 },
+          { cx: 0.43722943722943725, cy: 0.14285714285714285 },
+          { cx: 0.43166357452071735, cy: 0.14835164835164835 },
+          { cx: 0.42424242424242425, cy: 0.16153846153846155 },
+          { cx: 0.41805813234384664, cy: 0.16483516483516483 },
+          { cx: 0.41620284477427333, cy: 0.16923076923076924 },
+          { cx: 0.4131106988249845, cy: 0.17252747252747253 },
+          { cx: 0.4069264069264069, cy: 0.18461538461538463 },
+          { cx: 0.3945578231292517, cy: 0.1967032967032967 },
+          { cx: 0.39022881880024735, cy: 0.2 },
+          { cx: 0.396413110698825, cy: 0.22527472527472528 },
+          { cx: 0.40197897340754485, cy: 0.23956043956043957 },
+          { cx: 0.4044526901669759, cy: 0.2549450549450549 },
+          { cx: 0.4106369820655535, cy: 0.26703296703296703 },
+          { cx: 0.41434755720470007, cy: 0.27912087912087913 },
+          { cx: 0.4199134199134199, cy: 0.2868131868131868 },
+          { cx: 0.42238713667285094, cy: 0.2945054945054945 },
+          { cx: 0.4236239950525665, cy: 0.2956043956043956 },
+          { cx: 0.4230055658627087, cy: 0.3098901098901099 },
+          { cx: 0.42547928262213974, cy: 0.3230769230769231 },
+          { cx: 0.4322820037105751, cy: 0.33076923076923076 },
+          { cx: 0.43475572047000616, cy: 0.32967032967032966 },
+          { cx: 0.4366110080395795, cy: 0.31758241758241756 },
+          { cx: 0.44155844155844154, cy: 0.3087912087912088 },
+          { cx: 0.4452690166975881, cy: 0.3010989010989011 },
+          { cx: 0.44650587507730366, cy: 0.2934065934065934 },
+          { cx: 0.45021645021645024, cy: 0.29120879120879123 },
+          { cx: 0.4551638837353123, cy: 0.2967032967032967 },
+        ];
+        walk_move(walk_path);
+      }
+
+      function walk_move(path) {
+        walkInterval = setInterval(() => {
+          let walk_pos = walk_position(t, path);
+          if (!walk_pos.found) {
+            clearInterval(walkInterval);
+            return;
+          }
+          requestAnimationFrame(() => {
+            draw_walk(walk_pos.cx, walk_pos.cy);
+          });
+        }, 60);
+      }
+      function walk_position(t, path) {
+        path.reverse();
+        let point = path.pop();
+        path.reverse();
+        let velocity = 0.02 / canvas.width;
+        let time_passed = 0;
+
+        for (var p of path) {
+          let segment_len =
+            Math.pow(p.cx - point.cx, 2) + Math.pow(p.cy - point.cy, 2);
+          segment_len = Math.pow(segment_len, 0.5);
+          let angle = Math.atan(p.cy / p.cx);
+          //segment time
+          let segment_time = segment_len / velocity;
+          if (time_passed <= t && t <= segment_time + time_passed) {
+            return {
+              found: true,
+              cx: point.cx + velocity * Math.cos(angle) - 0.01,
+              cy: point.cy + velocity * Math.sin(angle) - 0.01,
+            };
+          }
+          point = p;
+        }
+
+        return { found: false };
+      }
+
+      function draw_walk(x, y) {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(
+          walk_image,
+          x * canvas.width,
+          y * canvas.height,
+          (22 * canvas.width) / 1376,
+          (30 * canvas.height) / 774,
+        );
+      }
+
+      //after plane proceed to next slide
+      function next_slide() {
+        clearInterval(interval);
+        clearInterval(carInterval);
+        clearInterval(walkInterval);
+        t = 0;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        slides[slide++]();
+      }
+      next_slide();
+      window.addEventListener("keyup", (e) => {
+        if (e.key == "ArrowRight" || e.key == " ") {
+          next_slide();
+        } else if (e.key == "ArrowLeft") {
+          slide -= 2;
+          next_slide();
+        } else if (e.key == "p") {
+          console.log(JSON.stringify(clicks));
+        } else if (e.key == "f") {
+          document.getElementById("main").requestFullscreen();
+        }
+      });
+
+      let clicks = [];
+      function get_click(canvas, e) {
+        let rect = canvas.getBoundingClientRect();
+        let x = e.clientX - rect.left;
+        let y = e.clientY - rect.top;
+        // ctx.fillRect(x, y, 100, 100);
+        console.log("Coordinate x: " + x, "Coordinate y: " + y);
+        console.log(
+          "Canon x: " + x / canvas.width,
+          "Canon y: " + y / canvas.height,
+        );
+        clicks.push({ cx: x / canvas.width, cy: y / canvas.height });
+      }
+      canvas.addEventListener("mousedown", function (e) {
+        get_click(canvas, e);
+      });
+      function intro_slide_2() {
+        document.getElementById("main").style.backgroundImage =
+          "url('/images/cabo_pictures.svg')";
+      }
+      function plaza_paraiso() {
+        document.getElementById("main").style.backgroundImage =
+          "url('/images/plaza_paraiso.jpg')";
+      }
+      function day1() {
+        document.getElementById("main").style.backgroundImage =
+          "url('/images/dia1.svg')";
+      }
+      function day2() {
+        document.getElementById("main").style.backgroundImage =
+          "url('/images/dia2.svg')";
+      }
+      function day3() {
+        document.getElementById("main").style.backgroundImage =
+          "url('/images/dia3.svg')";
+      }
+      function arc() {
+        document.getElementById("main").style.backgroundImage =
+          "url('/images/arc.png')";
+      }
+      function lovers() {
+        document.getElementById("main").style.backgroundImage =
+          "url('/images/loversbeach.png')";
+      }
+      function divorce() {
+        document.getElementById("main").style.backgroundImage =
+          "url('/images/divorcebeach.png')";
+      }
+      function mount() {
+        document.getElementById("main").style.backgroundImage =
+          "url('/images/mountsolmar.png')";
+      }
+      function map5() {
+        document.getElementById("main").style.backgroundImage =
+          "url('/images/map5.png')";
+      }
+      function go_to_beach() {
+        document.getElementById("main").style.backgroundImage =
+          "url('/images/map45.png')";
+        let car_path = [
+          { cx: 0.19851576994434136, cy: 0.07362637362637363 },
+          { cx: 0.20346320346320346, cy: 0.08351648351648351 },
+          { cx: 0.20593692022263452, cy: 0.0956043956043956 },
+          { cx: 0.21273964131106987, cy: 0.1076923076923077 },
+          { cx: 0.22016079158936303, cy: 0.12527472527472527 },
+          { cx: 0.22263450834879406, cy: 0.13186813186813187 },
+          { cx: 0.22448979591836735, cy: 0.13956043956043956 },
+          { cx: 0.23067408781694496, cy: 0.15384615384615385 },
+          { cx: 0.23623995052566482, cy: 0.16813186813186815 },
+          { cx: 0.24366110080395795, cy: 0.189010989010989 },
+          { cx: 0.24922696351267778, cy: 0.2098901098901099 },
+          { cx: 0.2560296846011132, cy: 0.2175824175824176 },
+          { cx: 0.26097711811997526, cy: 0.23406593406593407 },
+          { cx: 0.2702535559678417, cy: 0.2571428571428571 },
+          { cx: 0.27705627705627706, cy: 0.2703296703296703 },
+          { cx: 0.28385899814471244, cy: 0.2923076923076923 },
+          { cx: 0.287569573283859, cy: 0.3010989010989011 },
+          { cx: 0.28385899814471244, cy: 0.31868131868131866 },
+          { cx: 0.2795299938157081, cy: 0.33076923076923076 },
+          { cx: 0.27396413110698825, cy: 0.34615384615384615 },
+          { cx: 0.2683982683982684, cy: 0.36813186813186816 },
+          { cx: 0.26406926406926406, cy: 0.3758241758241758 },
+          { cx: 0.26097711811997526, cy: 0.389010989010989 },
+          { cx: 0.2572665429808287, cy: 0.4 },
+          { cx: 0.24922696351267778, cy: 0.4186813186813187 },
+          { cx: 0.24427952999381572, cy: 0.42637362637362636 },
+          { cx: 0.24056895485466914, cy: 0.43846153846153846 },
+          { cx: 0.24056895485466914, cy: 0.4472527472527473 },
+          { cx: 0.24860853432282004, cy: 0.46483516483516485 },
+          { cx: 0.2535559678416821, cy: 0.48021978021978023 },
+          { cx: 0.25788497217068646, cy: 0.49230769230769234 },
+          { cx: 0.2634508348794063, cy: 0.5098901098901099 },
+          { cx: 0.2702535559678417, cy: 0.5307692307692308 },
+          { cx: 0.2764378478664193, cy: 0.5461538461538461 },
+          { cx: 0.2820037105751391, cy: 0.5615384615384615 },
+          { cx: 0.27396413110698825, cy: 0.5857142857142857 },
+          { cx: 0.2690166975881262, cy: 0.6054945054945055 },
+          { cx: 0.2603586889301175, cy: 0.6296703296703297 },
+          { cx: 0.26097711811997526, cy: 0.6516483516483517 },
+          { cx: 0.2665429808286951, cy: 0.6692307692307692 },
+          { cx: 0.274582560296846, cy: 0.6868131868131868 },
+          { cx: 0.2813852813852814, cy: 0.7054945054945055 },
+          { cx: 0.2857142857142857, cy: 0.721978021978022 },
+          { cx: 0.2943722943722944, cy: 0.7472527472527473 },
+          { cx: 0.30921459492888065, cy: 0.756043956043956 },
+          { cx: 0.3197278911564626, cy: 0.7593406593406593 },
+          { cx: 0.3339517625231911, cy: 0.765934065934066 },
+          { cx: 0.3450834879406308, cy: 0.7670329670329671 },
+          { cx: 0.35745207173778604, cy: 0.7703296703296704 },
+          { cx: 0.37353123067408783, cy: 0.7670329670329671 },
+          { cx: 0.38404452690166974, cy: 0.7648351648351648 },
+          { cx: 0.4025974025974026, cy: 0.7615384615384615 },
+          { cx: 0.4174397031539889, cy: 0.7549450549450549 },
+          { cx: 0.4267161410018553, cy: 0.7494505494505495 },
+          { cx: 0.4329004329004329, cy: 0.7483516483516484 },
+          { cx: 0.4359925788497217, cy: 0.7593406593406593 },
+          { cx: 0.4397031539888683, cy: 0.7703296703296704 },
+          { cx: 0.44774273345701915, cy: 0.7879120879120879 },
+          { cx: 0.45330859616573904, cy: 0.8 },
+          { cx: 0.4613481756338899, cy: 0.8087912087912088 },
+          { cx: 0.46876932591218307, cy: 0.8153846153846154 },
+          { cx: 0.47557204700061845, cy: 0.8208791208791208 },
+        ];
+
+        car_move(car_path);
+      }
+      function got_to_beach_2() {
+        document.getElementById("main").style.backgroundImage =
+          "url('/images/map45.png')";
+        let walk_path = [
+          { cx: 0.4743351886209029, cy: 0.8131868131868132 },
+          { cx: 0.48546691403834263, cy: 0.8164835164835165 },
+          { cx: 0.5021645021645021, cy: 0.8219780219780219 },
+          { cx: 0.5367965367965368, cy: 0.8175824175824176 },
+          { cx: 0.5522572665429808, cy: 0.8307692307692308 },
+          { cx: 0.5547309833024119, cy: 0.8395604395604396 },
+          { cx: 0.564625850340136, cy: 0.845054945054945 },
+          { cx: 0.5745207173778603, cy: 0.8571428571428571 },
+          { cx: 0.588126159554731, cy: 0.8736263736263736 },
+          { cx: 0.590599876314162, cy: 0.8824175824175824 },
+          { cx: 0.6060606060606061, cy: 0.8989010989010989 },
+          { cx: 0.6246134817563389, cy: 0.889010989010989 },
+          { cx: 0.6456400742115028, cy: 0.8967032967032967 },
+          { cx: 0.6679035250463822, cy: 0.8978021978021978 },
+          { cx: 0.6802721088435374, cy: 0.8934065934065935 },
+          { cx: 0.6951144094001237, cy: 0.8934065934065935 },
+          { cx: 0.7056277056277056, cy: 0.8912087912087913 },
+          { cx: 0.712430426716141, cy: 0.8912087912087913 },
+          { cx: 0.7179962894248608, cy: 0.8901098901098901 },
+        ];
+        walk_move(walk_path);
+      }
+      function go_to_arch() {
+        map5();
+        let walk_path = [
+          { cx: 0.5831787260358688, cy: 0.5978021978021978 },
+          { cx: 0.6017316017316018, cy: 0.6087912087912087 },
+          { cx: 0.6110080395794681, cy: 0.621978021978022 },
+          { cx: 0.6406926406926406, cy: 0.6373626373626373 },
+          { cx: 0.6641929499072357, cy: 0.6329670329670329 },
+          { cx: 0.6846011131725418, cy: 0.5901098901098901 },
+          { cx: 0.6907854050711194, cy: 0.5593406593406594 },
+          { cx: 0.7111935683364254, cy: 0.5483516483516484 },
+          { cx: 0.7204700061842919, cy: 0.5846153846153846 },
+          { cx: 0.7198515769944341, cy: 0.6131868131868132 },
+          { cx: 0.7334570191713049, cy: 0.676923076923077 },
+          { cx: 0.7445887445887446, cy: 0.6923076923076923 },
+          { cx: 0.75139146567718, cy: 0.6901098901098901 },
+          { cx: 0.7625231910946196, cy: 0.6637362637362637 },
+          { cx: 0.766852195423624, cy: 0.6373626373626373 },
+          { cx: 0.7742733457019171, cy: 0.6098901098901099 },
+          { cx: 0.7934446505875077, cy: 0.5989010989010989 },
+          { cx: 0.8095238095238095, cy: 0.6241758241758242 },
+          { cx: 0.8225108225108225, cy: 0.6263736263736264 },
+          { cx: 0.83426097711812, cy: 0.6120879120879121 },
+          { cx: 0.8441558441558441, cy: 0.5857142857142857 },
+          { cx: 0.849721706864564, cy: 0.5747252747252747 },
+          { cx: 0.865182436611008, cy: 0.5648351648351648 },
+          { cx: 0.878169449598021, cy: 0.5626373626373626 },
+          { cx: 0.8979591836734694, cy: 0.5725274725274725 },
+          { cx: 0.9121830550401979, cy: 0.5879120879120879 },
+          { cx: 0.9189857761286333, cy: 0.5989010989010989 },
+          { cx: 0.9264069264069265, cy: 0.6098901098901099 },
+        ];
+        walk_move(walk_path);
+      }
+      function go_to_divorce() {
+        map5();
+        let walk_path = [
+          { cx: 0.9251700680272109, cy: 0.610989010989011 },
+          { cx: 0.9165120593692022, cy: 0.5956043956043956 },
+          { cx: 0.8818800247371676, cy: 0.5472527472527473 },
+          { cx: 0.8491032776747063, cy: 0.5142857142857142 },
+          { cx: 0.7835497835497836, cy: 0.5032967032967033 },
+          { cx: 0.764378478664193, cy: 0.6043956043956044 },
+          { cx: 0.7507730364873222, cy: 0.656043956043956 },
+          { cx: 0.7068645640074211, cy: 0.6131868131868132 },
+          { cx: 0.6889301175015461, cy: 0.5626373626373626 },
+          { cx: 0.6679035250463822, cy: 0.5791208791208792 },
+          { cx: 0.6542980828695114, cy: 0.6230769230769231 },
+          { cx: 0.6258503401360545, cy: 0.6428571428571429 },
+          { cx: 0.5980210265924552, cy: 0.6395604395604395 },
+          { cx: 0.559678416821274, cy: 0.6153846153846154 },
+          { cx: 0.5528756957328386, cy: 0.6318681318681318 },
+          { cx: 0.5417439703153989, cy: 0.667032967032967 },
+          { cx: 0.5299938157081014, cy: 0.6725274725274726 },
+          { cx: 0.5163883735312307, cy: 0.6835164835164835 },
+          { cx: 0.507730364873222, cy: 0.6967032967032967 },
+          { cx: 0.5003092145949288, cy: 0.7043956043956044 },
+          { cx: 0.5200989486703772, cy: 0.7043956043956044 },
+          { cx: 0.4965986394557823, cy: 0.701098901098901 },
+          { cx: 0.47680890538033394, cy: 0.7043956043956044 },
+          { cx: 0.47247990105132964, cy: 0.7208791208791209 },
+          { cx: 0.4483611626468769, cy: 0.743956043956044 },
+          { cx: 0.44341372912801486, cy: 0.7538461538461538 },
+          { cx: 0.4260977118119975, cy: 0.7483516483516484 },
+          { cx: 0.41620284477427333, cy: 0.7373626373626374 },
+          { cx: 0.4100185528756957, cy: 0.7164835164835165 },
+          { cx: 0.39270253555967843, cy: 0.6934065934065934 },
+          { cx: 0.3784786641929499, cy: 0.6791208791208792 },
+          { cx: 0.3685837971552257, cy: 0.6615384615384615 },
+          { cx: 0.3580705009276438, cy: 0.6736263736263737 },
+          { cx: 0.35374149659863946, cy: 0.7076923076923077 },
+          { cx: 0.3401360544217687, cy: 0.7065934065934066 },
+          { cx: 0.30921459492888065, cy: 0.6802197802197802 },
+          { cx: 0.3271490414347557, cy: 0.6582417582417582 },
+          { cx: 0.35992578849721707, cy: 0.6516483516483517 },
+          { cx: 0.3611626468769326, cy: 0.6384615384615384 },
+        ];
+        walk_move(walk_path);
+      }
+      function go_to_mount() {
+        map5();
+        let walk_path = [
+          { cx: 0.3593073593073593, cy: 0.6406593406593407 },
+          { cx: 0.3388991960420532, cy: 0.6472527472527473 },
+          { cx: 0.3141620284477427, cy: 0.643956043956044 },
+          { cx: 0.2888064316635745, cy: 0.6406593406593407 },
+          { cx: 0.2764378478664193, cy: 0.6373626373626373 },
+          { cx: 0.26097711811997526, cy: 0.6252747252747253 },
+          { cx: 0.2523191094619666, cy: 0.6230769230769231 },
+          { cx: 0.23809523809523808, cy: 0.610989010989011 },
+          { cx: 0.22077922077922077, cy: 0.6032967032967033 },
+          { cx: 0.20408163265306123, cy: 0.5923076923076923 },
+          { cx: 0.1997526283240569, cy: 0.5923076923076923 },
+          { cx: 0.191713048855906, cy: 0.5813186813186814 },
+          { cx: 0.1836734693877551, cy: 0.5791208791208792 },
+          { cx: 0.18119975262832405, cy: 0.5747252747252747 },
+          { cx: 0.1774891774891775, cy: 0.5637362637362637 },
+          { cx: 0.1663574520717378, cy: 0.5593406593406594 },
+          { cx: 0.15769944341372913, cy: 0.5736263736263736 },
+          { cx: 0.12987012987012986, cy: 0.5813186813186814 },
+          { cx: 0.11193568336425479, cy: 0.589010989010989 },
+          { cx: 0.0878169449598021, cy: 0.5868131868131868 },
+          { cx: 0.07606679035250463, cy: 0.5846153846153846 },
+          { cx: 0.06184291898577613, cy: 0.5846153846153846 },
+          { cx: 0.07606679035250463, cy: 0.5769230769230769 },
+          { cx: 0.09523809523809523, cy: 0.567032967032967 },
+          { cx: 0.1150278293135436, cy: 0.5505494505494506 },
+          { cx: 0.12121212121212122, cy: 0.5340659340659341 },
+          { cx: 0.1261595547309833, cy: 0.5175824175824176 },
+          { cx: 0.1280148423005566, cy: 0.5076923076923077 },
+          { cx: 0.12987012987012986, cy: 0.4912087912087912 },
+          { cx: 0.12987012987012986, cy: 0.46923076923076923 },
+          { cx: 0.12244897959183673, cy: 0.43956043956043955 },
+          { cx: 0.12183055040197897, cy: 0.43956043956043955 },
+          { cx: 0.10018552875695733, cy: 0.46483516483516485 },
+          { cx: 0.09461966604823747, cy: 0.4736263736263736 },
+          { cx: 0.07977736549165121, cy: 0.48131868131868133 },
+          { cx: 0.055658627087198514, cy: 0.49230769230769234 },
+          { cx: 0.04823747680890538, cy: 0.49230769230769234 },
+          { cx: 0.04452690166975881, cy: 0.48131868131868133 },
+          { cx: 0.04885590599876314, cy: 0.4703296703296703 },
+          { cx: 0.055040197897340756, cy: 0.46593406593406594 },
+          { cx: 0.0655534941249227, cy: 0.4593406593406593 },
+          { cx: 0.07297464440321583, cy: 0.45054945054945056 },
+          { cx: 0.07730364873222016, cy: 0.4318681318681319 },
+          { cx: 0.07482993197278912, cy: 0.421978021978022 },
+          { cx: 0.06246134817563389, cy: 0.4318681318681319 },
+          { cx: 0.05256648113790971, cy: 0.4351648351648352 },
+          { cx: 0.05194805194805195, cy: 0.4318681318681319 },
+          { cx: 0.05875077303648732, cy: 0.421978021978022 },
+        ];
+        walk_move(walk_path);
+      }
+      function golf() {
+        document.getElementById("main").style.backgroundImage =
+          "url('/images/golf.svg')";
+      }
+      function palmilla() {
+        document.getElementById("main").style.backgroundImage =
+          "url('/images/palmilla.svg')";
+      }
+      function plazamijares() {
+        document.getElementById("main").style.backgroundImage =
+          "url('/images/plazamijares.svg')";
+      }
+      function art() {
+        document.getElementById("main").style.backgroundImage =
+          "url('/images/art.svg')";
+      }
+      function map6() {
+        document.getElementById("main").style.backgroundImage =
+          "url('/images/map6.png')";
+      }
+      function map7() {
+        document.getElementById("main").style.backgroundImage =
+          "url('/images/map7.png')";
+      }
+      function drive_to_golf() {
+        map6();
+        let car_path = [
+          { cx: 0.6017316017316018, cy: 0.37252747252747254 },
+          { cx: 0.5967841682127396, cy: 0.3769230769230769 },
+          { cx: 0.590599876314162, cy: 0.3813186813186813 },
+          { cx: 0.590599876314162, cy: 0.3813186813186813 },
+          { cx: 0.5831787260358688, cy: 0.389010989010989 },
+          { cx: 0.5769944341372912, cy: 0.3967032967032967 },
+          { cx: 0.5683364254792826, cy: 0.4032967032967033 },
+          { cx: 0.5652442795299938, cy: 0.4087912087912088 },
+          { cx: 0.5677179962894249, cy: 0.4175824175824176 },
+          { cx: 0.5695732838589982, cy: 0.42967032967032964 },
+          { cx: 0.5732838589981447, cy: 0.4351648351648352 },
+          { cx: 0.577612863327149, cy: 0.44835164835164837 },
+          { cx: 0.5825602968460112, cy: 0.4593406593406593 },
+          { cx: 0.5875077303648732, cy: 0.4725274725274725 },
+          { cx: 0.5862708719851577, cy: 0.48021978021978023 },
+          { cx: 0.577612863327149, cy: 0.489010989010989 },
+          { cx: 0.5739022881880025, cy: 0.49230769230769234 },
+          { cx: 0.5708101422387136, cy: 0.4978021978021978 },
+          { cx: 0.5658627087198516, cy: 0.5021978021978022 },
+          { cx: 0.5627705627705628, cy: 0.5098901098901099 },
+          { cx: 0.559678416821274, cy: 0.5153846153846153 },
+          { cx: 0.5553494124922697, cy: 0.5065934065934066 },
+          { cx: 0.5547309833024119, cy: 0.5032967032967033 },
+          { cx: 0.5429808286951144, cy: 0.5054945054945055 },
+          { cx: 0.5299938157081014, cy: 0.5054945054945055 },
+          { cx: 0.5200989486703772, cy: 0.4978021978021978 },
+          { cx: 0.5151515151515151, cy: 0.4989010989010989 },
+          { cx: 0.5114409400123686, cy: 0.4956043956043956 },
+          { cx: 0.5034013605442177, cy: 0.4868131868131868 },
+          { cx: 0.49288806431663573, cy: 0.4824175824175824 },
+          { cx: 0.4873222016079159, cy: 0.4758241758241758 },
+          { cx: 0.479282622139765, cy: 0.4703296703296703 },
+          { cx: 0.47557204700061845, cy: 0.46373626373626375 },
+          { cx: 0.46567717996289426, cy: 0.46263736263736266 },
+          { cx: 0.4619666048237477, cy: 0.45494505494505494 },
+          { cx: 0.4588744588744589, cy: 0.45384615384615384 },
+          { cx: 0.4551638837353123, cy: 0.46703296703296704 },
+          { cx: 0.4520717377860235, cy: 0.48131868131868133 },
+          { cx: 0.44959802102659246, cy: 0.4912087912087912 },
+          { cx: 0.4427952999381571, cy: 0.4989010989010989 },
+          { cx: 0.44155844155844154, cy: 0.5032967032967033 },
+          { cx: 0.4291898577612863, cy: 0.510989010989011 },
+          { cx: 0.424860853432282, cy: 0.5197802197802198 },
+          { cx: 0.4199134199134199, cy: 0.5252747252747253 },
+          { cx: 0.41620284477427333, cy: 0.5296703296703297 },
+          { cx: 0.4106369820655535, cy: 0.5373626373626373 },
+          { cx: 0.40816326530612246, cy: 0.5384615384615384 },
+          { cx: 0.40507111935683365, cy: 0.5384615384615384 },
+          { cx: 0.4044526901669759, cy: 0.5384615384615384 },
+          { cx: 0.3939393939393939, cy: 0.5351648351648352 },
+          { cx: 0.38589981447124305, cy: 0.5307692307692308 },
+          { cx: 0.37600494743351887, cy: 0.532967032967033 },
+          { cx: 0.37291280148423006, cy: 0.5384615384615384 },
+          { cx: 0.3692022263450835, cy: 0.5439560439560439 },
+          { cx: 0.3642547928262214, cy: 0.5527472527472528 },
+          { cx: 0.3623995052566481, cy: 0.5659340659340659 },
+          { cx: 0.3586889301175015, cy: 0.578021978021978 },
+          { cx: 0.3555967841682127, cy: 0.5945054945054945 },
+          { cx: 0.35374149659863946, cy: 0.6054945054945055 },
+          { cx: 0.3531230674087817, cy: 0.6175824175824176 },
+          { cx: 0.3494124922696351, cy: 0.6263736263736264 },
+          { cx: 0.34879406307977734, cy: 0.6373626373626373 },
+          { cx: 0.3469387755102041, cy: 0.6472527472527473 },
+          { cx: 0.3481756338899196, cy: 0.6516483516483517 },
+          { cx: 0.3494124922696351, cy: 0.656043956043956 },
+          { cx: 0.3494124922696351, cy: 0.6604395604395604 },
+          { cx: 0.3388991960420532, cy: 0.6626373626373626 },
+          { cx: 0.3388991960420532, cy: 0.6637362637362637 },
+          { cx: 0.33457019171304886, cy: 0.656043956043956 },
+          { cx: 0.3277674706246135, cy: 0.6527472527472528 },
+          { cx: 0.32343846629560913, cy: 0.6538461538461539 },
+          { cx: 0.31910946196660483, cy: 0.6538461538461539 },
+          { cx: 0.31539888682745826, cy: 0.6703296703296703 },
+          { cx: 0.3098330241187384, cy: 0.6824175824175824 },
+          { cx: 0.2974644403215832, cy: 0.6802197802197802 },
+          { cx: 0.29313543599257885, cy: 0.6846153846153846 },
+          { cx: 0.28633271490414347, cy: 0.6879120879120879 },
+          { cx: 0.2782931354359926, cy: 0.6846153846153846 },
+          { cx: 0.274582560296846, cy: 0.6824175824175824 },
+          { cx: 0.2659245516388373, cy: 0.6780219780219781 },
+          { cx: 0.2554112554112554, cy: 0.6802197802197802 },
+          { cx: 0.24922696351267778, cy: 0.6747252747252748 },
+          { cx: 0.23995052566481137, cy: 0.6725274725274726 },
+          { cx: 0.23685837971552257, cy: 0.6659340659340659 },
+          { cx: 0.23376623376623376, cy: 0.6725274725274726 },
+          { cx: 0.2300556586270872, cy: 0.6780219780219781 },
+          { cx: 0.22820037105751392, cy: 0.676923076923077 },
+        ];
+        car_move(car_path);
+      }
+      function drive_to_palmilla() {
+        map7();
+        let car_path = [
+          { cx: 0.13543599257884972, cy: 0.9461538461538461 },
+          { cx: 0.14285714285714285, cy: 0.945054945054945 },
+          { cx: 0.14842300556586271, cy: 0.9428571428571428 },
+          { cx: 0.15584415584415584, cy: 0.945054945054945 },
+          { cx: 0.16388373531230674, cy: 0.9406593406593406 },
+          { cx: 0.16573902288188003, cy: 0.9395604395604396 },
+          { cx: 0.16821273964131106, cy: 0.932967032967033 },
+          { cx: 0.17439703153988867, cy: 0.9318681318681319 },
+          { cx: 0.1774891774891775, cy: 0.9318681318681319 },
+          { cx: 0.1774891774891775, cy: 0.9263736263736264 },
+          { cx: 0.1805813234384663, cy: 0.9098901098901099 },
+          { cx: 0.1805813234384663, cy: 0.9010989010989011 },
+          { cx: 0.18429189857761286, cy: 0.8912087912087913 },
+          { cx: 0.17934446505875076, cy: 0.8846153846153846 },
+          { cx: 0.17996289424860853, cy: 0.8791208791208791 },
+          { cx: 0.18181818181818182, cy: 0.8681318681318682 },
+          { cx: 0.18243661100803957, cy: 0.8626373626373627 },
+          { cx: 0.18491032776747063, cy: 0.8516483516483516 },
+          { cx: 0.19294990723562153, cy: 0.8527472527472527 },
+          { cx: 0.19851576994434136, cy: 0.8637362637362638 },
+          { cx: 0.20841063698206555, cy: 0.8703296703296703 },
+          { cx: 0.21521335807050093, cy: 0.8747252747252747 },
+          { cx: 0.22077922077922077, cy: 0.8758241758241758 },
+          { cx: 0.22572665429808286, cy: 0.8802197802197802 },
+          { cx: 0.23376623376623376, cy: 0.8857142857142857 },
+          { cx: 0.23871366728509585, cy: 0.8846153846153846 },
+          { cx: 0.24304267161410018, cy: 0.8824175824175824 },
+          { cx: 0.2504638218923933, cy: 0.8813186813186813 },
+          { cx: 0.2523191094619666, cy: 0.8802197802197802 },
+          { cx: 0.2572665429808287, cy: 0.8813186813186813 },
+          { cx: 0.25788497217068646, cy: 0.8846153846153846 },
+          { cx: 0.259121830550402, cy: 0.8901098901098901 },
+          { cx: 0.2597402597402597, cy: 0.8934065934065935 },
+          { cx: 0.26406926406926406, cy: 0.8934065934065935 },
+          { cx: 0.26406926406926406, cy: 0.8934065934065935 },
+          { cx: 0.26716141001855287, cy: 0.8824175824175824 },
+          { cx: 0.2696351267779839, cy: 0.8714285714285714 },
+          { cx: 0.27087198515769945, cy: 0.8670329670329671 },
+          { cx: 0.272108843537415, cy: 0.8604395604395605 },
+          { cx: 0.2764378478664193, cy: 0.8527472527472527 },
+          { cx: 0.2764378478664193, cy: 0.8516483516483516 },
+          { cx: 0.2782931354359926, cy: 0.845054945054945 },
+          { cx: 0.2813852813852814, cy: 0.8373626373626374 },
+          { cx: 0.2820037105751391, cy: 0.8351648351648352 },
+          { cx: 0.28385899814471244, cy: 0.8263736263736263 },
+          { cx: 0.2888064316635745, cy: 0.8197802197802198 },
+          { cx: 0.2894248608534323, cy: 0.8175824175824176 },
+          { cx: 0.29313543599257885, cy: 0.810989010989011 },
+          { cx: 0.2956091527520099, cy: 0.8032967032967033 },
+          { cx: 0.30241187384044527, cy: 0.7978021978021979 },
+          { cx: 0.3048855905998763, cy: 0.7945054945054945 },
+          { cx: 0.3141620284477427, cy: 0.7857142857142857 },
+          { cx: 0.3178726035868893, cy: 0.7824175824175824 },
+          { cx: 0.3271490414347557, cy: 0.7747252747252747 },
+          { cx: 0.3320964749536178, cy: 0.765934065934066 },
+          { cx: 0.3370439084724799, cy: 0.7637362637362637 },
+          { cx: 0.3494124922696351, cy: 0.7615384615384615 },
+          { cx: 0.3555967841682127, cy: 0.7615384615384615 },
+          { cx: 0.3692022263450835, cy: 0.765934065934066 },
+          { cx: 0.3803339517625232, cy: 0.7637362637362637 },
+          { cx: 0.3914656771799629, cy: 0.7571428571428571 },
+          { cx: 0.4044526901669759, cy: 0.7483516483516484 },
+          { cx: 0.4199134199134199, cy: 0.7428571428571429 },
+          { cx: 0.43413729128014844, cy: 0.7351648351648352 },
+          { cx: 0.45021645021645024, cy: 0.7263736263736263 },
+          { cx: 0.46320346320346323, cy: 0.7186813186813187 },
+          { cx: 0.4805194805194805, cy: 0.7098901098901099 },
+          { cx: 0.48794063079777367, cy: 0.6989010989010989 },
+          { cx: 0.4897959183673469, cy: 0.6802197802197802 },
+          { cx: 0.49165120593692024, cy: 0.6681318681318681 },
+          { cx: 0.49226963512677796, cy: 0.6527472527472528 },
+          { cx: 0.49536178107606677, cy: 0.6406593406593407 },
+          { cx: 0.5034013605442177, cy: 0.6318681318681318 },
+          { cx: 0.5139146567717996, cy: 0.6263736263736264 },
+          { cx: 0.5200989486703772, cy: 0.6241758241758242 },
+          { cx: 0.5293753865182437, cy: 0.6197802197802198 },
+          { cx: 0.5367965367965368, cy: 0.6164835164835165 },
+          { cx: 0.5448361162646876, cy: 0.6131868131868132 },
+          { cx: 0.551638837353123, cy: 0.6087912087912087 },
+          { cx: 0.5615337043908473, cy: 0.5989010989010989 },
+          { cx: 0.5689548546691404, cy: 0.5945054945054945 },
+          { cx: 0.5788497217068646, cy: 0.5835164835164836 },
+          { cx: 0.5893630179344465, cy: 0.567032967032967 },
+          { cx: 0.5949288806431664, cy: 0.5593406593406594 },
+          { cx: 0.6004947433518862, cy: 0.5406593406593406 },
+          { cx: 0.6023500309214594, cy: 0.5263736263736264 },
+          { cx: 0.603586889301175, cy: 0.512087912087912 },
+          { cx: 0.6042053184910328, cy: 0.5054945054945055 },
+          { cx: 0.6048237476808905, cy: 0.49230769230769234 },
+          { cx: 0.6060606060606061, cy: 0.46483516483516485 },
+          { cx: 0.6097711811997526, cy: 0.4582417582417582 },
+          { cx: 0.6147186147186147, cy: 0.4351648351648352 },
+          { cx: 0.62152133580705, cy: 0.4186813186813187 },
+          { cx: 0.6320346320346321, cy: 0.4032967032967033 },
+          { cx: 0.6382189239332097, cy: 0.389010989010989 },
+          { cx: 0.6468769325912183, cy: 0.37362637362637363 },
+          { cx: 0.6536796536796536, cy: 0.3637362637362637 },
+          { cx: 0.658008658008658, cy: 0.35934065934065934 },
+          { cx: 0.6654298082869512, cy: 0.34615384615384615 },
+          { cx: 0.6747062461348176, cy: 0.33406593406593404 },
+          { cx: 0.6876932591218305, cy: 0.3120879120879121 },
+          { cx: 0.6957328385899815, cy: 0.3065934065934066 },
+          { cx: 0.7037724180581324, cy: 0.2989010989010989 },
+          { cx: 0.7105751391465677, cy: 0.289010989010989 },
+          { cx: 0.725417439703154, cy: 0.2802197802197802 },
+          { cx: 0.738404452690167, cy: 0.25054945054945055 },
+          { cx: 0.7414965986394558, cy: 0.2571428571428571 },
+          { cx: 0.7557204700061843, cy: 0.25384615384615383 },
+          { cx: 0.764378478664193, cy: 0.24835164835164836 },
+          { cx: 0.7730364873222016, cy: 0.24175824175824176 },
+          { cx: 0.7854050711193569, cy: 0.21318681318681318 },
+          { cx: 0.7959183673469388, cy: 0.21208791208791208 },
+          { cx: 0.8014842300556586, cy: 0.2043956043956044 },
+          { cx: 0.8089053803339518, cy: 0.1989010989010989 },
+          { cx: 0.8169449598021027, cy: 0.1934065934065934 },
+          { cx: 0.8249845392702535, cy: 0.1824175824175824 },
+          { cx: 0.8385899814471243, cy: 0.17912087912087912 },
+          { cx: 0.8484848484848485, cy: 0.16813186813186815 },
+          { cx: 0.8534322820037106, cy: 0.16483516483516483 },
+          { cx: 0.8608534322820037, cy: 0.15714285714285714 },
+          { cx: 0.8688930117501547, cy: 0.15054945054945054 },
+          { cx: 0.8738404452690167, cy: 0.13846153846153847 },
+          { cx: 0.8775510204081632, cy: 0.12857142857142856 },
+          { cx: 0.8812615955473099, cy: 0.11868131868131868 },
+          { cx: 0.8893011750154607, cy: 0.10329670329670329 },
+          { cx: 0.8936301793444651, cy: 0.0945054945054945 },
+          { cx: 0.8961038961038961, cy: 0.08791208791208792 },
+          { cx: 0.8961038961038961, cy: 0.08681318681318681 },
+          { cx: 0.8973407544836116, cy: 0.07912087912087912 },
+          { cx: 0.8998144712430427, cy: 0.06813186813186813 },
+          { cx: 0.9010513296227582, cy: 0.06593406593406594 },
+          { cx: 0.9053803339517625, cy: 0.056043956043956046 },
+          { cx: 0.9090909090909091, cy: 0.05054945054945055 },
+          { cx: 0.9146567717996289, cy: 0.04395604395604396 },
+          { cx: 0.9189857761286333, cy: 0.038461538461538464 },
+          { cx: 0.9226963512677798, cy: 0.02967032967032967 },
+          { cx: 0.9245516388373531, cy: 0.02197802197802198 },
+          { cx: 0.9251700680272109, cy: 0.01978021978021978 },
+          { cx: 0.9282622139764997, cy: 0.01978021978021978 },
+          { cx: 0.9288806431663574, cy: 0.025274725274725275 },
+          { cx: 0.9307359307359307, cy: 0.031868131868131866 },
+          { cx: 0.9344465058750773, cy: 0.03296703296703297 },
+          { cx: 0.9406307977736549, cy: 0.04065934065934066 },
+          { cx: 0.9412492269635127, cy: 0.035164835164835165 },
+        ];
+        car_move(car_path);
+      }
+      function map8() {
+        document.getElementById("main").style.backgroundImage =
+          "url('/images/map8.png')";
+      }
+      function drive_to_art() {
+        map8();
+        let car_path = [
+          { cx: 0.2702535559678417, cy: 0.8747252747252747 },
+          { cx: 0.26716141001855287, cy: 0.8813186813186813 },
+          { cx: 0.2585034013605442, cy: 0.8912087912087913 },
+          { cx: 0.2566481137909709, cy: 0.8912087912087913 },
+          { cx: 0.24489795918367346, cy: 0.8758241758241758 },
+          { cx: 0.24489795918367346, cy: 0.8725274725274725 },
+          { cx: 0.24427952999381572, cy: 0.8714285714285714 },
+          { cx: 0.24118738404452691, cy: 0.8582417582417582 },
+          { cx: 0.23995052566481137, cy: 0.8494505494505494 },
+          { cx: 0.23747680890538034, cy: 0.8384615384615385 },
+          { cx: 0.23191094619666047, cy: 0.8274725274725274 },
+          { cx: 0.23438466295609153, cy: 0.8131868131868132 },
+          { cx: 0.23685837971552257, cy: 0.7978021978021979 },
+          { cx: 0.24427952999381572, cy: 0.778021978021978 },
+          { cx: 0.25170068027210885, cy: 0.7626373626373626 },
+          { cx: 0.2572665429808287, cy: 0.7428571428571429 },
+          { cx: 0.259121830550402, cy: 0.7285714285714285 },
+          { cx: 0.26159554730983303, cy: 0.7076923076923077 },
+          { cx: 0.26777983920841064, cy: 0.6956043956043956 },
+          { cx: 0.274582560296846, cy: 0.6813186813186813 },
+          { cx: 0.2857142857142857, cy: 0.6736263736263737 },
+          { cx: 0.29004329004329005, cy: 0.6615384615384615 },
+          { cx: 0.287569573283859, cy: 0.6417582417582418 },
+          { cx: 0.287569573283859, cy: 0.6274725274725275 },
+          { cx: 0.2881880024737168, cy: 0.6153846153846154 },
+          { cx: 0.2912801484230056, cy: 0.6 },
+          { cx: 0.2943722943722944, cy: 0.5824175824175825 },
+          { cx: 0.2974644403215832, cy: 0.5604395604395604 },
+          { cx: 0.3017934446505875, cy: 0.5472527472527473 },
+          { cx: 0.30735930735930733, cy: 0.5362637362637362 },
+          { cx: 0.3116883116883117, cy: 0.5263736263736264 },
+          { cx: 0.3203463203463203, cy: 0.5098901098901099 },
+          { cx: 0.32529375386518244, cy: 0.5010989010989011 },
+          { cx: 0.3302411873840445, cy: 0.4901098901098901 },
+          { cx: 0.3388991960420532, cy: 0.47802197802197804 },
+          { cx: 0.3469387755102041, cy: 0.4703296703296703 },
+          { cx: 0.3525046382189239, cy: 0.45384615384615384 },
+          { cx: 0.3586889301175015, cy: 0.44285714285714284 },
+          { cx: 0.36178107606679033, cy: 0.42967032967032964 },
+          { cx: 0.3642547928262214, cy: 0.4175824175824176 },
+          { cx: 0.36796536796536794, cy: 0.3978021978021978 },
+          { cx: 0.37105751391465674, cy: 0.367032967032967 },
+          { cx: 0.37291280148423006, cy: 0.35934065934065934 },
+          { cx: 0.37600494743351887, cy: 0.34835164835164834 },
+          { cx: 0.37600494743351887, cy: 0.33296703296703295 },
+          { cx: 0.3778602350030921, cy: 0.3131868131868132 },
+          { cx: 0.3815708101422387, cy: 0.2945054945054945 },
+          { cx: 0.3846629560915275, cy: 0.2725274725274725 },
+          { cx: 0.38589981447124305, cy: 0.25274725274725274 },
+          { cx: 0.38961038961038963, cy: 0.23956043956043957 },
+          { cx: 0.38961038961038963, cy: 0.23076923076923078 },
+          { cx: 0.3908472479901051, cy: 0.21868131868131868 },
+          { cx: 0.3914656771799629, cy: 0.21428571428571427 },
+          { cx: 0.3914656771799629, cy: 0.2043956043956044 },
+          { cx: 0.39208410636982066, cy: 0.1945054945054945 },
+          { cx: 0.3914656771799629, cy: 0.17252747252747253 },
+          { cx: 0.39022881880024735, cy: 0.15604395604395604 },
+          { cx: 0.39022881880024735, cy: 0.14835164835164835 },
+          { cx: 0.3914656771799629, cy: 0.13186813186813187 },
+          { cx: 0.39022881880024735, cy: 0.12197802197802197 },
+          { cx: 0.38961038961038963, cy: 0.0956043956043956 },
+          { cx: 0.3865182436611008, cy: 0.08351648351648351 },
+          { cx: 0.39270253555967843, cy: 0.06923076923076923 },
+          { cx: 0.3939393939393939, cy: 0.06483516483516484 },
+          { cx: 0.396413110698825, cy: 0.051648351648351645 },
+          { cx: 0.4007421150278293, cy: 0.046153846153846156 },
+          { cx: 0.40878169449598023, cy: 0.04945054945054945 },
+          { cx: 0.41805813234384664, cy: 0.056043956043956046 },
+          { cx: 0.4236239950525665, cy: 0.05274725274725275 },
+          { cx: 0.42547928262213974, cy: 0.05274725274725275 },
+          { cx: 0.42795299938157083, cy: 0.05384615384615385 },
+          { cx: 0.43042671614100186, cy: 0.06043956043956044 },
+          { cx: 0.43413729128014844, cy: 0.06483516483516484 },
+          { cx: 0.4359925788497217, cy: 0.07362637362637363 },
+          { cx: 0.43722943722943725, cy: 0.07472527472527472 },
+          { cx: 0.4397031539888683, cy: 0.07472527472527472 },
+          { cx: 0.44155844155844154, cy: 0.07472527472527472 },
+          { cx: 0.44650587507730366, cy: 0.06593406593406594 },
+        ];
+        car_move(car_path);
+      }
+      function map9() {
+        document.getElementById("main").style.backgroundImage =
+          "url('/images/map9.png')";
+      }
+      function go_to_mijares() {
+        map9();
+        let walk_path = [
+          { cx: 0.12306740878169449, cy: 0.2692307692307692 },
+          { cx: 0.1292517006802721, cy: 0.25384615384615383 },
+          { cx: 0.13976499690785404, cy: 0.24835164835164836 },
+          { cx: 0.1645021645021645, cy: 0.23736263736263735 },
+          { cx: 0.16883116883116883, cy: 0.23736263736263735 },
+          { cx: 0.19851576994434136, cy: 0.22417582417582418 },
+          { cx: 0.21645021645021645, cy: 0.21868131868131868 },
+          { cx: 0.22758194186765615, cy: 0.2175824175824176 },
+          { cx: 0.24984539270253556, cy: 0.2098901098901099 },
+          { cx: 0.2714904143475572, cy: 0.1901098901098901 },
+          { cx: 0.2857142857142857, cy: 0.19230769230769232 },
+          { cx: 0.3036487322201608, cy: 0.1934065934065934 },
+          { cx: 0.3228200371057514, cy: 0.1934065934065934 },
+          { cx: 0.329004329004329, cy: 0.1879120879120879 },
+          { cx: 0.33147804576376005, cy: 0.18681318681318682 },
+          { cx: 0.3358070500927644, cy: 0.1879120879120879 },
+          { cx: 0.3463203463203463, cy: 0.1879120879120879 },
+          { cx: 0.35745207173778604, cy: 0.1824175824175824 },
+          { cx: 0.3611626468769326, cy: 0.1967032967032967 },
+          { cx: 0.3593073593073593, cy: 0.22527472527472528 },
+          { cx: 0.36054421768707484, cy: 0.26703296703296703 },
+          { cx: 0.3611626468769326, cy: 0.3010989010989011 },
+          { cx: 0.36054421768707484, cy: 0.321978021978022 },
+          { cx: 0.36054421768707484, cy: 0.3626373626373626 },
+          { cx: 0.3623995052566481, cy: 0.4 },
+          { cx: 0.3593073593073593, cy: 0.44065934065934065 },
+          { cx: 0.36054421768707484, cy: 0.4736263736263736 },
+          { cx: 0.36054421768707484, cy: 0.5054945054945055 },
+          { cx: 0.36178107606679033, cy: 0.545054945054945 },
+          { cx: 0.3611626468769326, cy: 0.5835164835164836 },
+          { cx: 0.36178107606679033, cy: 0.6296703296703297 },
+          { cx: 0.36363636363636365, cy: 0.654945054945055 },
+          { cx: 0.3815708101422387, cy: 0.6417582417582418 },
+          { cx: 0.3995052566481138, cy: 0.6395604395604395 },
+          { cx: 0.4440321583178726, cy: 0.6362637362637362 },
+          { cx: 0.45392702535559676, cy: 0.6318681318681318 },
+          { cx: 0.48794063079777367, cy: 0.6307692307692307 },
+          { cx: 0.518243661100804, cy: 0.6263736263736264 },
+          { cx: 0.5405071119356833, cy: 0.621978021978022 },
+          { cx: 0.5609152752009895, cy: 0.6164835164835165 },
+          { cx: 0.5893630179344465, cy: 0.6164835164835165 },
+          { cx: 0.603586889301175, cy: 0.610989010989011 },
+          { cx: 0.6190476190476191, cy: 0.6087912087912087 },
+          { cx: 0.6394557823129252, cy: 0.6043956043956044 },
+          { cx: 0.655534941249227, cy: 0.6010989010989011 },
+          { cx: 0.6672850958565244, cy: 0.5989010989010989 },
+          { cx: 0.6777983920841064, cy: 0.6065934065934065 },
+          { cx: 0.6777983920841064, cy: 0.6076923076923076 },
+          { cx: 0.6777983920841064, cy: 0.6318681318681318 },
+          { cx: 0.6765615337043909, cy: 0.6505494505494506 },
+          { cx: 0.6765615337043909, cy: 0.6615384615384615 },
+          { cx: 0.6679035250463822, cy: 0.6758241758241759 },
+          { cx: 0.6567717996289425, cy: 0.6824175824175824 },
+          { cx: 0.6524427952999382, cy: 0.6857142857142857 },
+        ];
+        walk_move(walk_path);
+      }
+      function end() {
+        document.getElementById("main").style.backgroundImage =
+          "url('/images/end.svg')";
+      }
+    </script>
+  </body>
+</html>
