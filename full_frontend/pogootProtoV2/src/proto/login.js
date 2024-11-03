@@ -1,21 +1,130 @@
 document.addEventListener("astro:page-load", () => {
-  var alertBox = document.getElementById("exampleAlert");
-  alertBox.style.display = "none";
+
   const {
     LoginResponse,
     UserLoginRequest,
     UserPasswordUpdateRequest,
     UserRegisterWithEmailRequest,
+    Empty,
+    date
   } = require("./pogoots_pb.js");
   const {
     LoginServerClient,
   } = require("./pogoots_grpc_web_pb.js");
+
+  if(window.lastChecked == null && cookie_get("auth")!=null&&cookie_get("auth").length>2){
+    window.lastChecked = new Date();
+    check_boot_time();
+  }else if(new Date() - window.lastChecked>300000){
+    window.lastChecked = new Date();
+    check_boot_time();
+  }
+
+function check_boot_time(){
+    let client = new LoginServerClient("https://bigpogoot.sweep.rs");
+    let req = new Empty();
+    client.boot(req, {}, (err, response) => {
+      console.log(response);
+      let date = response.array[0];
+      let sign_in_date = localStorage.getItem("signInDate");
+      if(sign_in_date==null){
+        reset_auth()
+        return;
+      }else{
+        sign_in_date = new Date(sign_in_date);
+        date = new Date(date);
+        if(date-sign_in_date>0){
+          //the server date is newer than the sign in date, auth is reset
+          reset_auth()
+          return;
+        }else{
+          //valid
+        }
+      }
+    });
+  }
+  function reset_auth(){
+    document.getElementById("account_button").icon = "account_circle";
+    cookie_set("auth", "");
+    send_alert("red", "Server Updated", "Suggested: reload and sign in again");
+    if(window.onloadTurnstileCallback==null){
+      window.onloadTurnstileCallback = function () {
+        window.id = turnstile.render('.captcha', {
+          sitekey: '0x4AAAAAAAg-XBCL8WUE5rPr',
+          callback: function(token) {
+            // console.log(`Challenge Success ${token}`);
+            turn = token;
+            window.turn = token;
+
+            // console.log(`Challenge Success ${turn}`);
+            // console.log("Turn3: "+window.turn);
+          },
+        });
+      };
+    }else{
+      // console.log("Turn1: "+turn);
+      turnstile.remove(window.id);
+      window.onloadTurnstileCallback();
+      // console.log("Turn2: "+turn);
+    }
+  }
+
+
+
+  // console.log(window.turnstile);
+  var turn = null;
+  let loginTime = cookie_get("auth");
+  if (loginTime == null || loginTime.length <= 5) {
+    console.log("Callback...")
+    console.log(window.onloadTurnstileCallback);
+    console.log(window.turnstile);
+    if(window.onloadTurnstileCallback==null){
+      window.onloadTurnstileCallback = function () {
+        window.id = turnstile.render('.captcha', {
+          sitekey: '0x4AAAAAAAg-XBCL8WUE5rPr',
+          callback: function(token) {
+            // console.log(`Challenge Success ${token}`);
+            turn = token;
+            window.turn = token;
+
+            // console.log(`Challenge Success ${turn}`);
+            // console.log("Turn3: "+window.turn);
+          },
+        });
+      };
+    }else{
+      // console.log("Turn1: "+turn);
+      turnstile.remove(window.id);
+      window.onloadTurnstileCallback();
+      // console.log("Turn2: "+turn);
+    }
+
+  }
+
+  var alertBox = document.getElementById("exampleAlert");
+  alertBox.style.display = "none";
 
   let register_button = document.getElementById("RegisterButton");
   let login_button = document.getElementById("LoginButton");
 
   let register_function = function (event) {
     event.preventDefault();
+
+    let usernameReg = document.getElementById("usernameReg");
+    let usernameConfirm = document.getElementById("usernameRegConfirm");
+    let passReg = document.getElementById("passReg");
+    let passConfirm = document.getElementById("passRegConfirm");
+    if(window.turn==null){
+      usernameReg.innerText = 
+      usernameConfirm.innerText = 
+      passReg.innerText = 
+      passConfirm.innerText = "CAPTCHA Invalid";
+    }else{
+      usernameReg.innerText = 
+      usernameConfirm.innerText = 
+      passReg.innerText = 
+      passConfirm.innerText = "";
+    }
     let email = document.getElementById("emailRegister").value;
     let emailConfirm = document.getElementById("emailRegisterConfirm").value;
     let password = document.getElementById("passwordRegister").value;
@@ -23,10 +132,6 @@ document.addEventListener("astro:page-load", () => {
       "passwordRegisterConfirm",
     ).value;
 
-    let usernameReg = document.getElementById("usernameReg");
-    let usernameConfirm = document.getElementById("usernameRegConfirm");
-    let passReg = document.getElementById("passReg");
-    let passConfirm = document.getElementById("passRegConfirm");
     if (email != emailConfirm) {
       // send_alert("red", "Emails do not match", "Please try again");
       document
@@ -125,6 +230,7 @@ document.addEventListener("astro:page-load", () => {
     let regReq = new UserRegisterWithEmailRequest();
     regReq.setEmail(email);
     regReq.setPassword(password);
+    regReq.setTurn(window.turn);
     if (document.getElementById("RegisterButton").disabled) {
       return;
     }
@@ -148,17 +254,40 @@ document.addEventListener("astro:page-load", () => {
         .setCustomValidity("Please enter an email address.");
         usernameReg.innerText = usernameConfirm.innerText = "Invalid Email";
       } else if (response.array[0]) {
+
+        document.getElementById("account_button").icon = "settings";
         localStorage.setItem("library_cache","");
-        send_alert("green", "Login Success", "Redirecting...");
         cookie_set("auth", response.array[1]);
         cookie_set("username", email);
-        redirect();
+        let now = new Date();
+        localStorage.setItem("signInDate", now.toUTCString());
+        window.lastChecked = new Date();
+
+        if(!document.URL.includes("create")){
+          send_alert("green", "Login Success", "Redirecting...");
+          redirect();
+        }else{
+          document.getElementById("login_popup").close();
+          send_alert("green", "Login Success", "");
+        }
+
       }
     });
   };
   let login_function = function (event) {
     event.preventDefault();
-
+        let passLog = document.getElementById("usernameLogConfirm");
+        let userLog = document.getElementById("passLogConfirm");
+    if(window.turn==null){
+      // console.log("Login Turn" + turn);
+      // console.log("Window Turn" + window.turn);
+        passLog.innerText = "CAPTCHA Invalid";
+        userLog.innerText = "CAPTCHA Invalid";
+      return;
+    }else{
+        passLog.innerText = "";
+        userLog.innerText = "";
+    }
     let email = document.getElementById("emailLogin").value;
     let password = document.getElementById("passwordLogin").value;
 
@@ -166,17 +295,26 @@ document.addEventListener("astro:page-load", () => {
     let regReq = new UserLoginRequest();
     regReq.setEmail(email);
     regReq.setPassword(password);
+    regReq.setTurn(window.turn);
     client.login(regReq, {}, (err, response) => {
       console.log(response);
       if (response.array[0]) {
-        send_alert("green", "Login Success", "Redirecting...");
+        document.getElementById("account_button").icon = "settings";
         cookie_set("auth", response.array[1]);
         localStorage.setItem("updated","true");
         cookie_set("username", email);
-        redirect();
+        let now = new Date();
+        localStorage.setItem("signInDate", now.toUTCString());
+        window.lastChecked = new Date();
+
+        if(!document.URL.includes("create")){
+          redirect();
+          send_alert("green", "Login Success", "Redirecting...");
+        }else{
+          document.getElementById("login_popup").close();
+          send_alert("green", "Login Success", "");
+        }
       } else {
-        let passLog = document.getElementById("usernameLogConfirm");
-        let userLog = document.getElementById("passLogConfirm");
         passLog.innerText = "Incorrect credentials";
         userLog.innerText = "Incorrect credentials";
         // send_alert("red", "Incorrect credentials", "");
@@ -190,70 +328,5 @@ document.addEventListener("astro:page-load", () => {
   document.getElementById("regform").onsubmit = register_function;
   document.getElementById("logform").onsubmit = login_function;
 
-  function cookie_set(key, value) {
-    var date = new Date();
-    date.setTime(date.getTime() + 3 * 24 * 60 * 60 * 1000);
-    let cookies = document.cookie;
-    let split = cookies.split(";");
-    let validCookies = false;
-    for (var cookie of split) {
-      if (cookie.trim().split("=")[0] == "validCookies") {
-        validCookies = true;
-        break;
-      }
-    }
 
-    if (!validCookies) {
-      console.log("no cookies");
-      document.cookie =
-        "auth=; SameSite=None; Secure; expires=" +
-        date.toUTCString() +
-        "; path=/";
-      document.cookie =
-        "username=; SameSite=None; Secure; expires=" +
-        date.toUTCString() +
-        "; path=/";
-      document.cookie =
-        "validCookies=; SameSite=None; Secure; expires=" +
-        date.toUTCString() +
-        "; path=/";
-    }
-    cookies = document.cookie;
-    document.cookie =
-      key +
-      "=" +
-      value +
-      "; SameSite=None; Secure; expires=" +
-      date.toUTCString() +
-      "; path=/";
-  }
-
-  function cookie_get(key) {
-    let cookies = document.cookie;
-    let split = cookies.split(";");
-    for (var cookie of split) {
-      let cook = cookie.trim().split("=");
-      if (cook[0] == key) {
-        return cook[1];
-      }
-    }
-  }
-
-  function send_alert(color, header, text) {
-    var alertBox = document.getElementById("exampleAlert");
-    var alerts = document.getElementById("Alerts");
-    let box = alertBox.cloneNode(true);
-    box.style.outline = color + " solid 3px";
-    console.log(box.childNodes);
-    box.childNodes[1].innerText = header;
-    box.childNodes[3].innerText = text;
-    box.style.display = "grid";
-    alerts.appendChild(box);
-    setTimeout(() => {
-      alerts.removeChild(box);
-    }, 5000);
-  }
-  // function redirect() {
-  //   window.location.href = "/library";
-  // }
 });

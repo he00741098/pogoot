@@ -89,6 +89,7 @@
             rel="noopener noreferrer privacy-policy">Privacy Policy</a
           >.
         </p>
+        <!-- <div class="captcha"></div> -->
         <mdui-button id="RegisterButton">Submit</mdui-button>
       </div>
       <div id="login_form">
@@ -124,6 +125,7 @@
         >
       </div>
     </div>
+    <div class="captcha"></div>
   </div>
 </dialog>
 
@@ -139,6 +141,9 @@
     color: rgb(var(--mdui-color-primary));
     text-decoration: underline;
   }
+  .captcha {
+    margin-top: 20px;
+  }
   .modal {
     /* width: 100%; */
     /* height: 100%; */
@@ -146,7 +151,7 @@
     display: flex;
     padding: 1rem;
     flex-direction: column;
-    height: 700px;
+    height: 800px;
   }
   .textField {
     margin-bottom: 5px;

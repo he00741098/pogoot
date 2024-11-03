@@ -2,8 +2,11 @@ use crate::services::special_key_type::UserManageMap;
 use crate::services::user_manage::UserManager;
 use crate::AwsSecrets;
 use base64::prelude::*;
+use http::Method;
 use tokio::sync::Mutex;
 use tonic::transport::ServerTlsConfig;
+use tonic_web::GrpcWebLayer;
+use tower_http::cors::{Any, CorsLayer};
 pub mod pogoots {
     include!("../pogoot_refactored_refactored.rs");
 }
@@ -14,9 +17,9 @@ use self::{
 use pogoots::login_server_server::LoginServerServer;
 use pogoots::notecard_service_server::NotecardServiceServer;
 use pogoots::*;
+use std::pin::Pin;
 use std::sync::Arc;
 use std::time::Duration;
-use std::{clone, pin::Pin};
 use tokio::sync::mpsc;
 use tokio_stream::{wrappers::ReceiverStream, Stream};
 use tonic::{
@@ -49,29 +52,41 @@ pub async fn start_serving(mut secrets: AwsSecrets) {
     let user_manager = UserManager {
         map: Arc::new(Mutex::new(UserManageMap::new())),
         connection: con.clone(),
+        turnstile: std::mem::take(&mut secrets.turnstileSecret),
     };
     let (ltx, lrx) = tokio::sync::mpsc::channel(100);
     tokio::spawn(async move {
         user_manager.proccess_user_auth(lrx).await;
     });
+    let boot_time = chrono::Utc::now();
     let login_server = LoginService {
         send_channel: ltx.clone(),
+        bootTime: boot_time.to_string(),
     };
-    let login_server = LoginServerServer::new(login_server);
+    let login_server = LoginServerServer::new(login_server)
+        .send_compressed(tonic::codec::CompressionEncoding::Zstd)
+        .accept_compressed(tonic::codec::CompressionEncoding::Zstd);
 
     let (tx, rx) = tokio::sync::mpsc::channel(100);
     tokio::spawn(async move {
         crate::services::notecard::upload_proccessor(con, rx, ltx, secrets).await;
     });
     let notecard_server = NotecardServer { send_channel: tx };
-    let notecard_server = NotecardServiceServer::new(notecard_server);
-
+    let notecard_server = NotecardServiceServer::new(notecard_server)
+        .send_compressed(tonic::codec::CompressionEncoding::Zstd)
+        .accept_compressed(tonic::codec::CompressionEncoding::Zstd);
+    let cors = CorsLayer::new()
+        .allow_headers(Any)
+        .allow_methods([Method::GET, Method::POST])
+        .allow_origin(Any);
     println!("Server listening on {}", addr);
     let result = Server::builder()
         .tls_config(ServerTlsConfig::new().identity(Identity::from_pem(&cert, &key)))
-        .unwrap()
+        .expect("tls failed")
         // GrpcWeb is over http1 so we must enable it.
         .accept_http1(true)
+        .layer(cors)
+        .layer(GrpcWebLayer::new())
         .add_service(tonic_web::enable(notecard_server))
         .add_service(tonic_web::enable(login_server))
         .serve(addr)
@@ -105,6 +120,7 @@ pub enum LoginDBRequest {
 #[derive(Debug)]
 struct LoginService {
     pub send_channel: mpsc::Sender<LoginDBRequest>,
+    pub bootTime: String,
 }
 
 #[derive(Debug)]
@@ -208,6 +224,12 @@ impl NotecardService for NotecardServer {
 
 #[tonic::async_trait]
 impl LoginServer for LoginService {
+    async fn boot(&self, _: Request<Empty>) -> Result<Response<Date>, Status> {
+        Ok(Response::new(Date {
+            utc: self.bootTime.clone(),
+        }))
+    }
+
     // rpc Login(UserLogin) returns (LoginResponse);
     // rpc Register(UserRegisterWithEmail) returns (LoginResponse);
     //rpc Update(UserPasswordUpdate) returns (LoginResponse);

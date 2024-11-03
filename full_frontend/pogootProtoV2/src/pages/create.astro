@@ -1,15 +1,17 @@
 ---
 export const prerender = true;
 import Layout from "../layouts/Layout.astro";
-import NavBar from "../components/NavBar.astro";
-import AlertBox from "../components/AlertBox.astro";
 ---
 
 <Layout title="Create | Pogoot">
   <main class="LibraryMain">
     <div class="createTitle">
       <h1>Create A New Note Set</h1>
-      <div class="SaveButton" id="save">Save</div>
+      <!-- <div>Save</div> -->
+      <mdui-button class="SaveButton" id="save">
+        <mdui-icon slot="icon" name="save"></mdui-icon>
+        <div id="saveText">Save</div>
+      </mdui-button>
     </div>
     <div id="top">
       <input class="notecardInput" id="titleInput" placeholder="Title" />
@@ -21,9 +23,9 @@ import AlertBox from "../components/AlertBox.astro";
         <input class="notecardInput" placeholder="Tags" id="tags" />
         <input class="notecardInput" placeholder="School" id="school" />
         <div class="editing">
-          <div class="button">Swap Terms</div>
-          <div class="button">Import</div>
-          <div class="button">Share</div>
+          <mdui-button class="button" variant="elevated">Swap Terms</mdui-button
+          >
+          <mdui-button class="button" variant="elevated">Import</mdui-button>
         </div>
       </div>
     </div>
@@ -45,14 +47,22 @@ import AlertBox from "../components/AlertBox.astro";
 
       <div id="created" class="notecardContainer" style="display:none"></div>
       <div id="notecardHeaderLeft" class="notecardHeaderLeft">
-        <input class="orderNumber" value="1" disabled style="display:none" />
+        <input class="orderNumber" value="1" disabled />
+        <div class="move_up_button_container">
+          <mdui-button-icon icon="arrow_drop_up" class="move_up_button"
+          ></mdui-button-icon>
+        </div>
+        <div class="move_down_button_container">
+          <mdui-button-icon icon="arrow_drop_down" class="move_down_button"
+          ></mdui-button-icon>
+        </div>
       </div>
       <div
         id="notecardHeaderRight"
         class="notecardHeaderRight"
         style="display:none"
       >
-        <strong>X</strong>
+        <strong><mdui-icon name="delete_outline"></mdui-icon></strong>
       </div>
 
       <div id="end_cap">
@@ -60,7 +70,6 @@ import AlertBox from "../components/AlertBox.astro";
       </div>
     </div>
   </main>
-  <!-- <AlertBox /> -->
 </Layout>
 
 <style>
@@ -69,6 +78,15 @@ import AlertBox from "../components/AlertBox.astro";
   #notecardHeaderRight {
     display: none;
   }
+  .move_up_button,
+  .move_down_button {
+    color: var(--blue);
+  }
+  /* #move_up_button[disabled], */
+  /* #move_down_button[disabled] { */
+  /*   color: gray; */
+  /* } */
+
   .createTitle {
     display: grid;
     grid-template-columns: 50% 50%;
@@ -76,12 +94,12 @@ import AlertBox from "../components/AlertBox.astro";
     align-content: center;
   }
   .SaveButton {
-    background-color: white;
-    color: var(--blue);
-    margin-bottom: 5px;
-    width: 50px;
-    height: 20px;
-    font-size: 25px;
+    /* background-color: white; */
+    /* color: var(--blue); */
+    /* margin-bottom: 5px; */
+    width: 100px;
+    /* height: 37px; */
+    font-size: 20px;
     padding-top: 6px;
     padding-bottom: 6px;
     padding-left: 4px;
@@ -91,30 +109,31 @@ import AlertBox from "../components/AlertBox.astro";
     cursor: pointer;
     justify-self: end;
     align-self: center;
+    /* vertical-align: center; */
     /* float: right; */
   }
   .button {
-    background-color: white;
-    border-radius: 10px 10px 10px 10px;
-    color: var(--blue);
-    padding-top: 7px;
-    padding-bottom: 7px;
-    padding-left: 2px;
+    /* background-color: white; */
+    border-radius: var(--mdui-shape-corner-medium);
+    /* color: var(--blue); */
+    /* padding-top: 7px; */
+    /* padding-bottom: 7px; */
+    /* padding-left: 2px; */
     /* width: 50%; */
-    text-align: center;
-    vertical-align: center;
-    justify-content: center;
-  }
-  .button:hover {
-    /* background-color: var(--green); */
+    /* text-align: center; */
+    /* vertical-align: center; */
+    /* justify-content: center; */
   }
   .editing {
     display: grid;
-    width: 100%;
+    width: calc(100% - 10px);
     column-gap: 1.25%;
     grid-template-columns: repeat(10, calc(8.75%));
     grid-column: 1/3;
     margin-top: 20px;
+    background-color: white;
+    padding: 5px;
+    border-radius: 5px;
   }
   #description {
     grid-row: 1/3;
@@ -162,11 +181,12 @@ import AlertBox from "../components/AlertBox.astro";
     color: black;
   }
   .orderNumber {
-    width: 40px;
-    height: 20px;
+    width: 60px;
+    height: 30px;
     font-size: 25px;
     text-align: center;
     border: none;
+    background-color: transparent;
     border-bottom: 2px solid grey;
   }
   .notecardHeaderLeft {
@@ -199,9 +219,19 @@ import AlertBox from "../components/AlertBox.astro";
   }
   #cards {
     width: 100%;
-    display: grid;
-    grid-template-columns: 100%;
-    row-gap: 10px;
+    height: fit-content;
+    display: flex;
+    flex-direction: column;
+    /* grid-template-columns: 100%; */
+    /* row-gap: 10px; */
+    margin-bottom: 20px;
+  }
+  :global(#footer) {
+    position: relative;
+  }
+  :global(#slot-container) {
+    display: flex;
+    flex-direction: column;
   }
   .notecardInput {
     width: 100%;
@@ -236,6 +266,7 @@ import AlertBox from "../components/AlertBox.astro";
     justify-items: center;
     align-items: center;
     justify-content: center;
+    margin-bottom: 5px;
     /* box-shadow: 2px 2px 1px black; */
     /* margin:5px; */
   }
@@ -255,16 +286,13 @@ import AlertBox from "../components/AlertBox.astro";
   }
 
   main {
-    display: grid;
-    position: absolute;
+    display: flex;
+    flex-direction: column;
+    position: relative;
     width: 50%;
-    /* outline: 2px solid red; */
     top: 100px;
     left: 25%;
-    /* text-align: center; */
-    /* padding-left:50px; */
-    /* background-image: linear-gradient(to bottom right, #F5E3B8, #F5DD67); */
-    /* outline: 2px solid red; */
+    margin-bottom: 90px;
   }
   #sidebar {
     /* outline: 2px solid red; */
@@ -287,5 +315,14 @@ import AlertBox from "../components/AlertBox.astro";
     /* position:absolute; */
     /* left:100px; */
     float: right;
+  }
+  #saveText {
+    /* height: 100%; */
+    /* font-size: 25px; */
+    display: grid;
+    /* align-content: center; */
+    position: relative;
+    top: 1.3px;
+    /* vertical-align: baseline; */
   }
 </style>

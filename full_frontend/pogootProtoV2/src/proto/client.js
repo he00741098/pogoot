@@ -2,17 +2,16 @@ document.addEventListener("astro:page-load", () => {
   if (document.URL.indexOf("create") < 0) {
     return;
   }
+  window.autoAnimate(document.getElementById("cards"));
   const {
     Notecard,
-    NotecardFetchRequest,
+    // NotecardFetchRequest,
     NotecardList,
     NotecardListUploadRequest,
     NotecardModifyRequest,
-    NotecardUploadResponse,
+    // NotecardUploadResponse,
   } = require("./pogoots_pb.js");
-  const {
-    NotecardServiceClient,
-  } = require("./pogoots_grpc_web_pb.js");
+  const { NotecardServiceClient } = require("./pogoots_grpc_web_pb.js");
 
   var client = new NotecardServiceClient("https://bigpogoot.sweep.rs");
 
@@ -24,8 +23,8 @@ document.addEventListener("astro:page-load", () => {
   notecardHeaderRight.style.display = "none";
   var creates = document.getElementById("create");
   var alertBox = document.getElementById("exampleAlert");
-  var titleInput = document.getElementById("titleInput");
   alertBox.style.display = "none";
+  var titleInput = document.getElementById("titleInput");
   var alerts = document.getElementById("Alerts");
   var front_input = document.getElementById("createFrontInput");
   var back_input = document.getElementById("createBackInput");
@@ -39,18 +38,19 @@ document.addEventListener("astro:page-load", () => {
   let last_value_length = 0;
   let entered_rows = 0;
   let last_line_count = 1;
-  let char_count = Math.round(front_input.clientWidth/15.15);
-  window.addEventListener("resize", function (ev){
+  let char_count = Math.round(front_input.clientWidth / 15.15);
+
+  window.addEventListener("resize", function (ev) {
     if (document.URL.indexOf("create") < 0) {
       return;
     }
-    char_count = Math.round(front_input.clientWidth/15.15);
-    for(input of refresh_inputs){
+    char_count = Math.round(front_input.clientWidth / 15.15);
+    for (var input of refresh_inputs) {
       flex_input(input);
     }
   });
 
-  function flex_input(front_input){
+  function flex_input(front_input) {
     let input1 = front_input.value.split("\n");
     let rows = 0;
     for (var index = input1.length - 1; index >= 0; index--) {
@@ -65,18 +65,15 @@ document.addEventListener("astro:page-load", () => {
     front_input.rows = rows;
   }
 
-
   refresh_inputs.push(front_input);
-  front_input.oninput = function(ev){
-    flex_input(front_input)
+  front_input.oninput = function (ev) {
+    flex_input(front_input);
   };
 
   refresh_inputs.push(back_input);
   back_input.oninput = function (ev) {
-    flex_input(back_input)
+    flex_input(back_input);
   };
-
-
 
   end_cap.onclick = function (ev) {
     skip_front_input = true;
@@ -111,10 +108,11 @@ document.addEventListener("astro:page-load", () => {
       let node = document.getElementById("created:" + current_clone);
       cards.removeChild(node);
       reorder_all_entries();
+      activate_movement_buttons();
     };
     cloned_left_header.childNodes[1].value = clone_count + 1;
     cloned_left_header.style.display = cloned_right_header.style.display =
-      "grid";
+      "flex";
     front_input.value = "";
     back_input.value = "";
     cloned_front_input.id = "front:" + clone_count;
@@ -124,14 +122,14 @@ document.addEventListener("astro:page-load", () => {
     cloned_created.appendChild(cloned_right_header);
     cloned_created.appendChild(cloned_front_input);
     cloned_created.appendChild(cloned_back_input);
-    refresh_inputs.push(cloned_front_input)
-    cloned_front_input.oninput = function (ev){
-      flex_input(cloned_front_input)
-    }
-    refresh_inputs.push(cloned_back_input)
-    cloned_back_input.oninput = function(ev){
-      flex_input(cloned_back_input)
-    }
+    refresh_inputs.push(cloned_front_input);
+    cloned_front_input.oninput = function (ev) {
+      flex_input(cloned_front_input);
+    };
+    refresh_inputs.push(cloned_back_input);
+    cloned_back_input.oninput = function (ev) {
+      flex_input(cloned_back_input);
+    };
     cloned_created.style.display = "grid";
     cards.insertBefore(cloned_created, creates.nextSibling);
     skip_back_input = false;
@@ -139,6 +137,7 @@ document.addEventListener("astro:page-load", () => {
     front_input.rows = 1;
     back_input.rows = 1;
     rows = 1;
+    activate_movement_buttons();
     front_input.focus();
     console.log(cards.childNodes);
   }
@@ -153,11 +152,12 @@ document.addEventListener("astro:page-load", () => {
     }
 
     for (var node = nodes.length - 2; node > 0; node--) {
-      let node_entry = nodes[node];
+      let node_entry = nodes[nodes.length - 1 - node];
       console.log(node);
       node_entry.id = "created:" + (node - 1);
       node_entry.childNodes[0].childNodes[1].value =
-        nodes.length - 2 - node + 1;
+        node;
+      // node_entry.childNodes[0].childNodes[1].style.display ="block";
       let current_clone = node - 1;
       node_entry.childNodes[1].childNodes[1].onclick = function (ev) {
         let noder = document.getElementById("created:" + current_clone);
@@ -172,6 +172,49 @@ document.addEventListener("astro:page-load", () => {
     } else {
       clone_count = nodes.length - 2;
     }
+    // activate_movement_buttons();
+  }
+  function activate_movement_buttons(){
+    console.log("activating")
+    let up_buttons = document.getElementsByClassName("move_up_button");
+    let down_buttons = document.getElementsByClassName("move_down_button");
+    for (var i = 0; i<up_buttons.length-1;i++){
+      if(i==0){
+        up_buttons[i].disabled=true;
+      }else{
+        up_buttons[i].disabled = false;
+        let index = i;
+        up_buttons[i].onclick = function(e){
+          // console.log("Index"+index);
+          let current = document.getElementById("created:"+(up_buttons.length-2-index));
+          let sibling = document.getElementById("created:"+(up_buttons.length-1-index));
+          // console.log(current);
+          // console.log(current.previousSibling);
+          document.getElementById("created:"+index).parentNode.insertBefore(current,sibling);
+          reorder_all_entries();
+          activate_movement_buttons();
+        }
+      }
+      if(i==up_buttons.length-2){
+        down_buttons[i].disabled=true;
+      }else{
+        down_buttons[i].disabled=false;
+        let index = i;
+        down_buttons[i].onclick = function(e){
+          let current = document.getElementById("created:"+(up_buttons.length-2-index));
+          let sibling;
+          if(document.getElementById("created:"+(up_buttons.length-4-index))!=null){
+            sibling = document.getElementById("created:"+(up_buttons.length-4-index));
+          }else{
+            sibling = document.getElementById("created");
+          }
+          document.getElementById("created:"+index).parentNode.insertBefore(current, sibling);
+          reorder_all_entries();
+          activate_movement_buttons();
+        }
+      }
+    }
+
   }
 
   save_button.onclick = function (ev) {
@@ -181,13 +224,14 @@ document.addEventListener("astro:page-load", () => {
       send_alert("red", "No Title", "Please add a title");
       return;
     }
-    if (fronts.length < 2) {
+    if (fronts.length < 5) {
       // console.log("no content");
-      send_alert("red", "No Content", "Please add at least 1 card");
+      send_alert("red", "Not Enough Content", "Please add at least 5 cards");
       return;
     }
-    if (cookie_get("auth").length < 2 || cookie_get("username").length < 2) {
+    if (cookie_get("auth")==null||cookie_get("auth").length < 2 || cookie_get("username").length < 2) {
       send_alert("red", "Login", "Please Login before uploading");
+      return;
     }
 
     var list = [];
@@ -200,6 +244,7 @@ document.addEventListener("astro:page-load", () => {
       list.push(notecard);
     }
     var notecardList = new NotecardList();
+    list = list.reverse();
     notecardList.setNotecardsList(list);
 
     console.log(notecardList);
@@ -210,85 +255,127 @@ document.addEventListener("astro:page-load", () => {
     request.setTitle(document.getElementById("titleInput").value);
     request.setDescription(document.getElementById("description").value);
     request.setTags(document.getElementById("tags").value);
-    request.setSchool(document.getElementById("school"));
+    request.setSchool(document.getElementById("school").value);
     request.setUsername(cookie_get("username"));
     console.log(request);
     uploader(request);
   };
 
   function uploader(request) {
+    save_button.loading=true;
+    save_button.disabled=true;
     client.upload(request, {}, (err, response) => {
-      if(err==null && response.array[0]){
+      save_button.loading=false;
+      save_button.disabled=false;
+      if (err == null && response.array[0]) {
         localStorage.setItem("updated", "true");
         //the request was a success
-        redirect_to("/notecards/"+response.array[1])
-      }else{
+        redirect_to("/notecards/" + response.array[1]);
+      } else {
         send_alert("red", "Upload Failed", "Please Try Again");
       }
     });
   }
 
-  function send_alert(color, header, text) {
-    let box = alertBox.cloneNode(true);
-    box.style.outline = color + " solid 3px";
-    // console.log(box.childNodes);
-    box.childNodes[1].innerText = header;
-    box.childNodes[3].innerText = text;
-    box.style.display = "grid";
-    alerts.appendChild(box);
-    setTimeout(() => {
-      alerts.removeChild(box);
-    }, 5000);
-  }
-  // function redirect() {
-  //   window.location.href = "/library";
-  // }
-  // function redirect_to(url){
-  //   window.location.href = url;
-  // }
+  let editing = localStorage.getItem("to_edit");
+  if(editing==null || editing.length<6){
+    //not editing
+  }else{
+    let data = JSON.parse(editing);
+    localStorage.setItem("to_edit", null);
+    document.getElementsByClassName("createTitle")[0].childNodes[1].innerText = "Edit"
+    //example data
+    //{
+    //    title:String
+    //    description:String
+    //    cfid:String
+    //    tags:String
+    //    school:String
+    //    Notecards: [
+    //        {
+    //          fronts:[]
+    //          backs:[]
+    //        }
+    //    ]
+    //
+    //}
 
-  function cookie_set(key, value) {
-    var date = new Date();
-    date.setTime(date.getTime() + 3 * 24 * 60 * 60 * 1000);
-    let cookies = document.cookie;
-    let split = cookies.split(";");
-    let validCookies = false;
-    for (var cookie of split) {
-      if (cookie.trim().split("=")[0] == "validCookies") {
-        validCookies = true;
-        break;
+    document.getElementById("titleInput").value = data.title;
+    document.getElementById("description").value = data.description;
+    document.getElementById("tags").value = data.tags
+    document.getElementById("school").value = data.school;
+    for(var n of data.notecards){
+      if (n.front.length>0){
+        front_input.value = n.front[0];
       }
-    }
-
-    if (!validCookies) {
-      console.log("no cookies");
-      document.cookie =
-        "auth=; SameSite=None; Secure; expires=" + date.toUTCString() + ";";
-      document.cookie =
-        "username=; SameSite=None; Secure; expires=" + date.toUTCString() + ";";
-      document.cookie =
-        "validCookies=; SameSite=None; Secure; expires=" +
-          date.toUTCString() +
-          ";";
-    }
-    cookies = document.cookie;
-    document.cookie =
-      key +
-        "=" +
-        value +
-        "; SameSite=None; Secure; expires=" +
-        date.toUTCString() +
-        ";";
-  }
-
-  function cookie_get(key) {
-    let cookies = document.cookie;
-    let split = cookies.split(";");
-    for (var cookie of split) {
-      let cook = cookie.trim().split("=");
-      if (cook[0] == key) {
-        return cook[1];
+      if(n.back.length>0){
+        back_input.value = n.back[0];
       }
+      skip_back_input = true;
+      skip_front_input = true;
+      new_card(true);
     }
+    char_count = Math.round(front_input.clientWidth / 15.15);
+    for (var input of refresh_inputs) {
+      flex_input(input);
+    }
+
+    save_button.onclick = function (ev) {
+      var fronts = document.getElementsByClassName("frontNotecardInput");
+      var backs = document.getElementsByClassName("backNotecardInput");
+      if (titleInput.value.length < 1) {
+        send_alert("red", "No Title", "Please add a title");
+        return;
+      }
+      if (fronts.length < 5) {
+        // console.log("no content");
+        send_alert("red", "Not Enough Content", "Please add at least 5 cards");
+        return;
+      }
+      if (cookie_get("auth").length < 2 || cookie_get("username").length < 2) {
+        send_alert("red", "Login", "Please Login before uploading");
+      }
+
+      var list = [];
+      for (var i = 1; i < fronts.length; i++) {
+        var notecard = new Notecard();
+        // console.log(fronts[i].value);
+        notecard.setFrontList([fronts[i].value]);
+        notecard.setBackList([backs[i].value]);
+        // console.log(notecard);
+        list.push(notecard);
+      }
+      var notecardList = new NotecardList();
+      list = list.reverse();
+      notecardList.setNotecardsList(list);
+
+      console.log(notecardList);
+
+      var request = new NotecardModifyRequest();
+      request.setNotecards(notecardList);
+      request.setAuthToken(cookie_get("auth"));
+      request.setTitle(document.getElementById("titleInput").value);
+      request.setDescription(document.getElementById("description").value);
+      request.setTags(document.getElementById("tags").value);
+      request.setSchool(document.getElementById("school").value);
+      request.setUsername(cookie_get("username"));
+      request.setCfid(data.cfid);
+      console.log(request);
+      save_button.loading=true;
+      save_button.disabled=true;
+      client.modify(request, {}, (err, response) => {
+        save_button.loading=false;
+        save_button.disabled=false;
+        if (err == null && response.array[0]) {
+          localStorage.setItem("updated", "true");
+          //the request was a success
+          redirect_to("/notecards/" + response.array[1]);
+        } else {
+          send_alert("red", "Upload Failed", "Please Try Again");
+        }
+      });
+    };
   }
+
+
 });

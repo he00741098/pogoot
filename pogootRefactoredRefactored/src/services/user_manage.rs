@@ -1,6 +1,7 @@
 use argon2::{Argon2, PasswordHash, PasswordVerifier};
-use libsql::{Connection, Database};
-use std::{collections::HashMap, sync::Arc, time::Duration};
+use libsql::Database;
+use serde_json::Value;
+use std::{sync::Arc, time::Duration};
 use tokio::sync::{oneshot::Sender, Mutex};
 
 use chrono::Utc;
@@ -20,6 +21,7 @@ pub struct UserManager {
     ///a map of tokens that lead to a user
     pub map: Arc<Mutex<UserManageMap>>,
     pub connection: Arc<Database>,
+    pub turnstile: String,
 }
 impl UserManager {
     //TODO: Rate limiting
@@ -92,11 +94,82 @@ impl UserManager {
         if password.len() < 6 {
             let result = callback.send(LoginResponse {
                 success: false,
-                mystery: "Invalid Password".to_string(),
+                mystery: "Password too short - Must be greater than 5".to_string(),
             });
-            println!("Invalid Password");
+            println!("Invalid Password: too short");
             if result.is_err() {
                 println!("Callback errored when invalid password");
+            }
+            return;
+        }
+        //query cloudflare to verify token...
+        let cf_client = reqwest::Client::new();
+        let json_start = "{";
+        let json_end = "}";
+        let json = format!(
+            "{}\"secret\":\"{}\", \"response\":\"{}\"{}",
+            json_start, self.turnstile, req.turn, json_end
+        );
+
+        println!("Turnstile Req:\n{}", json);
+
+        let res = cf_client
+            .post("https://challenges.cloudflare.com/turnstile/v0/siteverify")
+            .body(json)
+            .header("Content-Type", "application/json")
+            .send()
+            .await;
+        if res.is_err() {
+            let result = callback.send(LoginResponse {
+                success: false,
+                mystery: "Cloudflare Turnstile Token Not Valid".to_string(),
+            });
+            println!("Cloudflare Turnstile Token Not Valid");
+            if result.is_err() {
+                println!("Callback errored when invalid cfturn");
+            }
+            return;
+        }
+        let res = res.unwrap();
+        let res = res.json::<serde_json::Value>().await;
+        println!("Turnstile Response: {:?}", res);
+
+        if let Ok(serde_json::Value::Object(x)) = res {
+            let success = x.get("success");
+            if let Some(Value::Bool(y)) = success {
+                if *y {
+                    println!("CF verified");
+                } else {
+                    let result = callback.send(LoginResponse {
+                        success: false,
+                        mystery: "Cloudflare Turnstile Post False".to_string(),
+                    });
+                    println!("Cloudflare Turnstile Post Was False");
+                    if result.is_err() {
+                        println!("Callback errored when false cfturn");
+                    }
+                    return;
+                }
+            } else {
+                println!("Not bool");
+                let result = callback.send(LoginResponse {
+                    success: false,
+                    mystery: "Cloudflare Turnstile Response is not bool".to_string(),
+                });
+                println!("Cloudflare Turnstile Post Was Not bool: {:?}", success);
+                if result.is_err() {
+                    println!("Callback errored when not bool");
+                }
+                return;
+            }
+        } else {
+            let result = callback.send(LoginResponse {
+                success: false,
+                mystery: "Cloudflare Turnstile Post Failed".to_string(),
+            });
+            println!("Cloudflare Turnstile Post Failed");
+            if result.is_err() {
+                println!("Callback errored when post cfturn");
             }
             return;
         }
@@ -233,6 +306,78 @@ impl UserManager {
         // todo!()
     }
     async fn login(&self, mut req: UserLoginRequest, callback: Sender<LoginResponse>) {
+        //query cloudflare to verify token...
+        let cf_client = reqwest::Client::new();
+        let json_start = "{";
+        let json_end = "}";
+        let json = format!(
+            "{}\"secret\":\"{}\", \"response\":\"{}\"{}",
+            json_start, self.turnstile, req.turn, json_end
+        );
+
+        println!("Turnstile Req:\n{}", json);
+
+        let res = cf_client
+            .post("https://challenges.cloudflare.com/turnstile/v0/siteverify")
+            .body(json)
+            .header("Content-Type", "application/json")
+            .send()
+            .await;
+        if res.is_err() {
+            let result = callback.send(LoginResponse {
+                success: false,
+                mystery: "Cloudflare Turnstile Token Not Valid".to_string(),
+            });
+            println!("Cloudflare Turnstile Token Not Valid");
+            if result.is_err() {
+                println!("Callback errored when invalid cfturn");
+            }
+            return;
+        }
+        let res = res.unwrap();
+        let res = res.json::<serde_json::Value>().await;
+        println!("Turnstile Response: {:?}", res);
+
+        if let Ok(serde_json::Value::Object(x)) = res {
+            let success = x.get("success");
+            if let Some(Value::Bool(y)) = success {
+                if *y {
+                    println!("CF verified");
+                } else {
+                    let result = callback.send(LoginResponse {
+                        success: false,
+                        mystery: "Cloudflare Turnstile Post False".to_string(),
+                    });
+                    println!("Cloudflare Turnstile Post Was False");
+                    if result.is_err() {
+                        println!("Callback errored when false cfturn");
+                    }
+                    return;
+                }
+            } else {
+                println!("Not bool");
+                let result = callback.send(LoginResponse {
+                    success: false,
+                    mystery: "Cloudflare Turnstile Response is not bool".to_string(),
+                });
+                println!("Cloudflare Turnstile Post Was Not bool: {:?}", success);
+                if result.is_err() {
+                    println!("Callback errored when not bool");
+                }
+                return;
+            }
+        } else {
+            let result = callback.send(LoginResponse {
+                success: false,
+                mystery: "Cloudflare Turnstile Post Failed".to_string(),
+            });
+            println!("Cloudflare Turnstile Post Failed");
+            if result.is_err() {
+                println!("Callback errored when post cfturn");
+            }
+            return;
+        }
+
         let email = std::mem::take(&mut req.email);
         let password = std::mem::take(&mut req.password);
         //Check if user exists in hashmap

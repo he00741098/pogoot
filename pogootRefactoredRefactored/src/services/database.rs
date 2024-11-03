@@ -113,12 +113,19 @@ pub async fn store_notecards(
     data: NotecardData,
 ) -> Result<String, ()> {
     let set_len = notes.len();
+    let data = data.sanitize();
+    let data_json = serde_json::to_string(&data);
     let json = serde_json::to_string(&notes);
     if json.is_err() {
         println!("Serde To String Error");
         return Err(());
+    } else if data_json.is_err() {
+        println!("Serde To String Error with Data");
+        return Err(());
     }
     let json = json.unwrap();
+    let data_json = data_json.unwrap();
+    let json = format!("[{},{}]", data_json, json);
     let compressed = zstd::stream::encode_all(json.as_bytes(), 0);
     if compressed.is_err() {
         return Err(());
@@ -377,6 +384,48 @@ pub async fn update_notecard_data(
     let tags = request.tags;
     let school = request.school;
     let cfid = request.cfid;
+    let username = request.username;
+
+    //Verify ownership and permissions
+    let verification_query = "SELECT OWNER, PERMISSIONS_JSON FROM NOTECARDS WHERE CFID=? LIMIT 1;";
+    let query_result = conn.query(verification_query, [cfid.clone()]).await;
+    if query_result.is_err() {
+        println!("VERIFICATION QUERY FAILED");
+        //TODO: Make better error handling system
+        return Err(());
+    }
+    let mut query_result = query_result.unwrap();
+    if let Ok(Some(row)) = query_result.next().await {
+        let owner = row.get::<String>(0);
+        if let Ok(o) = owner {
+            if o != username {
+                println!("Usernames Don't Match: {} vs. {}", o, username);
+                return Err(());
+            }
+        } else {
+            println!("Owner not ok... :{:?}", owner);
+            let permissions = row.get::<String>(1);
+            println!(
+                "Permissions not implemented yet...Permissions{:?}",
+                permissions
+            );
+            return Err(());
+        }
+    } else {
+        println!("Verification query yielded no results... FAILED OR RETRIEVED NOTHING");
+        return Err(());
+    }
+
+    let notecard_data_json = NotecardData {
+        auth: "".to_string(),
+        title: title.clone().unwrap_or("No Title".to_string()),
+        school: school.clone().unwrap_or("".to_string()),
+        tags: tags.clone().unwrap_or("".to_string()),
+        desc: description.clone().unwrap_or("".to_string()),
+        username,
+    };
+    let data_json = serde_json::to_string(&notecard_data_json);
+
     let query = "UPDATE NOTECARDS SET".to_string();
     let ending = "WHERE CFID=?;";
     // let now = chrono::Utc::now();
@@ -389,20 +438,22 @@ pub async fn update_notecard_data(
         .map(|x| (x.0, x.1.unwrap()))
         .collect::<Vec<(usize, String)>>();
     let query = if strings.is_empty() {
-        format!("{} CREATION_DATE=? {}", query, ending)
+        format!("{} CREATION_DATE=?,SETLEN=? {}", query, ending)
     } else if strings.len() == 1 {
         format!(
-            "{} CREATION_DATE=?,{}=? {}",
+            "{} CREATION_DATE=?,SETLEN=?,{}=? {}",
             query, conversion[strings[0].0], ending
         )
     } else if strings.len() == 2 {
         format!(
-            "{} {}=?, {}=? {}",
+            "{} CREATION_DATE=?,SETLEN=?, {}=?, {}=? {}",
             query, conversion[strings[0].0], conversion[strings[1].0], ending
         )
     } else {
-        let mut temp_formatter =
-            format!("{} CREATION_DATE=?,{}=?,", query, conversion[strings[0].0]);
+        let mut temp_formatter = format!(
+            "{} CREATION_DATE=?,SETLEN=?,{}=?,",
+            query, conversion[strings[0].0]
+        );
         for b in 1..strings.len() - 1 {
             temp_formatter = format!("{}{}=?,", temp_formatter, conversion[strings[b].0]);
         }
@@ -414,16 +465,30 @@ pub async fn update_notecard_data(
         );
         temp_formatter
     };
-    let strings = strings.into_iter().map(|x| x.1).collect::<Vec<String>>();
-    let result = conn.query(query.as_str(), params_from_iter(strings)).await;
-    if result.is_err() {
-        return Err(());
-    }
 
     if notecards.is_none() {
         return Ok(());
     }
     let notecards = notecards.unwrap();
+    let mut strings = strings.into_iter().map(|x| x.1).collect::<Vec<String>>();
+    let now = chrono::Utc::now();
+    let now = now.to_string();
+    strings.insert(0, now);
+    strings.insert(1, notecards.notecards.len().to_string());
+    strings.push(cfid.clone());
+
+    println!("SQL Update Query: \n{}", query.as_str());
+    println!("SQL Update Params: \n{:?}", strings);
+
+    let result = conn
+        .execute(query.as_str(), params_from_iter(strings))
+        .await;
+    if result.is_err() {
+        return Err(());
+    } else {
+        println!("SQL succeeded in modifying {} rows", result.unwrap());
+    }
+
     let notes = notecards
         .notecards
         .into_iter()
@@ -435,6 +500,13 @@ pub async fn update_notecard_data(
         return Err(());
     }
     let json = json.unwrap();
+    if data_json.is_err() {
+        println!("Serde To String Error with Data");
+        return Err(());
+    }
+    let data_json = data_json.unwrap();
+
+    let json = format!("[{},{}]", data_json, json);
     let compressed = zstd::stream::encode_all(json.as_bytes(), 0);
     if compressed.is_err() {
         return Err(());

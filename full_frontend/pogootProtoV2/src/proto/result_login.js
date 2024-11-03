@@ -1,22 +1,131 @@
 (function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
 document.addEventListener("astro:page-load", () => {
-  var alertBox = document.getElementById("exampleAlert");
-  alertBox.style.display = "none";
+
   const {
     LoginResponse,
     UserLoginRequest,
     UserPasswordUpdateRequest,
     UserRegisterWithEmailRequest,
+    Empty,
+    date
   } = require("./pogoots_pb.js");
   const {
     LoginServerClient,
   } = require("./pogoots_grpc_web_pb.js");
+
+  if(window.lastChecked == null && cookie_get("auth")!=null&&cookie_get("auth").length>2){
+    window.lastChecked = new Date();
+    check_boot_time();
+  }else if(new Date() - window.lastChecked>300000){
+    window.lastChecked = new Date();
+    check_boot_time();
+  }
+
+function check_boot_time(){
+    let client = new LoginServerClient("https://bigpogoot.sweep.rs");
+    let req = new Empty();
+    client.boot(req, {}, (err, response) => {
+      console.log(response);
+      let date = response.array[0];
+      let sign_in_date = localStorage.getItem("signInDate");
+      if(sign_in_date==null){
+        reset_auth()
+        return;
+      }else{
+        sign_in_date = new Date(sign_in_date);
+        date = new Date(date);
+        if(date-sign_in_date>0){
+          //the server date is newer than the sign in date, auth is reset
+          reset_auth()
+          return;
+        }else{
+          //valid
+        }
+      }
+    });
+  }
+  function reset_auth(){
+    document.getElementById("account_button").icon = "account_circle";
+    cookie_set("auth", "");
+    send_alert("red", "Server Updated", "Suggested: reload and sign in again");
+    if(window.onloadTurnstileCallback==null){
+      window.onloadTurnstileCallback = function () {
+        window.id = turnstile.render('.captcha', {
+          sitekey: '0x4AAAAAAAg-XBCL8WUE5rPr',
+          callback: function(token) {
+            // console.log(`Challenge Success ${token}`);
+            turn = token;
+            window.turn = token;
+
+            // console.log(`Challenge Success ${turn}`);
+            // console.log("Turn3: "+window.turn);
+          },
+        });
+      };
+    }else{
+      // console.log("Turn1: "+turn);
+      turnstile.remove(window.id);
+      window.onloadTurnstileCallback();
+      // console.log("Turn2: "+turn);
+    }
+  }
+
+
+
+  // console.log(window.turnstile);
+  var turn = null;
+  let loginTime = cookie_get("auth");
+  if (loginTime == null || loginTime.length <= 5) {
+    console.log("Callback...")
+    console.log(window.onloadTurnstileCallback);
+    console.log(window.turnstile);
+    if(window.onloadTurnstileCallback==null){
+      window.onloadTurnstileCallback = function () {
+        window.id = turnstile.render('.captcha', {
+          sitekey: '0x4AAAAAAAg-XBCL8WUE5rPr',
+          callback: function(token) {
+            // console.log(`Challenge Success ${token}`);
+            turn = token;
+            window.turn = token;
+
+            // console.log(`Challenge Success ${turn}`);
+            // console.log("Turn3: "+window.turn);
+          },
+        });
+      };
+    }else{
+      // console.log("Turn1: "+turn);
+      turnstile.remove(window.id);
+      window.onloadTurnstileCallback();
+      // console.log("Turn2: "+turn);
+    }
+
+  }
+
+  var alertBox = document.getElementById("exampleAlert");
+  alertBox.style.display = "none";
 
   let register_button = document.getElementById("RegisterButton");
   let login_button = document.getElementById("LoginButton");
 
   let register_function = function (event) {
     event.preventDefault();
+
+    let usernameReg = document.getElementById("usernameReg");
+    let usernameConfirm = document.getElementById("usernameRegConfirm");
+    let passReg = document.getElementById("passReg");
+    let passConfirm = document.getElementById("passRegConfirm");
+    if(window.turn==null){
+      usernameReg.innerText = 
+      usernameConfirm.innerText = 
+      passReg.innerText = 
+      passConfirm.innerText = "CAPTCHA Invalid";
+    }else{
+      usernameReg.innerText = 
+      usernameConfirm.innerText = 
+      passReg.innerText = 
+      passConfirm.innerText = "";
+    }
     let email = document.getElementById("emailRegister").value;
     let emailConfirm = document.getElementById("emailRegisterConfirm").value;
     let password = document.getElementById("passwordRegister").value;
@@ -24,10 +133,6 @@ document.addEventListener("astro:page-load", () => {
       "passwordRegisterConfirm",
     ).value;
 
-    let usernameReg = document.getElementById("usernameReg");
-    let usernameConfirm = document.getElementById("usernameRegConfirm");
-    let passReg = document.getElementById("passReg");
-    let passConfirm = document.getElementById("passRegConfirm");
     if (email != emailConfirm) {
       // send_alert("red", "Emails do not match", "Please try again");
       document
@@ -126,6 +231,7 @@ document.addEventListener("astro:page-load", () => {
     let regReq = new UserRegisterWithEmailRequest();
     regReq.setEmail(email);
     regReq.setPassword(password);
+    regReq.setTurn(window.turn);
     if (document.getElementById("RegisterButton").disabled) {
       return;
     }
@@ -149,17 +255,40 @@ document.addEventListener("astro:page-load", () => {
         .setCustomValidity("Please enter an email address.");
         usernameReg.innerText = usernameConfirm.innerText = "Invalid Email";
       } else if (response.array[0]) {
+
+        document.getElementById("account_button").icon = "settings";
         localStorage.setItem("library_cache","");
-        send_alert("green", "Login Success", "Redirecting...");
         cookie_set("auth", response.array[1]);
         cookie_set("username", email);
-        redirect();
+        let now = new Date();
+        localStorage.setItem("signInDate", now.toUTCString());
+        window.lastChecked = new Date();
+
+        if(!document.URL.includes("create")){
+          send_alert("green", "Login Success", "Redirecting...");
+          redirect();
+        }else{
+          document.getElementById("login_popup").close();
+          send_alert("green", "Login Success", "");
+        }
+
       }
     });
   };
   let login_function = function (event) {
     event.preventDefault();
-
+        let passLog = document.getElementById("usernameLogConfirm");
+        let userLog = document.getElementById("passLogConfirm");
+    if(window.turn==null){
+      // console.log("Login Turn" + turn);
+      // console.log("Window Turn" + window.turn);
+        passLog.innerText = "CAPTCHA Invalid";
+        userLog.innerText = "CAPTCHA Invalid";
+      return;
+    }else{
+        passLog.innerText = "";
+        userLog.innerText = "";
+    }
     let email = document.getElementById("emailLogin").value;
     let password = document.getElementById("passwordLogin").value;
 
@@ -167,17 +296,26 @@ document.addEventListener("astro:page-load", () => {
     let regReq = new UserLoginRequest();
     regReq.setEmail(email);
     regReq.setPassword(password);
+    regReq.setTurn(window.turn);
     client.login(regReq, {}, (err, response) => {
       console.log(response);
       if (response.array[0]) {
-        send_alert("green", "Login Success", "Redirecting...");
+        document.getElementById("account_button").icon = "settings";
         cookie_set("auth", response.array[1]);
         localStorage.setItem("updated","true");
         cookie_set("username", email);
-        redirect();
+        let now = new Date();
+        localStorage.setItem("signInDate", now.toUTCString());
+        window.lastChecked = new Date();
+
+        if(!document.URL.includes("create")){
+          redirect();
+          send_alert("green", "Login Success", "Redirecting...");
+        }else{
+          document.getElementById("login_popup").close();
+          send_alert("green", "Login Success", "");
+        }
       } else {
-        let passLog = document.getElementById("usernameLogConfirm");
-        let userLog = document.getElementById("passLogConfirm");
         passLog.innerText = "Incorrect credentials";
         userLog.innerText = "Incorrect credentials";
         // send_alert("red", "Incorrect credentials", "");
@@ -191,72 +329,7 @@ document.addEventListener("astro:page-load", () => {
   document.getElementById("regform").onsubmit = register_function;
   document.getElementById("logform").onsubmit = login_function;
 
-  function cookie_set(key, value) {
-    var date = new Date();
-    date.setTime(date.getTime() + 3 * 24 * 60 * 60 * 1000);
-    let cookies = document.cookie;
-    let split = cookies.split(";");
-    let validCookies = false;
-    for (var cookie of split) {
-      if (cookie.trim().split("=")[0] == "validCookies") {
-        validCookies = true;
-        break;
-      }
-    }
 
-    if (!validCookies) {
-      console.log("no cookies");
-      document.cookie =
-        "auth=; SameSite=None; Secure; expires=" +
-        date.toUTCString() +
-        "; path=/";
-      document.cookie =
-        "username=; SameSite=None; Secure; expires=" +
-        date.toUTCString() +
-        "; path=/";
-      document.cookie =
-        "validCookies=; SameSite=None; Secure; expires=" +
-        date.toUTCString() +
-        "; path=/";
-    }
-    cookies = document.cookie;
-    document.cookie =
-      key +
-      "=" +
-      value +
-      "; SameSite=None; Secure; expires=" +
-      date.toUTCString() +
-      "; path=/";
-  }
-
-  function cookie_get(key) {
-    let cookies = document.cookie;
-    let split = cookies.split(";");
-    for (var cookie of split) {
-      let cook = cookie.trim().split("=");
-      if (cook[0] == key) {
-        return cook[1];
-      }
-    }
-  }
-
-  function send_alert(color, header, text) {
-    var alertBox = document.getElementById("exampleAlert");
-    var alerts = document.getElementById("Alerts");
-    let box = alertBox.cloneNode(true);
-    box.style.outline = color + " solid 3px";
-    console.log(box.childNodes);
-    box.childNodes[1].innerText = header;
-    box.childNodes[3].innerText = text;
-    box.style.display = "grid";
-    alerts.appendChild(box);
-    setTimeout(() => {
-      alerts.removeChild(box);
-    }, 5000);
-  }
-  // function redirect() {
-  //   window.location.href = "/library";
-  // }
 });
 
 },{"./pogoots_grpc_web_pb.js":4,"./pogoots_pb.js":5}],2:[function(require,module,exports){
@@ -1458,6 +1531,67 @@ proto.pogootRefactoredRefactored.LoginServerPromiseClient.prototype.update =
 
 
 /**
+ * @const
+ * @type {!grpc.web.MethodDescriptor<
+ *   !proto.pogootRefactoredRefactored.Empty,
+ *   !proto.pogootRefactoredRefactored.date>}
+ */
+const methodDescriptor_LoginServer_Boot = new grpc.web.MethodDescriptor(
+  '/pogootRefactoredRefactored.LoginServer/Boot',
+  grpc.web.MethodType.UNARY,
+  proto.pogootRefactoredRefactored.Empty,
+  proto.pogootRefactoredRefactored.date,
+  /**
+   * @param {!proto.pogootRefactoredRefactored.Empty} request
+   * @return {!Uint8Array}
+   */
+  function(request) {
+    return request.serializeBinary();
+  },
+  proto.pogootRefactoredRefactored.date.deserializeBinary
+);
+
+
+/**
+ * @param {!proto.pogootRefactoredRefactored.Empty} request The
+ *     request proto
+ * @param {?Object<string, string>} metadata User defined
+ *     call metadata
+ * @param {function(?grpc.web.RpcError, ?proto.pogootRefactoredRefactored.date)}
+ *     callback The callback function(error, response)
+ * @return {!grpc.web.ClientReadableStream<!proto.pogootRefactoredRefactored.date>|undefined}
+ *     The XHR Node Readable Stream
+ */
+proto.pogootRefactoredRefactored.LoginServerClient.prototype.boot =
+    function(request, metadata, callback) {
+  return this.client_.rpcCall(this.hostname_ +
+      '/pogootRefactoredRefactored.LoginServer/Boot',
+      request,
+      metadata || {},
+      methodDescriptor_LoginServer_Boot,
+      callback);
+};
+
+
+/**
+ * @param {!proto.pogootRefactoredRefactored.Empty} request The
+ *     request proto
+ * @param {?Object<string, string>=} metadata User defined
+ *     call metadata
+ * @return {!Promise<!proto.pogootRefactoredRefactored.date>}
+ *     Promise that resolves to the response
+ */
+proto.pogootRefactoredRefactored.LoginServerPromiseClient.prototype.boot =
+    function(request, metadata) {
+  return this.client_.unaryCall(this.hostname_ +
+      '/pogootRefactoredRefactored.LoginServer/Boot',
+      request,
+      metadata || {},
+      methodDescriptor_LoginServer_Boot);
+};
+
+
+/**
  * @param {string} hostname
  * @param {?Object} credentials
  * @param {?grpc.web.ClientOptions} options
@@ -2005,6 +2139,7 @@ var global = (function() {
   return Function('return this')();
 }.call(null));
 
+goog.exportSymbol('proto.pogootRefactoredRefactored.Empty', null, global);
 goog.exportSymbol('proto.pogootRefactoredRefactored.GameStartInfoResponse', null, global);
 goog.exportSymbol('proto.pogootRefactoredRefactored.LoginResponse', null, global);
 goog.exportSymbol('proto.pogootRefactoredRefactored.ManagerPlayerRequest', null, global);
@@ -2031,6 +2166,7 @@ goog.exportSymbol('proto.pogootRefactoredRefactored.RoundResultResponse', null, 
 goog.exportSymbol('proto.pogootRefactoredRefactored.UserLoginRequest', null, global);
 goog.exportSymbol('proto.pogootRefactoredRefactored.UserPasswordUpdateRequest', null, global);
 goog.exportSymbol('proto.pogootRefactoredRefactored.UserRegisterWithEmailRequest', null, global);
+goog.exportSymbol('proto.pogootRefactoredRefactored.date', null, global);
 /**
  * Generated by JsPbCodeGenerator.
  * @param {Array=} opt_data Optional initial data array, typically from a
@@ -2240,6 +2376,48 @@ if (goog.DEBUG && !COMPILED) {
    * @override
    */
   proto.pogootRefactoredRefactored.NotecardUploadResponse.displayName = 'proto.pogootRefactoredRefactored.NotecardUploadResponse';
+}
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.pogootRefactoredRefactored.Empty = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+};
+goog.inherits(proto.pogootRefactoredRefactored.Empty, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  /**
+   * @public
+   * @override
+   */
+  proto.pogootRefactoredRefactored.Empty.displayName = 'proto.pogootRefactoredRefactored.Empty';
+}
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.pogootRefactoredRefactored.date = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+};
+goog.inherits(proto.pogootRefactoredRefactored.date, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  /**
+   * @public
+   * @override
+   */
+  proto.pogootRefactoredRefactored.date.displayName = 'proto.pogootRefactoredRefactored.date';
 }
 /**
  * Generated by JsPbCodeGenerator.
@@ -4949,6 +5127,237 @@ if (jspb.Message.GENERATE_TO_OBJECT) {
  *     http://goto/soy-param-migration
  * @return {!Object}
  */
+proto.pogootRefactoredRefactored.Empty.prototype.toObject = function(opt_includeInstance) {
+  return proto.pogootRefactoredRefactored.Empty.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Deprecated. Whether to include
+ *     the JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.pogootRefactoredRefactored.Empty} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.pogootRefactoredRefactored.Empty.toObject = function(includeInstance, msg) {
+  var f, obj = {
+
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.pogootRefactoredRefactored.Empty}
+ */
+proto.pogootRefactoredRefactored.Empty.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.pogootRefactoredRefactored.Empty;
+  return proto.pogootRefactoredRefactored.Empty.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.pogootRefactoredRefactored.Empty} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.pogootRefactoredRefactored.Empty}
+ */
+proto.pogootRefactoredRefactored.Empty.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.pogootRefactoredRefactored.Empty.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.pogootRefactoredRefactored.Empty.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.pogootRefactoredRefactored.Empty} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.pogootRefactoredRefactored.Empty.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+};
+
+
+
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * Optional fields that are not set will be set to undefined.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     net/proto2/compiler/js/internal/generator.cc#kKeyword.
+ * @param {boolean=} opt_includeInstance Deprecated. whether to include the
+ *     JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.pogootRefactoredRefactored.date.prototype.toObject = function(opt_includeInstance) {
+  return proto.pogootRefactoredRefactored.date.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Deprecated. Whether to include
+ *     the JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.pogootRefactoredRefactored.date} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.pogootRefactoredRefactored.date.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    utc: jspb.Message.getFieldWithDefault(msg, 1, "")
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.pogootRefactoredRefactored.date}
+ */
+proto.pogootRefactoredRefactored.date.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.pogootRefactoredRefactored.date;
+  return proto.pogootRefactoredRefactored.date.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.pogootRefactoredRefactored.date} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.pogootRefactoredRefactored.date}
+ */
+proto.pogootRefactoredRefactored.date.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setUtc(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.pogootRefactoredRefactored.date.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.pogootRefactoredRefactored.date.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.pogootRefactoredRefactored.date} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.pogootRefactoredRefactored.date.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getUtc();
+  if (f.length > 0) {
+    writer.writeString(
+      1,
+      f
+    );
+  }
+};
+
+
+/**
+ * optional string utc = 1;
+ * @return {string}
+ */
+proto.pogootRefactoredRefactored.date.prototype.getUtc = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
+};
+
+
+/**
+ * @param {string} value
+ * @return {!proto.pogootRefactoredRefactored.date} returns this
+ */
+proto.pogootRefactoredRefactored.date.prototype.setUtc = function(value) {
+  return jspb.Message.setProto3StringField(this, 1, value);
+};
+
+
+
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * Optional fields that are not set will be set to undefined.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     net/proto2/compiler/js/internal/generator.cc#kKeyword.
+ * @param {boolean=} opt_includeInstance Deprecated. whether to include the
+ *     JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @return {!Object}
+ */
 proto.pogootRefactoredRefactored.UserRegisterWithEmailRequest.prototype.toObject = function(opt_includeInstance) {
   return proto.pogootRefactoredRefactored.UserRegisterWithEmailRequest.toObject(opt_includeInstance, this);
 };
@@ -4967,7 +5376,8 @@ proto.pogootRefactoredRefactored.UserRegisterWithEmailRequest.toObject = functio
   var f, obj = {
     email: jspb.Message.getFieldWithDefault(msg, 1, ""),
     password: jspb.Message.getFieldWithDefault(msg, 2, ""),
-    username: jspb.Message.getFieldWithDefault(msg, 3, "")
+    username: jspb.Message.getFieldWithDefault(msg, 3, ""),
+    turn: jspb.Message.getFieldWithDefault(msg, 4, "")
   };
 
   if (includeInstance) {
@@ -5016,6 +5426,10 @@ proto.pogootRefactoredRefactored.UserRegisterWithEmailRequest.deserializeBinaryF
       var value = /** @type {string} */ (reader.readString());
       msg.setUsername(value);
       break;
+    case 4:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setTurn(value);
+      break;
     default:
       reader.skipField();
       break;
@@ -5063,6 +5477,13 @@ proto.pogootRefactoredRefactored.UserRegisterWithEmailRequest.serializeBinaryToW
   if (f.length > 0) {
     writer.writeString(
       3,
+      f
+    );
+  }
+  f = message.getTurn();
+  if (f.length > 0) {
+    writer.writeString(
+      4,
       f
     );
   }
@@ -5123,6 +5544,24 @@ proto.pogootRefactoredRefactored.UserRegisterWithEmailRequest.prototype.setUsern
 };
 
 
+/**
+ * optional string turn = 4;
+ * @return {string}
+ */
+proto.pogootRefactoredRefactored.UserRegisterWithEmailRequest.prototype.getTurn = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 4, ""));
+};
+
+
+/**
+ * @param {string} value
+ * @return {!proto.pogootRefactoredRefactored.UserRegisterWithEmailRequest} returns this
+ */
+proto.pogootRefactoredRefactored.UserRegisterWithEmailRequest.prototype.setTurn = function(value) {
+  return jspb.Message.setProto3StringField(this, 4, value);
+};
+
+
 
 
 
@@ -5156,7 +5595,8 @@ proto.pogootRefactoredRefactored.UserLoginRequest.prototype.toObject = function(
 proto.pogootRefactoredRefactored.UserLoginRequest.toObject = function(includeInstance, msg) {
   var f, obj = {
     email: jspb.Message.getFieldWithDefault(msg, 1, ""),
-    password: jspb.Message.getFieldWithDefault(msg, 2, "")
+    password: jspb.Message.getFieldWithDefault(msg, 2, ""),
+    turn: jspb.Message.getFieldWithDefault(msg, 4, "")
   };
 
   if (includeInstance) {
@@ -5201,6 +5641,10 @@ proto.pogootRefactoredRefactored.UserLoginRequest.deserializeBinaryFromReader = 
       var value = /** @type {string} */ (reader.readString());
       msg.setPassword(value);
       break;
+    case 4:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setTurn(value);
+      break;
     default:
       reader.skipField();
       break;
@@ -5244,6 +5688,13 @@ proto.pogootRefactoredRefactored.UserLoginRequest.serializeBinaryToWriter = func
       f
     );
   }
+  f = message.getTurn();
+  if (f.length > 0) {
+    writer.writeString(
+      4,
+      f
+    );
+  }
 };
 
 
@@ -5280,6 +5731,24 @@ proto.pogootRefactoredRefactored.UserLoginRequest.prototype.getPassword = functi
  */
 proto.pogootRefactoredRefactored.UserLoginRequest.prototype.setPassword = function(value) {
   return jspb.Message.setProto3StringField(this, 2, value);
+};
+
+
+/**
+ * optional string turn = 4;
+ * @return {string}
+ */
+proto.pogootRefactoredRefactored.UserLoginRequest.prototype.getTurn = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 4, ""));
+};
+
+
+/**
+ * @param {string} value
+ * @return {!proto.pogootRefactoredRefactored.UserLoginRequest} returns this
+ */
+proto.pogootRefactoredRefactored.UserLoginRequest.prototype.setTurn = function(value) {
+  return jspb.Message.setProto3StringField(this, 4, value);
 };
 
 

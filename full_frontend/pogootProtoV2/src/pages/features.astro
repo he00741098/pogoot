@@ -6,7 +6,28 @@ import NavBar from "../components/NavBar.astro";
 ---
 
 <Layout title="Features | Pogoot">
-  <main class="LibraryMain"></main>
+  <main class="LibraryMain">
+    <h1>Features</h1>
+    <p>Sweep.rs provides a variety of features. Heres is a quick list:</p>
+    <ul>
+      <li>Notecards</li>
+      <li>Learn mode</li>
+      <li>Sharing sets</li>
+      <!-- <li>And more...</li> -->
+    </ul>
+    <p>
+      We also have many features that we are currently working on. Here is a
+      list of what you can look forward to:
+    </p>
+    <ul>
+      <li>Live games</li>
+      <li>Enhanced notecards</li>
+      <li>Enhanced user interfaces</li>
+      <li>Better search</li>
+      <li>Greater customization</li>
+      <li>And more...</li>
+    </ul>
+  </main>
 </Layout>
 
 <style>
@@ -25,8 +46,8 @@ import NavBar from "../components/NavBar.astro";
   }
 
   main {
-    display: grid;
-    position: absolute;
+    display: block;
+    position: relative;
     width: 50%;
     /* outline: 2px solid red; */
     top: 50px;
@@ -34,27 +55,5 @@ import NavBar from "../components/NavBar.astro";
     /* padding-left:50px; */
     /* background-image: linear-gradient(to bottom right, #F5E3B8, #F5DD67); */
     /* outline: 2px solid red; */
-  }
-  #sidebar {
-    /* outline: 2px solid red; */
-  }
-  .notecardplaceholder {
-    width: 500px;
-    height: 300px;
-    border-radius: 10px 10px 10px 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-  }
-  #notecard1 {
-    background-color: var(--green);
-  }
-  #notecard2 {
-    margin-top: 10px;
-    background-color: var(--pink);
-    /* position:absolute; */
-    /* left:100px; */
-    float: right;
   }
 </style>

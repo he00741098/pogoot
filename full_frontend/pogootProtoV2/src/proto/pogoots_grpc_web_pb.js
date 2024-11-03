@@ -554,6 +554,67 @@ proto.pogootRefactoredRefactored.LoginServerPromiseClient.prototype.update =
 
 
 /**
+ * @const
+ * @type {!grpc.web.MethodDescriptor<
+ *   !proto.pogootRefactoredRefactored.Empty,
+ *   !proto.pogootRefactoredRefactored.date>}
+ */
+const methodDescriptor_LoginServer_Boot = new grpc.web.MethodDescriptor(
+  '/pogootRefactoredRefactored.LoginServer/Boot',
+  grpc.web.MethodType.UNARY,
+  proto.pogootRefactoredRefactored.Empty,
+  proto.pogootRefactoredRefactored.date,
+  /**
+   * @param {!proto.pogootRefactoredRefactored.Empty} request
+   * @return {!Uint8Array}
+   */
+  function(request) {
+    return request.serializeBinary();
+  },
+  proto.pogootRefactoredRefactored.date.deserializeBinary
+);
+
+
+/**
+ * @param {!proto.pogootRefactoredRefactored.Empty} request The
+ *     request proto
+ * @param {?Object<string, string>} metadata User defined
+ *     call metadata
+ * @param {function(?grpc.web.RpcError, ?proto.pogootRefactoredRefactored.date)}
+ *     callback The callback function(error, response)
+ * @return {!grpc.web.ClientReadableStream<!proto.pogootRefactoredRefactored.date>|undefined}
+ *     The XHR Node Readable Stream
+ */
+proto.pogootRefactoredRefactored.LoginServerClient.prototype.boot =
+    function(request, metadata, callback) {
+  return this.client_.rpcCall(this.hostname_ +
+      '/pogootRefactoredRefactored.LoginServer/Boot',
+      request,
+      metadata || {},
+      methodDescriptor_LoginServer_Boot,
+      callback);
+};
+
+
+/**
+ * @param {!proto.pogootRefactoredRefactored.Empty} request The
+ *     request proto
+ * @param {?Object<string, string>=} metadata User defined
+ *     call metadata
+ * @return {!Promise<!proto.pogootRefactoredRefactored.date>}
+ *     Promise that resolves to the response
+ */
+proto.pogootRefactoredRefactored.LoginServerPromiseClient.prototype.boot =
+    function(request, metadata) {
+  return this.client_.unaryCall(this.hostname_ +
+      '/pogootRefactoredRefactored.LoginServer/Boot',
+      request,
+      metadata || {},
+      methodDescriptor_LoginServer_Boot);
+};
+
+
+/**
  * @param {string} hostname
  * @param {?Object} credentials
  * @param {?grpc.web.ClientOptions} options

@@ -96,10 +96,13 @@ pub async fn upload_proccessor(
                 let temp_connection = clonecon.connect();
                 if temp_connection.is_err() {
                     println!("Temp Connection Failed during list");
-                    callback.send(NotecardLibraryList {
+                    let callback_result_from_temp_connection = callback.send(NotecardLibraryList {
                         library: Vec::with_capacity(0),
                         success: false,
                     });
+                    if callback_result_from_temp_connection.is_err() {
+                        println!("Callback Failed!!!!!!");
+                    }
                     continue;
                 }
                 tokio::spawn(async move {
@@ -141,6 +144,7 @@ pub async fn upload_proccessor(
                 let clonecon = conn.clone();
                 let verifyerclone = verifyer.clone();
                 let secrets_clone = secrets.clone();
+                let cfid = request.cfid.clone();
 
                 let temp_connection = clonecon.connect();
                 if temp_connection.is_err() {
@@ -162,15 +166,28 @@ pub async fn upload_proccessor(
                         request,
                     )
                     .await;
-                    if result.is_err() {
-                        println!("Modify set failed");
+                    let callback_result = if result.is_ok() {
+                        callback.send(NotecardUploadResponse {
+                            success: true,
+                            id: cfid,
+                        })
+                    } else {
+                        callback.send(NotecardUploadResponse {
+                            success: false,
+                            id: "Modify failed".to_string(),
+                        })
+                    };
+
+                    if callback_result.is_err() {
+                        println!("Callback failed");
                     }
                 });
-                todo!()
+                // todo!()
             }
         }
     }
 }
+#[derive(Debug, Serialize)]
 pub struct NotecardData {
     pub auth: String,
     pub title: String,
@@ -178,6 +195,13 @@ pub struct NotecardData {
     pub tags: String,
     pub desc: String,
     pub username: String,
+}
+impl NotecardData {
+    pub fn sanitize(mut self) -> Self {
+        self.auth = String::with_capacity(0);
+        // self.username = String::with_capacity(0);
+        self
+    }
 }
 
 async fn store_with_sql(
@@ -270,7 +294,7 @@ async fn modify_set(
     mut request: NotecardModifyRequest,
 ) -> Result<(), ()> {
     let auth_token = std::mem::take(&mut request.auth_token);
-    let username = std::mem::take(&mut request.username);
+    let username = request.username.clone();
     let verified = verify_credentials(verifyer, auth_token, username).await;
 
     if verified.is_err() {

@@ -3,87 +3,96 @@ document.addEventListener("astro:page-load", () => {
   if (document.URL.indexOf("library") < 1) {
     return;
   }
-  
-  if(localStorage.getItem("updated")==null){
+  if (localStorage.getItem("updated") == null) {
     localStorage.setItem("updated", false);
   }
 
   let refresher = document.getElementById("refresh");
   let main = document.getElementsByClassName("LibraryMain")[0];
-  let header = document.getElementsByClassName("placeholderDate")[0].cloneNode(true);
+  let header = document
+    .getElementsByClassName("placeholderDate")[0]
+    .cloneNode(true);
   let search_bar = document.getElementsByClassName("accountSearchBar")[0];
   search_bar.value = "";
-  
 
-
-  refresher.addEventListener("click", function(e){
+  refresher.addEventListener("click", function (e) {
     localStorage.setItem("updated", "true");
     let nodes = main.childNodes;
-    for (var i = nodes.length-1; i>=7;i--){
+    for (var i = nodes.length - 1; i >= 7; i--) {
       let z = nodes[i];
-      // console.log(z);
       main.removeChild(z);
     }
-  let auth_cookie = cookie_get("auth");
-  let username_cookie = cookie_get("username");
-  if (auth_cookie==null || username_cookie==null || auth_cookie.length < 2 || username_cookie.length < 2) {
-    send_alert("red", "Login", "Please Login To View Your Library");
-  }else{
-    let client = new NotecardServiceClient("https://bigpogoot.sweep.rs");
-    let fetch_request = new NotecardLibraryRequest();
-    fetch_request.setUsername(username_cookie);
-    fetch_request.setAuthToken(auth_cookie);
-    send_alert("green", "Loading...","");
-    client.fetch(fetch_request, {}, (err, response) => {
-      console.log(response);
-      if (response==null){
-        console.log("Load failed");
-        send_alert("red", "Loading Failed", "Please reload");
-        return;
-      }
-      localStorage.setItem("library_cache", JSON.stringify(response));
-      localStorage.setItem("updated", "false");
-      proccess_response(response);
-    });
-    //end of if statment
-  }
-
+    let auth_cookie = cookie_get("auth");
+    let username_cookie = cookie_get("username");
+    if (
+      auth_cookie == null ||
+      username_cookie == null ||
+      auth_cookie.length < 2 ||
+      username_cookie.length < 2
+    ) {
+      send_alert("red", "Login", "Please Login To View Your Library");
+    } else {
+      let client = new NotecardServiceClient("https://bigpogoot.sweep.rs");
+      let fetch_request = new NotecardLibraryRequest();
+      fetch_request.setUsername(username_cookie);
+      fetch_request.setAuthToken(auth_cookie);
+      send_alert("green", "Loading...", "");
+      client.fetch(fetch_request, {}, (err, response) => {
+        if (response == null) {
+          console.log("Load failed");
+          send_alert("red", "Loading Failed", "Please reload");
+          return;
+        }
+        localStorage.setItem("library_cache", JSON.stringify(response));
+        localStorage.setItem("updated", "false");
+        proccess_response(response);
+      });
+      //end of if statment
+    }
   });
 
-  console.log(search_bar);
   search_bar.addEventListener("input", (ev) => {
     let val = search_bar.value;
-    if (val==null||val=='undefined'){
+    if (val == null || val == "undefined") {
       val = "";
     }
     val = val.trim().toLowerCase();
 
-    console.log("Searching... for "+val);
     let nodes = main.childNodes;
-    for (var i = 7; i<nodes.length;i++){
+    for (var i = 7; i < nodes.length; i++) {
       let z = nodes[i];
-      console.log(z);
-      if(z.classList[0]=="placeholderLibraryEntry"){
-        console.log("matched:"+z.childNodes[3].childNodes[1].innerText +". / :"+z.childNodes[5].childNodes[1].innerText);
-        if (!z.childNodes[3].childNodes[1].innerText.trim().toLowerCase().includes(val)&&!z.childNodes[5].childNodes[1].innerText.trim().toLowerCase().includes(val)){
-          console.log("hidden");
+      if (z.classList[0] == "placeholderLibraryEntry") {
+        //   "matched:" +
+        //     z.childNodes[3].childNodes[1].innerText +
+        //     ". / :" +
+        //     z.childNodes[5].childNodes[1].innerText,
+        // );
+        if (
+          !z.childNodes[3].childNodes[1].innerText
+            .trim()
+            .toLowerCase()
+            .includes(val) &&
+          !z.childNodes[5].childNodes[1].innerText
+            .trim()
+            .toLowerCase()
+            .includes(val)
+        ) {
           z.classList.add("hidden");
-        }else{
-          console.log("removed");
+        } else {
           z.classList.remove("hidden");
         }
-      }else if(z.classList[0]=="placeholderLibraryEntryNoDesc"){
-        if (!z.childNodes[3].childNodes[1].innerText.includes(val)){
+      } else if (z.classList[0] == "placeholderLibraryEntryNoDesc") {
+        if (!z.childNodes[3].childNodes[1].innerText.includes(val)) {
           z.classList.add("hidden");
-        }else{
+        } else {
           z.classList.remove("hidden");
         }
       }
     }
     let dates = document.getElementsByClassName("placeholderDate");
     let first = true;
-    for (var d of dates){
-      if(first){
+    for (var d of dates) {
+      if (first) {
         first = false;
         continue;
       }
@@ -91,40 +100,38 @@ document.addEventListener("astro:page-load", () => {
     }
 
     let filtered_nodes = [];
-    for (var i = 7; i<nodes.length;i++){
-      if(!nodes[i].classList.contains("hidden")){
+    for (var i = 7; i < nodes.length; i++) {
+      if (!nodes[i].classList.contains("hidden")) {
         filtered_nodes.push(nodes[i]);
       }
     }
     let cur_dex = 0;
     let last_dex = 0;
-    for (var x of filtered_nodes){
-      if(x.classList[0]=="placeholderDate"){
-        if(cur_dex-last_dex==1){
+    for (var x of filtered_nodes) {
+      if (x.classList[0] == "placeholderDate") {
+        if (cur_dex - last_dex == 1) {
           filtered_nodes[last_dex].classList.add("hidden");
         }
-        if(cur_dex==filtered_nodes.length-1){
+        if (cur_dex == filtered_nodes.length - 1) {
           filtered_nodes[cur_dex].classList.add("hidden");
         }
         last_dex = cur_dex;
       }
       cur_dex++;
     }
-    console.log("Visible: "+filtered_nodes.length+" Dates:" + dates.length);
-    if(filtered_nodes.length==dates.length-1){
-      for(var d of dates){
+    if (filtered_nodes.length == dates.length - 1) {
+      for (var d of dates) {
         d.classList.add("hidden");
       }
     }
-
   });
-  header.id="";
+  header.id = "";
   let two = document.getElementById("libraryEntryOne");
   let three = document.getElementById("libraryEntryTwo");
   let clonedLibraryEntryOne = two.cloneNode(true);
   let clonedLibraryEntryTwo = three.cloneNode(true);
-  clonedLibraryEntryOne.id="";
-  clonedLibraryEntryTwo.id="";
+  clonedLibraryEntryOne.id = "";
+  clonedLibraryEntryTwo.id = "";
 
   var alertBox = document.getElementById("exampleAlert");
   alertBox.style.display = "none";
@@ -137,82 +144,10 @@ document.addEventListener("astro:page-load", () => {
     NotecardUploadResponse,
     NotecardFetchResponse,
     NotecardLibraryRequest,
-    NotecardLibraryList
+    NotecardLibraryList,
   } = require("./pogoots_pb.js");
-  const {
-    NotecardServiceClient
-  } = require("./pogoots_grpc_web_pb.js");
+  const { NotecardServiceClient } = require("./pogoots_grpc_web_pb.js");
 
-
-  function cookie_set(key, value) {
-    var date = new Date();
-    date.setTime(date.getTime() + 3 * 24 * 60 * 60 * 1000);
-    let cookies = document.cookie;
-    let split = cookies.split(";");
-    let validCookies = false;
-    for (var cookie of split) {
-      if (cookie.trim().split("=")[0] == "validCookies") {
-        validCookies = true;
-        break;
-      }
-    }
-
-    if (!validCookies) {
-      console.log("no cookies");
-      document.cookie =
-        "auth=; SameSite=None; Secure; expires=" +
-          date.toUTCString() +
-          "; path=/";
-      document.cookie =
-        "username=; SameSite=None; Secure; expires=" +
-          date.toUTCString() +
-          "; path=/";
-      document.cookie =
-        "validCookies=; SameSite=None; Secure; expires=" +
-          date.toUTCString() +
-          "; path=/";
-    }
-    cookies = document.cookie;
-    document.cookie =
-      key +
-        "=" +
-        value +
-        "; SameSite=None; Secure; expires=" +
-        date.toUTCString() +
-        "; path=/";
-  }
-
-
-
-
-  function cookie_get(key) {
-    let cookies = document.cookie;
-    let split = cookies.split(";");
-    for (var cookie of split) {
-      let cook = cookie.trim().split("=");
-      if (cook[0] == key) {
-        return cook[1];
-      }
-    }
-  }
-
-  function send_alert(color, header, text) {
-    var alertBox = document.getElementById("exampleAlert");
-    var alerts = document.getElementById("Alerts");
-    let box = alertBox.cloneNode(true);
-    box.style.outline = color + " solid 3px";
-    console.log(box.childNodes);
-    box.childNodes[1].innerText = header;
-    box.childNodes[3].innerText = text;
-    box.style.display = "grid";
-    alerts.appendChild(box);
-    setTimeout(() => {
-      alerts.removeChild(box);
-    }, 5000);
-  }
-  // function redirect() {
-  //   window.location.href = "/library";
-  // }
 
 
   var alertBox = document.getElementById("exampleAlert");
@@ -221,38 +156,41 @@ document.addEventListener("astro:page-load", () => {
     return;
   }
 
-  let response="";
+  let response = "";
   let cached = false;
- if(localStorage.getItem("updated")=="false"){
-    try{
+  if (localStorage.getItem("updated") == "false") {
+    try {
       let library_data = localStorage.getItem("library_cache");
-      if(library_data.length<5){
+      if (library_data.length < 5) {
         cached = false;
-      }else{
-      response = JSON.parse(library_data);
-      console.log("JSON parse successfully!");
-      cached = true;
+      } else {
+        response = JSON.parse(library_data);
+        cached = true;
       }
-    }catch(err){
-      console.error("JSON parse failed...\n"+err);
+    } catch (err) {
+      console.error("JSON parse failed...\n" + err);
     }
   }
 
   let auth_cookie = cookie_get("auth");
   let username_cookie = cookie_get("username");
-  if (auth_cookie==null || username_cookie==null || auth_cookie.length < 2 || username_cookie.length < 2) {
+  if (
+    auth_cookie == null ||
+    username_cookie == null ||
+    auth_cookie.length < 2 ||
+    username_cookie.length < 2
+  ) {
     send_alert("red", "Login", "Please Login To View Your Library");
-  }else if(cached){
-      proccess_response(response)
-  }else{
+  } else if (cached) {
+    proccess_response(response);
+  } else {
     let client = new NotecardServiceClient("https://bigpogoot.sweep.rs");
     let fetch_request = new NotecardLibraryRequest();
     fetch_request.setUsername(username_cookie);
     fetch_request.setAuthToken(auth_cookie);
-    send_alert("green", "Loading...","");
+    send_alert("green", "Loading...", "");
     client.fetch(fetch_request, {}, (err, response) => {
-      console.log(response);
-      if (response==null){
+      if (response == null) {
         console.log("Load failed");
         send_alert("red", "Loading Failed", "Please reload");
         return;
@@ -264,94 +202,92 @@ document.addEventListener("astro:page-load", () => {
     //end of if statment
   }
 
-  function proccess_response(response){
-      let element_map = new Map();
-      if(response.array[0].length<1){
-        //there are no elements...
-        send_alert("orange", "No Sets Found", "Create a new set and you will see it here!")
-
-      }
-      for(var b of response.array[0]){
-        let title = b[0];
-        let tag = b[2];
-        let desc = b[3];
-        let id = b[4];
-        let date = b[5];
-        let term_count = b[6];
-        date = new Date(date);
-        // date = date.toJSON().split("-");
-        // let year = date[0];
-        // let month = date[1];
-        // let day = date[2].split("T")[0];
-        if(desc==null||desc.length<1){
-          let newChildNode = clonedLibraryEntryTwo.cloneNode(true);
-          let termCountHolder = newChildNode.childNodes[1].childNodes[1];
-          let notecardTitleHolder = newChildNode.childNodes[3].childNodes[1];
-          // let descHolder = newChildNode.childNodes[5].childNodes[1];
-          notecardTitleHolder.innerText = title;
-          // descHolder.innerText = desc;
-          if (term_count==1){
-            termCountHolder.innerText = term_count+" Term";
-          }else if (term_count<1){
-            termCountHolder.innerText = "Empty";
-          }else{
-            termCountHolder.innerText = term_count+" Terms";
-          }
-
-          newChildNode.onclick = function (ev){
-            window.location.href = "/notecards/"+id;
-          };
-          element_map.set(date, newChildNode);
-        }else{
-          let newChildNode = clonedLibraryEntryOne.cloneNode(true);
-          let termCountHolder = newChildNode.childNodes[1].childNodes[1];
-          let notecardTitleHolder = newChildNode.childNodes[3].childNodes[1];
-          let descHolder = newChildNode.childNodes[5].childNodes[1];
-          notecardTitleHolder.innerText = title;
-          descHolder.innerText = desc;
-          if (term_count==1){
-            termCountHolder.innerText = term_count+" Term";
-          }else if (term_count<1){
-            termCountHolder.innerText = "Empty";
-          }else{
-            termCountHolder.innerText = term_count+" Terms";
-          }
-
-
-          newChildNode.onclick = function (ev){
-            redirect_to("/notecards/"+id);
-          };
-          element_map.set(date, newChildNode);
-
-
+  function proccess_response(response) {
+    let element_map = new Map();
+    if (response.array[0].length < 1) {
+      //there are no elements...
+      send_alert(
+        "orange",
+        "No Sets Found",
+        "Create a new set and you will see it here!",
+      );
+    }
+    for (var b of response.array[0]) {
+      let title = b[0];
+      let tag = b[2];
+      let desc = b[3];
+      let id = b[4];
+      let date = b[5];
+      let term_count = b[6];
+      date = new Date(date);
+      // date = date.toJSON().split("-");
+      // let year = date[0];
+      // let month = date[1];
+      // let day = date[2].split("T")[0];
+      if (desc == null || desc.length < 1) {
+        let newChildNode = clonedLibraryEntryTwo.cloneNode(true);
+        let termCountHolder = newChildNode.childNodes[1].childNodes[1];
+        let notecardTitleHolder = newChildNode.childNodes[3].childNodes[1];
+        // let descHolder = newChildNode.childNodes[5].childNodes[1];
+        notecardTitleHolder.innerText = title;
+        // descHolder.innerText = desc;
+        if (term_count == 1) {
+          termCountHolder.innerText = term_count + " Term";
+        } else if (term_count < 1) {
+          termCountHolder.innerText = "Empty";
+        } else {
+          termCountHolder.innerText = term_count + " Terms";
         }
 
-      }
-      let sorted = element_map.keys();
-      let sorting = [];
-      for (var g of sorted){
-        sorting.push(g);
-      }
-      sorted = sorting.sort(function(a,b){
-        return new Date(b.date) - new Date(a.date);
-      });
-      sorted = sorted.reverse();
-      let last_date = "";
-      for (var c of sorted){
-        let dater = c.toJSON().split("-");
-        let year = dater[0];
-        let month = dater[1];
-        let day = dater[2].split("T")[0];
-        if (last_date != month+"/"+day+"/"+year){
-          let headernew = header.cloneNode(true);
-          headernew.childNodes[1].innerHTML=month+"/"+day+"/"+year;
-          main.appendChild(headernew);
+        newChildNode.onclick = function (ev) {
+          window.location.href = "/notecards/" + id;
+        };
+        element_map.set(date, newChildNode);
+      } else {
+        let newChildNode = clonedLibraryEntryOne.cloneNode(true);
+        let termCountHolder = newChildNode.childNodes[1].childNodes[1];
+        let notecardTitleHolder = newChildNode.childNodes[3].childNodes[1];
+        let descHolder = newChildNode.childNodes[5].childNodes[1];
+        notecardTitleHolder.innerText = title;
+        descHolder.innerText = desc;
+        if (term_count == 1) {
+          termCountHolder.innerText = term_count + " Term";
+        } else if (term_count < 1) {
+          termCountHolder.innerText = "Empty";
+        } else {
+          termCountHolder.innerText = term_count + " Terms";
         }
-        last_date = month+"/"+day+"/"+year;
-        main.appendChild(element_map.get(c));
+
+        newChildNode.onclick = function (ev) {
+          redirect_to("/notecards/" + id);
+        };
+        element_map.set(date, newChildNode);
       }
+    }
+    let sorted = element_map.keys();
+    let sorting = [];
+    for (var g of sorted) {
+      sorting.push(g);
+    }
+    sorted = sorting.sort(function (a, b) {
+      return b - a;
+    });
+    // sorted = sorted.reverse();
+    let last_date = "";
+    for (var c of sorted) {
+      let dater = c.toJSON().split("-");
+      let year = dater[0];
+      let month = dater[1];
+      let day = dater[2].split("T")[0];
+      if (last_date != month + "/" + day + "/" + year) {
+        let headernew = header.cloneNode(true);
+        headernew.childNodes[1].innerHTML = month + "/" + day + "/" + year;
+        main.appendChild(headernew);
+      }
+      last_date = month + "/" + day + "/" + year;
+      main.appendChild(element_map.get(c));
+    }
   }
-
 });
 
 },{"./pogoots_grpc_web_pb.js":4,"./pogoots_pb.js":5}],2:[function(require,module,exports){
@@ -1553,6 +1489,67 @@ proto.pogootRefactoredRefactored.LoginServerPromiseClient.prototype.update =
 
 
 /**
+ * @const
+ * @type {!grpc.web.MethodDescriptor<
+ *   !proto.pogootRefactoredRefactored.Empty,
+ *   !proto.pogootRefactoredRefactored.date>}
+ */
+const methodDescriptor_LoginServer_Boot = new grpc.web.MethodDescriptor(
+  '/pogootRefactoredRefactored.LoginServer/Boot',
+  grpc.web.MethodType.UNARY,
+  proto.pogootRefactoredRefactored.Empty,
+  proto.pogootRefactoredRefactored.date,
+  /**
+   * @param {!proto.pogootRefactoredRefactored.Empty} request
+   * @return {!Uint8Array}
+   */
+  function(request) {
+    return request.serializeBinary();
+  },
+  proto.pogootRefactoredRefactored.date.deserializeBinary
+);
+
+
+/**
+ * @param {!proto.pogootRefactoredRefactored.Empty} request The
+ *     request proto
+ * @param {?Object<string, string>} metadata User defined
+ *     call metadata
+ * @param {function(?grpc.web.RpcError, ?proto.pogootRefactoredRefactored.date)}
+ *     callback The callback function(error, response)
+ * @return {!grpc.web.ClientReadableStream<!proto.pogootRefactoredRefactored.date>|undefined}
+ *     The XHR Node Readable Stream
+ */
+proto.pogootRefactoredRefactored.LoginServerClient.prototype.boot =
+    function(request, metadata, callback) {
+  return this.client_.rpcCall(this.hostname_ +
+      '/pogootRefactoredRefactored.LoginServer/Boot',
+      request,
+      metadata || {},
+      methodDescriptor_LoginServer_Boot,
+      callback);
+};
+
+
+/**
+ * @param {!proto.pogootRefactoredRefactored.Empty} request The
+ *     request proto
+ * @param {?Object<string, string>=} metadata User defined
+ *     call metadata
+ * @return {!Promise<!proto.pogootRefactoredRefactored.date>}
+ *     Promise that resolves to the response
+ */
+proto.pogootRefactoredRefactored.LoginServerPromiseClient.prototype.boot =
+    function(request, metadata) {
+  return this.client_.unaryCall(this.hostname_ +
+      '/pogootRefactoredRefactored.LoginServer/Boot',
+      request,
+      metadata || {},
+      methodDescriptor_LoginServer_Boot);
+};
+
+
+/**
  * @param {string} hostname
  * @param {?Object} credentials
  * @param {?grpc.web.ClientOptions} options
@@ -2100,6 +2097,7 @@ var global = (function() {
   return Function('return this')();
 }.call(null));
 
+goog.exportSymbol('proto.pogootRefactoredRefactored.Empty', null, global);
 goog.exportSymbol('proto.pogootRefactoredRefactored.GameStartInfoResponse', null, global);
 goog.exportSymbol('proto.pogootRefactoredRefactored.LoginResponse', null, global);
 goog.exportSymbol('proto.pogootRefactoredRefactored.ManagerPlayerRequest', null, global);
@@ -2126,6 +2124,7 @@ goog.exportSymbol('proto.pogootRefactoredRefactored.RoundResultResponse', null, 
 goog.exportSymbol('proto.pogootRefactoredRefactored.UserLoginRequest', null, global);
 goog.exportSymbol('proto.pogootRefactoredRefactored.UserPasswordUpdateRequest', null, global);
 goog.exportSymbol('proto.pogootRefactoredRefactored.UserRegisterWithEmailRequest', null, global);
+goog.exportSymbol('proto.pogootRefactoredRefactored.date', null, global);
 /**
  * Generated by JsPbCodeGenerator.
  * @param {Array=} opt_data Optional initial data array, typically from a
@@ -2335,6 +2334,48 @@ if (goog.DEBUG && !COMPILED) {
    * @override
    */
   proto.pogootRefactoredRefactored.NotecardUploadResponse.displayName = 'proto.pogootRefactoredRefactored.NotecardUploadResponse';
+}
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.pogootRefactoredRefactored.Empty = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+};
+goog.inherits(proto.pogootRefactoredRefactored.Empty, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  /**
+   * @public
+   * @override
+   */
+  proto.pogootRefactoredRefactored.Empty.displayName = 'proto.pogootRefactoredRefactored.Empty';
+}
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.pogootRefactoredRefactored.date = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+};
+goog.inherits(proto.pogootRefactoredRefactored.date, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  /**
+   * @public
+   * @override
+   */
+  proto.pogootRefactoredRefactored.date.displayName = 'proto.pogootRefactoredRefactored.date';
 }
 /**
  * Generated by JsPbCodeGenerator.
@@ -5044,6 +5085,237 @@ if (jspb.Message.GENERATE_TO_OBJECT) {
  *     http://goto/soy-param-migration
  * @return {!Object}
  */
+proto.pogootRefactoredRefactored.Empty.prototype.toObject = function(opt_includeInstance) {
+  return proto.pogootRefactoredRefactored.Empty.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Deprecated. Whether to include
+ *     the JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.pogootRefactoredRefactored.Empty} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.pogootRefactoredRefactored.Empty.toObject = function(includeInstance, msg) {
+  var f, obj = {
+
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.pogootRefactoredRefactored.Empty}
+ */
+proto.pogootRefactoredRefactored.Empty.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.pogootRefactoredRefactored.Empty;
+  return proto.pogootRefactoredRefactored.Empty.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.pogootRefactoredRefactored.Empty} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.pogootRefactoredRefactored.Empty}
+ */
+proto.pogootRefactoredRefactored.Empty.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.pogootRefactoredRefactored.Empty.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.pogootRefactoredRefactored.Empty.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.pogootRefactoredRefactored.Empty} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.pogootRefactoredRefactored.Empty.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+};
+
+
+
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * Optional fields that are not set will be set to undefined.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     net/proto2/compiler/js/internal/generator.cc#kKeyword.
+ * @param {boolean=} opt_includeInstance Deprecated. whether to include the
+ *     JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.pogootRefactoredRefactored.date.prototype.toObject = function(opt_includeInstance) {
+  return proto.pogootRefactoredRefactored.date.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Deprecated. Whether to include
+ *     the JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.pogootRefactoredRefactored.date} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.pogootRefactoredRefactored.date.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    utc: jspb.Message.getFieldWithDefault(msg, 1, "")
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.pogootRefactoredRefactored.date}
+ */
+proto.pogootRefactoredRefactored.date.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.pogootRefactoredRefactored.date;
+  return proto.pogootRefactoredRefactored.date.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.pogootRefactoredRefactored.date} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.pogootRefactoredRefactored.date}
+ */
+proto.pogootRefactoredRefactored.date.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setUtc(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.pogootRefactoredRefactored.date.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.pogootRefactoredRefactored.date.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.pogootRefactoredRefactored.date} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.pogootRefactoredRefactored.date.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getUtc();
+  if (f.length > 0) {
+    writer.writeString(
+      1,
+      f
+    );
+  }
+};
+
+
+/**
+ * optional string utc = 1;
+ * @return {string}
+ */
+proto.pogootRefactoredRefactored.date.prototype.getUtc = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
+};
+
+
+/**
+ * @param {string} value
+ * @return {!proto.pogootRefactoredRefactored.date} returns this
+ */
+proto.pogootRefactoredRefactored.date.prototype.setUtc = function(value) {
+  return jspb.Message.setProto3StringField(this, 1, value);
+};
+
+
+
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * Optional fields that are not set will be set to undefined.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     net/proto2/compiler/js/internal/generator.cc#kKeyword.
+ * @param {boolean=} opt_includeInstance Deprecated. whether to include the
+ *     JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @return {!Object}
+ */
 proto.pogootRefactoredRefactored.UserRegisterWithEmailRequest.prototype.toObject = function(opt_includeInstance) {
   return proto.pogootRefactoredRefactored.UserRegisterWithEmailRequest.toObject(opt_includeInstance, this);
 };
@@ -5062,7 +5334,8 @@ proto.pogootRefactoredRefactored.UserRegisterWithEmailRequest.toObject = functio
   var f, obj = {
     email: jspb.Message.getFieldWithDefault(msg, 1, ""),
     password: jspb.Message.getFieldWithDefault(msg, 2, ""),
-    username: jspb.Message.getFieldWithDefault(msg, 3, "")
+    username: jspb.Message.getFieldWithDefault(msg, 3, ""),
+    turn: jspb.Message.getFieldWithDefault(msg, 4, "")
   };
 
   if (includeInstance) {
@@ -5111,6 +5384,10 @@ proto.pogootRefactoredRefactored.UserRegisterWithEmailRequest.deserializeBinaryF
       var value = /** @type {string} */ (reader.readString());
       msg.setUsername(value);
       break;
+    case 4:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setTurn(value);
+      break;
     default:
       reader.skipField();
       break;
@@ -5158,6 +5435,13 @@ proto.pogootRefactoredRefactored.UserRegisterWithEmailRequest.serializeBinaryToW
   if (f.length > 0) {
     writer.writeString(
       3,
+      f
+    );
+  }
+  f = message.getTurn();
+  if (f.length > 0) {
+    writer.writeString(
+      4,
       f
     );
   }
@@ -5218,6 +5502,24 @@ proto.pogootRefactoredRefactored.UserRegisterWithEmailRequest.prototype.setUsern
 };
 
 
+/**
+ * optional string turn = 4;
+ * @return {string}
+ */
+proto.pogootRefactoredRefactored.UserRegisterWithEmailRequest.prototype.getTurn = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 4, ""));
+};
+
+
+/**
+ * @param {string} value
+ * @return {!proto.pogootRefactoredRefactored.UserRegisterWithEmailRequest} returns this
+ */
+proto.pogootRefactoredRefactored.UserRegisterWithEmailRequest.prototype.setTurn = function(value) {
+  return jspb.Message.setProto3StringField(this, 4, value);
+};
+
+
 
 
 
@@ -5251,7 +5553,8 @@ proto.pogootRefactoredRefactored.UserLoginRequest.prototype.toObject = function(
 proto.pogootRefactoredRefactored.UserLoginRequest.toObject = function(includeInstance, msg) {
   var f, obj = {
     email: jspb.Message.getFieldWithDefault(msg, 1, ""),
-    password: jspb.Message.getFieldWithDefault(msg, 2, "")
+    password: jspb.Message.getFieldWithDefault(msg, 2, ""),
+    turn: jspb.Message.getFieldWithDefault(msg, 4, "")
   };
 
   if (includeInstance) {
@@ -5296,6 +5599,10 @@ proto.pogootRefactoredRefactored.UserLoginRequest.deserializeBinaryFromReader = 
       var value = /** @type {string} */ (reader.readString());
       msg.setPassword(value);
       break;
+    case 4:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setTurn(value);
+      break;
     default:
       reader.skipField();
       break;
@@ -5339,6 +5646,13 @@ proto.pogootRefactoredRefactored.UserLoginRequest.serializeBinaryToWriter = func
       f
     );
   }
+  f = message.getTurn();
+  if (f.length > 0) {
+    writer.writeString(
+      4,
+      f
+    );
+  }
 };
 
 
@@ -5375,6 +5689,24 @@ proto.pogootRefactoredRefactored.UserLoginRequest.prototype.getPassword = functi
  */
 proto.pogootRefactoredRefactored.UserLoginRequest.prototype.setPassword = function(value) {
   return jspb.Message.setProto3StringField(this, 2, value);
+};
+
+
+/**
+ * optional string turn = 4;
+ * @return {string}
+ */
+proto.pogootRefactoredRefactored.UserLoginRequest.prototype.getTurn = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 4, ""));
+};
+
+
+/**
+ * @param {string} value
+ * @return {!proto.pogootRefactoredRefactored.UserLoginRequest} returns this
+ */
+proto.pogootRefactoredRefactored.UserLoginRequest.prototype.setTurn = function(value) {
+  return jspb.Message.setProto3StringField(this, 4, value);
 };
 
 

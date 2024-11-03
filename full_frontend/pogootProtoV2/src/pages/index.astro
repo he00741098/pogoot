@@ -1,32 +1,38 @@
 ---
 export const prerender = true;
 import Layout from "../layouts/Layout.astro";
-import Card from "../components/Card.astro";
-import NavBar from "../components/NavBar.astro";
 ---
 
 <Layout title="Home | Pogoot">
   <main class="FirstGlance">
-    <!-- <img src="../../public/placeholderimage.jpg" class="bannerImage"> -->
-    <div id="firstrow"><h1>Header One</h1></div>
-    <!-- Note card theme -->
-    <!-- <div></div> -->
-    <div id="secondrow">
-      <div id="notecard1" class="notecardplaceholder">
-        <h1><strong>Experience a new era of learning</strong></h1>
-      </div>
+    <div id="dashTitle">
+      <h1>Dashboard</h1>
     </div>
-    <div id="thirdrow">
-      <div id="notecard2" class="notecardplaceholder">
-        <h1><strong>Bubble</strong></h1>
-      </div>
-    </div>
+    <div id="recent">
+      <h2>Recent</h2>
 
-    <!-- <div>Bubble</div> -->
-    <!-- <div>Bubble</div> -->
-    <!-- <div>Bubble</div> -->
-    <!-- <div>Bubble</div> -->
-    <!-- <div>Bubble</div> -->
+      <div class="cards">
+        <span class="chevron">
+          <mdui-button-icon icon="chevron_left"></mdui-button-icon>
+        </span>
+        <div id="exampleCard" class="card">
+          <div id="title"><h4>Example title</h4></div>
+          <span id="terms">5 terms</span>
+          <div id="desc">
+            <p id="descp">
+              Description
+              ddecdecdecdecdecdecdecdecdecdecdecdecdecdecdecdecdececasdfasdfasdfasdf
+              alskdjfhgaksdjfgkasg aksjfgkajsfgkjasfg kajsdfgkajsdhfgkasjdfg
+              aksdjfgaskdjfgakjg
+            </p>
+          </div>
+        </div>
+        <span class="chevron">
+          <mdui-button-icon icon="chevron_right"></mdui-button-icon>
+        </span>
+      </div>
+    </div>
+    <div id="suggessted"><h2>Suggested</h2></div>
   </main>
 </Layout>
 
@@ -44,6 +50,13 @@ import NavBar from "../components/NavBar.astro";
     /* outline: 2px solid red; */
     /* margin:-8px; */
   }
+  .chevron {
+    min-height: 100%;
+    width: 50px;
+    display: grid;
+    align-content: center;
+    justify-content: center;
+  }
 
   main {
     display: grid;
@@ -56,26 +69,47 @@ import NavBar from "../components/NavBar.astro";
     /* background-image: linear-gradient(to bottom right, #F5E3B8, #F5DD67); */
     /* outline: 2px solid red; */
   }
-  #sidebar {
-    /* outline: 2px solid red; */
+  .card {
+    outline: gray 2px solid;
+    padding-left: 10px;
+    padding-right: 20px;
+    padding-top: 10px;
+    padding-bottom: 20px;
+    width: 220px;
+    height: 124.5117px;
+    border-radius: 5px;
+    cursor: pointer;
+
+    /* display: none; */
   }
-  .notecardplaceholder {
-    width: 500px;
-    height: 300px;
-    border-radius: 10px 10px 10px 10px;
+  h4 {
+    margin: 0;
+  }
+  #descp {
+    margin-top: 5px;
+    margin-left: 20px;
+    margin-bottom: 0;
+    width: calc(100% - 20px);
+    height: 100px;
+    overflow-y: scroll;
+    hyphens: auto;
+    word-wrap: break-word;
+  }
+  .cards {
     display: flex;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
+    /* width: 100%; */
+    /* overflow-x: scroll; */
+    /* overflow-y: visible; */
   }
-  #notecard1 {
-    background-color: var(--green);
-  }
-  #notecard2 {
-    margin-top: 10px;
-    background-color: var(--pink);
-    /* position:absolute; */
-    /* left:100px; */
-    float: right;
+  #terms {
+    background-color: gray;
+    color: white;
+    border-radius: 10px;
+    padding: 2px;
+    padding-left: 8px;
+    padding-right: 8px;
+    margin-top: 3px;
+    margin-bottom: 3px;
+    font-size: 15px;
   }
 </style>

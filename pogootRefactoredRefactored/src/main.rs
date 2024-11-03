@@ -12,6 +12,7 @@ struct AwsSecrets {
     r2accountid: String,
     r2accesskeyid: String,
     r2secretaccesskey: String,
+    turnstileSecret: String,
 }
 
 #[tokio::main]
@@ -27,7 +28,7 @@ async fn main() {
     }
     let aws_secrets = aws_secrets.unwrap();
 
-    println!("Secrets:\n {:?}", aws_secrets);
+    println!("Secrets Read!");
     let aws_secrets = serde_json::from_str::<AwsSecrets>(&aws_secrets).unwrap();
 
     // let aws_secrets = AwsSecrets::default();
@@ -47,7 +48,7 @@ async fn fetch_aws_secrets() -> Result<Option<String>, aws_sdk_secretsmanager::E
     let secret_name = "pogootSecrets";
     let region = Region::new("us-west-2");
 
-    let config = aws_config::defaults(BehaviorVersion::v2023_11_09())
+    let config = aws_config::defaults(BehaviorVersion::v2024_03_28())
         .region(region)
         .load()
         .await;

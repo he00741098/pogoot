@@ -1,39 +1,9 @@
 ---
-import AccountButton from "./AccountButton.astro";
-import SearchBar from "./SearchBar.astro";
+
 ---
 
 <div class="navbar" transition:persist client:load>
-  <!-- <div class="navBox"> -->
-  <!--   <a class="navElement" href="/" -->
-  <!--     ><img id="logo" src="/logo.svg" transition:persist /></a -->
-  <!--   > -->
-  <!-- </div> -->
-  <!-- <div class="navBox" id="home"> -->
-  <!--   <a class="navElement" href="/" transition:persist>Home</a> -->
-  <!-- </div> -->
-  <!-- <div class="navBox"> -->
-  <!--   <a class="navElement" href="/library" transition:persist>Library</a> -->
-  <!-- </div> -->
-  <!-- <div class="navBox" id="tools"> -->
-  <!--   <a class="navElement" href="/tools" transition:persist>Tools</a> -->
-  <!-- </div> -->
-  <!-- <div class="navBox" id="searchbar"> -->
-  <!--   <SearchBar class="navSearchBar" transition:persist /> -->
-  <!-- </div> -->
-  <!-- <div class="navBox"> -->
-  <!--   <a class="navElement" href="/create" transition:persist>Create</a> -->
-  <!-- </div> -->
-  <!-- <div id="notifications" class="navBox"> -->
-  <!--   <a class="navElement" transition:persist>Notifications</a> -->
-  <!-- </div> -->
-  <!-- <div class="navBox" id="features"> -->
-  <!--   <a class="navElement" href="/pricing" transition:persist>Features</a> -->
-  <!-- </div> -->
-  <!-- <AccountButton /> -->
-
   <mdui-navigation-rail contained transition:persist>
-    <!-- <mdui-button-icon icon="menu" slot="top"></mdui-button-icon> -->
     <mdui-fab lowered icon="search" slot="top"></mdui-fab>
     <mdui-button-icon
       icon="account_circle"
@@ -48,9 +18,9 @@ import SearchBar from "./SearchBar.astro";
     <mdui-navigation-rail-item icon="bookmarks" id="library_button"
       >Library</mdui-navigation-rail-item
     >
-    <mdui-navigation-rail-item icon="auto_awesome" id="features_button"
-      >Features</mdui-navigation-rail-item
-    >
+    <!-- <mdui-navigation-rail-item icon="auto_awesome" id="features_button" -->
+    <!--   >Features</mdui-navigation-rail-item -->
+    <!-- > -->
     <mdui-navigation-rail-item icon="add" id="create_button"
       >Create</mdui-navigation-rail-item
     >
@@ -60,8 +30,22 @@ import SearchBar from "./SearchBar.astro";
 <script>
   import { prefetch } from "astro:prefetch";
   import { navigate } from "astro:transitions/client";
-
   document.addEventListener("astro:page-load", function () {
+    let loginTime = cookie_get("auth");
+    if (loginTime != null && loginTime.length > 5) {
+      document.getElementById("account_button").icon = "settings";
+    }
+    // function cookie_get(key) {
+    //   let cookies = document.cookie;
+    //   let split = cookies.split(";");
+    //   for (var cookie of split) {
+    //     let cook = cookie.trim().split("=");
+    //     if (cook[0] == key) {
+    //       return cook[1];
+    //     }
+    //   }
+    // }
+    // console.log("NavEvents Added");
     const home_btn = document.getElementById("home_button");
     home_btn.addEventListener("click", () => {
       navigate("/");
@@ -85,34 +69,29 @@ import SearchBar from "./SearchBar.astro";
       prefetch("/create");
     });
 
-    const features_btn = document.getElementById("features_button");
-    features_btn.addEventListener("click", () => {
-      navigate("/features");
-    });
-    features_btn.addEventListener("mouseover", () => {
-      prefetch("/features");
-    });
+    // const features_btn = document.getElementById("features_button");
+    // features_btn.addEventListener("click", () => {
+    //   navigate("/features");
+    // });
+    // features_btn.addEventListener("mouseover", () => {
+    //   prefetch("/features");
+    // });
     const account_btn = document.getElementById("account_button");
     account_btn.addEventListener("click", () => {
-      // console.log("Clicked!");
-      document.getElementById("login_popup").showModal();
-      // navigate("/account");
+      let loginTime = cookie_get("auth");
+      if (loginTime != null && loginTime.length > 5) {
+        navigate("/account");
+      } else {
+        document.getElementById("login_popup").showModal();
+      }
     });
     account_btn.addEventListener("mouseover", () => {
       prefetch("/account");
     });
     document.addEventListener("click", function (e) {
-      // console.log(e);
-      // console.log(":" + e.target.type + ":");
-      // if (e.target.type == "submit") {
-      // console.log("Submit button");
-      // return;
-      // }
       if (e.target.id != "login_popup") {
-        // console.log("Not login popup: " + e.target.id);
         return;
       }
-      // console.log("Closing");
       document.getElementById("login_popup").close();
     });
     let login_tabs = document.getElementById("loginTabs");

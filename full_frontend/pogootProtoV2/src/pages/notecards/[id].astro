@@ -1,17 +1,18 @@
 ---
 export const prerender = false;
 import Layout from "../../layouts/Layout.astro";
-import NavBar from "../../components/NavBar.astro";
 import Notecard from "../../components/Notecard.astro";
-import AlertBox from "../../components/AlertBox.astro";
-const { env } = Astro.locals.runtime;
-const { id } = Astro.params;
 import * as fzstd from "fzstd";
 
 let data = "";
+let other_data = "";
+let debug_data = "";
 let len = 0;
 console.log("Trying...");
 try {
+  const { env } = Astro.locals.runtime;
+  const { id } = Astro.params;
+
   console.log("Getting...");
   data = await env.NOTECARDBUCKET.get("pogootdata/" + id);
   if (data == null) {
@@ -32,7 +33,12 @@ try {
     const decoded = utf8decoder.decode(decompressed);
     console.log("decoded", decoded);
     data = decoded;
-    data = JSON.parse(data);
+    debug_data = data;
+    let temp_data = JSON.parse(data);
+
+    data = temp_data[1];
+    other_data = temp_data[0];
+
     // len = data.length;
   }
 } catch (error) {
@@ -44,69 +50,386 @@ try {
 
 len = data.length;
 let counter = 1;
+let other_counter = 1;
 ---
 
-<Layout title="Notecard | Sweep.rs">
-  <main id="main">
-    {
-      data.map((item) => (
-        <Notecard
-          front_text={item.front}
-          back_text={item.back}
-          idcount={counter++}
-        />
-      ))
-    }
-  </main>
-  <div id="controlbar">
-    <div id="counter">
-      <strong id="currentindex">1/</strong><strong id="maxlen">{len}</strong>
-    </div><div id="arrows">
-      <img id="leftarrow" class="svg" src="/arrowleft.svg" /><img
-        id="rightarrow"
-        class="svg"
-        src="/arrowright.svg"
-      />
+<Layout title={other_data.title + " | Sweep.rs"}>
+  <div id="learnView">
+    <div id="learnContainer">
+      <div id="close_learn">
+        <mdui-button-icon icon="close" id="learnCloseButton"></mdui-button-icon>
+      </div>
+
+      <div id="question">
+        <h3 id="definition">Definition</h3>
+        <h2 id="questionText">PlaceHolder Question</h2>
+        <mdui-button variant="outlined" id="revealHintButton">Hint</mdui-button>
+      </div>
+      <div id="answerSection">
+        <div id="multipleChoice">
+          <div class="multipleChoiceOption" id="choice1"></div>
+          <div class="multipleChoiceOption" id="choice2"></div>
+          <div class="multipleChoiceOption" id="choice3"></div>
+          <div class="multipleChoiceOption" id="choice4"></div>
+        </div>
+        <div id="shortAnswer">
+          <!-- <div id="textField"> -->
+          <mdui-text-field
+            label="Your Answer"
+            variant="outlined"
+            id="shortAnswerInput"></mdui-text-field>
+          <!-- </div> -->
+
+          <div id="correctAnswer"></div>
+          <div id="progressButtons">
+            <mdui-button variant="text" id="hintButton">Don't Know?</mdui-button
+            >
+            <mdui-button variant="filled" id="answerButton">Answer</mdui-button>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
-</Layout>
-<style>
-  .svg {
-    top: 20px;
-    width: 20px;
-  }
-  body {
-    display: grid;
-    width: 100%;
-    height: 100%;
-    margin: 0;
-    background-color: var(--blue);
-    color: white;
-    font-family: LeagueSpartan;
-    font-size: 20px;
-  }
 
-  main {
-    position: absolute;
-    width: 50%;
-    height: 50%;
-    top: 25%;
-    left: 25%;
-    text-align: center;
-    outline: white solid 2px;
-  }
-  #controlbar {
-    position: absolute;
-    top: 76%;
-    width: 50%;
-    left: 25%;
-    display: grid;
-    grid-template-columns: 50% 50%;
-  }
-  #counter {
-    width: 10%;
-  }
-  #arrows {
-    text-align: right;
-  }
-</style>
+  <div id="notecardView">
+    <div id="infoTitle"><h1>{other_data.title}</h1></div>
+    <main id="main">
+      <mdui-button-icon selectable icon="fullscreen" id="full">
+        <mdui-icon slot="selected-icon" name="fullscreen_exit"></mdui-icon>
+      </mdui-button-icon>
+
+      {
+        data.map((item) => (
+          <Notecard
+            front_text={item.front}
+            back_text={item.back}
+            idcount={counter++}
+          />
+        ))
+      }
+    </main>
+    <div id="controlbar">
+      <div id="counter">
+        <strong id="currentindex">1/</strong><strong id="maxlen">{len}</strong>
+      </div><div id="arrows">
+        <img id="leftarrow" class="svg" src="/arrowleft.svg" /><img
+          id="rightarrow"
+          class="svg"
+          src="/arrowright.svg"
+        />
+      </div>
+    </div>
+    <div id="actionbar">
+      <mdui-button variant="elevated" id="edit" class="actionButton">
+        <mdui-icon slot="icon" name="edit"></mdui-icon>
+        Edit</mdui-button
+      >
+      <mdui-button variant="elevated" id="export" class="actionButton">
+        <mdui-icon slot="icon" name="import_export"></mdui-icon>
+        Export</mdui-button
+      >
+      <mdui-button variant="elevated" id="copy" class="actionButton">
+        <mdui-icon slot="icon" name="content_copy"></mdui-icon>
+        Copy</mdui-button
+      >
+      <mdui-button variant="elevated" id="learn" class="actionButton">
+        <mdui-icon slot="icon" name="repeat"></mdui-icon>
+        Learn</mdui-button
+      >
+      <mdui-button variant="elevated" id="report" class="actionButton">
+        <mdui-icon slot="icon" name="warning"></mdui-icon>
+        Report</mdui-button
+      >
+      <mdui-button variant="elevated" id="random" class="actionButton">
+        <mdui-icon slot="icon" name="shuffle"></mdui-icon>
+        Shuffle</mdui-button
+      >
+    </div>
+    <div id="info">
+      <div id="infoDesc">{other_data.desc}</div>
+    </div>
+
+    <div id="termlist">
+      {
+        data.map((item) => (
+          <div class="termitem">
+            <div class="termcount">{other_counter++}</div>
+            <div class="termfront">{item.front}</div>
+            <div class="termback">{item.back}</div>
+            <div class="termstar">
+              <mdui-button-icon
+                selectable
+                icon="star_border"
+                id={"star" + (other_counter - 1)}
+              >
+                <mdui-icon slot="selected-icon" name="star" />
+              </mdui-button-icon>
+            </div>
+          </div>
+        ))
+      }
+    </div>
+    <div id="rawData">{JSON.stringify(data)}</div>
+    <div id="tags">{other_data.tags}</div>
+    <div id="school">{other_data.school}</div>
+  </div>
+
+  <style>
+    #close_learn {
+      position: fixed;
+      top: 20px;
+      right: 40px;
+      width: 25px;
+      height: 25px;
+    }
+    #learnView {
+      width: 100%;
+      height: 100%;
+      min-height: 100vh;
+      display: none;
+      /* display: grid; */
+      /* justify-content: center; */
+    }
+    #learnContainer {
+      justify-self: center;
+      align-self: center;
+      width: 75%;
+      height: fit-content;
+      min-height: 40%;
+      position: relative;
+      border: 2px solid white;
+      border-radius: 10px 10px 10px 10px;
+      padding: 20px 20px 20px 20px;
+      display: grid;
+      /* grid-template-rows: 30% 70%; */
+    }
+    /* :global(.container) { */
+    /* background-color: none !important; */
+    /* } */
+    #question {
+      width: 100%;
+      font-size: 2rem;
+      align-self: center;
+      margin-bottom: 20px;
+    }
+    #definition {
+      margin: 0;
+      color: gray;
+    }
+    #questionText {
+      margin: 0;
+    }
+    .multipleChoiceOption {
+      outline: lightgray solid 2px;
+      padding: 20px;
+      border-radius: 5px;
+      cursor: pointer;
+      height: fit-content;
+      /* min-height: 100%; */
+
+      /* text-align: center; */
+    }
+    #multipleChoice {
+      display: none;
+      grid-template-columns: 47.5% 47.5%;
+      column-gap: 5%;
+      row-gap: 20px;
+      align-self: end;
+      /* grid-template-rows: 20px; */
+      /* height: */
+    }
+    #shortAnswer {
+      margin-bottom: 10px;
+      display: none;
+      align-self: end;
+    }
+    #correctAnswer {
+      display: none;
+      outline: green dashed 2px;
+      border-radius: 5px;
+      padding: 15px;
+      height: fit-content;
+      margin-top: 10px;
+    }
+    #shortAnswerInput::part(label) {
+      background-color: var(--blue);
+      color: white;
+      /* color: white; */
+      /* height: 50px; */
+    }
+    /* #textField { */
+    /* height: 100px; */
+    /* } */
+    #progressButtons {
+      width: 100%;
+      /* display: flex; */
+      display: none;
+      justify-content: right;
+      gap: 10px;
+      margin-top: 10px;
+      /* grid-template-columns: 50px 50px; */
+      /* float: right; */
+      /* display: block; */
+    }
+    #answerButton,
+    #hintButton,
+    #revealHintButton {
+      border-radius: 5px;
+    }
+    #revealHintButton {
+      margin-top: 10px;
+      width: 15px;
+    }
+    #answerSection {
+      display: grid;
+      /* align-content: baseline; */
+      height: fit-content;
+      min-height: 100%;
+      /* justify-self: baseline; */
+      /* position: relative; */
+    }
+    /* :global(.label) { */
+    /*   background-color: none !important; */
+    /*   color: rgb(var(--mdui-color-on-surface-variant)) !important; */
+    /* } */
+    #notecardView {
+      width: 100%;
+      height: 100%;
+    }
+    #full {
+      position: absolute;
+      top: 5px;
+      right: 5px;
+      font-size: 50px;
+    }
+    .termcount {
+      padding-left: 20px;
+      text-align: left;
+    }
+    #infoTitle {
+      width: 75%;
+      left: 12.5%;
+      position: relative;
+    }
+    .actionButton {
+      border-radius: var(--mdui-shape-corner-medium);
+      /* margin-top: 10px; */
+      /* height: 40px; */
+    }
+    :global(#footer) {
+      /* position: relative; */
+    }
+    :global(#slot_container) {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-evenly;
+      min-height: 100vh;
+    }
+    #info {
+      height: fit-content;
+      width: calc(75% - 10px);
+      left: 12.5%;
+      position: relative;
+      margin-bottom: 32px;
+      margin-top: 32px;
+      padding-left: 10px;
+      outline: gray solid 2px;
+      padding-top: 20px;
+      padding-bottom: 20px;
+      border-radius: 2px;
+    }
+    #termlist {
+      position: relative;
+      /* top: 84%; */
+      left: 12.5%;
+      width: 75%;
+      display: block;
+      margin-bottom: 20px;
+    }
+    .termitem {
+      display: grid;
+      grid-template-columns: 10% 40% 40% 10%;
+      padding: 4px;
+      margin-bottom: 6px;
+      background-color: white;
+      height: fit-content;
+      color: black;
+      text-align: left;
+      border-radius: 2px;
+      min-height: 30px;
+      align-items: center;
+      word-wrap: break-word;
+      hyphens: auto;
+      white-space: pre-line;
+    }
+    .termstar {
+      text-align: right;
+    }
+    /* .termitem:nth-child(1) { */
+    /*   float: left; */
+    /* } */
+    #actionbar {
+      margin-top: 15px;
+      margin-bottom: 15px;
+      position: relative;
+      display: flex;
+      column-gap: 10px;
+      background-color: white;
+      padding: 10px;
+      /* padding-right: 0px; */
+      border-radius: 4px 4px 4px 4px;
+      height: 40px;
+      align-content: center;
+      justify-content: center;
+      /* justify-content: center; */
+      left: 12.5%;
+      width: calc(75% - 20px);
+    }
+    #rawData,
+    #tags,
+    #school {
+      display: none;
+    }
+    .svg {
+      top: 20px;
+      width: 20px;
+    }
+    body {
+      display: grid;
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      background-color: var(--blue);
+      color: white;
+      font-family: LeagueSpartan;
+      font-size: 20px;
+    }
+
+    main {
+      background-color: var(--blue);
+      position: relative;
+      width: calc(75% - 4px);
+      height: 750px;
+      left: calc(12.5% + 2px);
+      text-align: center;
+      outline: white solid 2px;
+      margin-bottom: 10px;
+      overflow: scroll;
+      white-space: pre-line;
+    }
+    #controlbar {
+      position: relative;
+      /* top: 76%; */
+      width: 75%;
+      left: 12.5%;
+      display: grid;
+      grid-template-columns: 50% 50%;
+    }
+    #counter {
+      width: 10%;
+    }
+    #arrows {
+      text-align: right;
+    }
+  </style>
+</Layout>
