@@ -19,3 +19,4 @@ full_frontend/node_modules
 full_frontend/pogootProtoV2/.wrangler/tmp
 qdrantTest/qdrantTest/target
 full_frontend/pogootProtoV2/.wrangler/state/v3/r2/miniflare-R2BucketObject
+wgpuFrontend/target
