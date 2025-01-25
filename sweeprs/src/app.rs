@@ -1,3 +1,4 @@
+use codee::string::FromToStringCodec;
 use icondata as i;
 use leptos::{logging::log, prelude::*};
 use leptos_icons::Icon;
@@ -6,6 +7,7 @@ use leptos_router::{
     components::{Route, Router, Routes, A},
     path, StaticSegment,
 };
+use leptos_use::use_cookie;
 use reactive_stores::Store;
 use serde::{Deserialize, Serialize};
 
@@ -55,6 +57,14 @@ pub fn App() -> impl IntoView {
 
 #[island]
 fn Nav() -> impl IntoView {
+    // let (counter, set_counter) = use_cookie::<u32, FromToStringCodec>("show");
+    // let reset = move || set_counter.set(Some(0));
+    // let show = if counter.get().is_none() {
+    // RwSignal::new(0)
+    // } else {
+    // RwSignal::new(counter.get().unwrap())
+    // };
+
     let show = RwSignal::new(0);
     provide_context(show);
     view! {
@@ -171,6 +181,8 @@ fn Pancake() -> impl IntoView {
     let show = use_context::<RwSignal<i32>>().expect("to have context");
     let on_click = move |_| {
         show.update(|show| *show += 1);
+        // let (_, set_counter) = use_cookie::<u32, FromToStringCodec>("show");
+        // set_counter.set(Some(show.get() as u32));
     };
 
     view! {
