@@ -1,0 +1,6 @@
+[diagnostics]
+disabled = ["inactive-code"]
+
+[rustfmt]
+overrideCommand = ["leptosfmt", "--stdin", "--rustfmt"]
+# (optional) other config...

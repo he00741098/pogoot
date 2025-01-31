@@ -1,5 +1,5 @@
 [package]
-name = "sweep-rs-ssr"
+name = "sweeprs"
 version = "0.1.0"
 edition = "2021"
 
@@ -7,27 +7,37 @@ edition = "2021"
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-leptos = { version = "0.7.0", features = ["nightly"] }
-leptos_router = { version = "0.7.0", features = ["nightly"] }
+leptos = { version = "0.7.2", features = ["nightly", "islands", "rkyv"] }
+leptos_router = { version = "0.7.2", features = ["nightly"] }
 axum = { version = "0.7", optional = true }
-console_error_panic_hook = { version = "0.1", optional = true }
-leptos_axum = { version = "0.7.0", optional = true }
-leptos_meta = { version = "0.7.0" }
+console_error_panic_hook = "0.1"
+leptos_axum = { version = "0.7.2", optional = true }
+leptos_meta = { version = "0.7.2" }
 tokio = { version = "1", features = ["rt-multi-thread"], optional = true }
-wasm-bindgen = { version = "=0.2.100", optional = true }
+tower = { version = "0.4", optional = true }
+tower-http = { version = "0.5", features = ["fs"], optional = true }
+wasm-bindgen = "=0.2.99"
+thiserror = "1"
+http = "1"
 serde = { version = "1.0.217", features = ["derive"] }
 icondata = "0.5.0"
 leptos_icons = "0.4.0"
+leptos-use = { version = "0.15.0", features = ["storage"] }
+codee = { version = "0.2.0" }
+reactive_stores = "0.1.2"
 
 [features]
-hydrate = ["leptos/hydrate", "dep:console_error_panic_hook", "dep:wasm-bindgen"]
+hydrate = ["leptos/hydrate"]
 ssr = [
-    "dep:axum",
-    "dep:tokio",
-    "dep:leptos_axum",
-    "leptos/ssr",
-    "leptos_meta/ssr",
-    "leptos_router/ssr",
+  "dep:axum",
+  "dep:tokio",
+  "dep:tower",
+  "dep:tower-http",
+  "dep:leptos_axum",
+  "leptos/ssr",
+  "leptos_meta/ssr",
+  "leptos_router/ssr",
+  "leptos-use/ssr",
 ]
 
 # Defines a size-optimized profile for the WASM bundle in release mode
@@ -40,7 +50,7 @@ panic = "abort"
 
 [package.metadata.leptos]
 # The name used by wasm-bindgen/cargo-leptos for the JS/WASM bundle. Defaults to the crate name
-output-name = "sweep-rs-ssr"
+output-name = "sweeprs"
 
 # The site root folder is where cargo-leptos generate all output. WARNING: all content of this folder will be erased on a rebuild. Use it in your server setup.
 site-root = "target/site"

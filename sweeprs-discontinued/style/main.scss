@@ -64,7 +64,7 @@ a:hover{
 
 	left:-153px;
 	animation-name:slide-out;
-	animation-duration:0.5s;
+	animation-duration:1s;
 }
 .slider{
 	background-color:rgb(25, 25, 25);
@@ -83,7 +83,7 @@ a:hover{
   z-index:99;
 }
 .sliderAnimation{
-	animation-duration:0.5s;
+	animation-duration:1s;
 	animation-name:slide-in;
 }
 
@@ -113,11 +113,11 @@ a:hover{
 }
 .primaryOpenAnimation{
 	animation-name:expand;
-	animation-duration:0.5s;
+	animation-duration:1s;
 }
 .primaryCloseAnimation{
 	animation-name:contract;
-	animation-duration:0.5s;
+	animation-duration:1s;
 }
 
 .primaryOpen{

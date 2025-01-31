@@ -1,13 +1,16 @@
+use codee::string::FromToStringCodec;
 use icondata as i;
 use leptos::{logging::log, prelude::*};
 use leptos_icons::Icon;
 use leptos_meta::{provide_meta_context, MetaTags, Stylesheet, Title};
 use leptos_router::{
-    components::{Route, Router, Routes},
+    components::{Route, Router, Routes, A},
     path,
     static_routes::StaticRoute,
     SsrMode, StaticSegment,
 };
+use leptos_use::use_cookie;
+use reactive_stores::Store;
 use serde::{Deserialize, Serialize};
 
 pub fn shell(options: LeptosOptions) -> impl IntoView {
@@ -18,7 +21,7 @@ pub fn shell(options: LeptosOptions) -> impl IntoView {
                 <meta charset="utf-8" />
                 <meta name="viewport" content="width=device-width, initial-scale=1" />
                 <AutoReload options=options.clone() />
-                <HydrationScripts options />
+                <HydrationScripts options islands=true />
                 <MetaTags />
             </head>
             <body>
@@ -32,14 +35,14 @@ pub fn shell(options: LeptosOptions) -> impl IntoView {
 pub fn App() -> impl IntoView {
     // Provides context that manages stylesheets, titles, meta tags, etc.
     provide_meta_context();
-    // let global_state_store = GlobalStateStore {
-    //     test_counter: RwSignal::new(0),
-    // };
+    let global_state_store = GlobalStateStore {
+        test_counter: RwSignal::new(0),
+    };
     // provide_context(Store::new(global_state_store));
     view! {
-        <Stylesheet id="leptos" href="/pkg/sweep-rs-ssr.css" />
+        <Stylesheet id="leptos" href="/pkg/sweeprs.css" />
         <Title text="Sweep-rs" />
-        <Nav />
+        <Nav global_state_store />
         <Router>
             <Main>
                 <main>
@@ -68,8 +71,8 @@ pub fn App() -> impl IntoView {
     }
 }
 
-#[component]
-fn Nav() -> impl IntoView {
+#[island]
+fn Nav(global_state_store: GlobalStateStore) -> impl IntoView {
     // let (counter, set_counter) = use_cookie::<u32, FromToStringCodec>("show");
     // let reset = move || set_counter.set(Some(0));
     // let show = if counter.get().is_none() {
@@ -77,9 +80,8 @@ fn Nav() -> impl IntoView {
     // } else {
     // RwSignal::new(counter.get().unwrap())
     // };
-    let show = RwSignal::new(0);
-    // log!("Nav component: {:?}", global_state_store.test_counter.get());
-    provide_context(show);
+    log!("Nav island: {:?}", global_state_store.test_counter.get());
+    provide_context(global_state_store.test_counter);
     view! {
         <NavBar />
         <Slider />
@@ -173,7 +175,7 @@ fn Link(href: String, text: String) -> impl IntoView {
         </a>
     }
 }
-#[component]
+#[island]
 fn Slider() -> impl IntoView {
     let show = use_context::<RwSignal<i32>>().expect("to have context");
     view! {
@@ -189,7 +191,7 @@ fn Slider() -> impl IntoView {
         </div>
     }
 }
-#[component]
+#[island]
 fn Pancake() -> impl IntoView {
     let show = use_context::<RwSignal<i32>>().expect("to have context");
     log!("Pancake: {:?}", show.get());
@@ -207,7 +209,7 @@ fn Pancake() -> impl IntoView {
     }
 }
 
-#[component]
+#[island]
 fn Main(children: Children) -> impl IntoView {
     let show = use_context::<RwSignal<i32>>().expect("to have context");
     view! {
@@ -230,7 +232,7 @@ struct Card {
     url: String,
 }
 
-#[derive(Deserialize, Serialize, Clone, Debug, Default)]
+#[derive(Deserialize, Serialize, Clone, Debug, Default, Store)]
 struct GlobalStateStore {
     test_counter: RwSignal<i32>,
 }
