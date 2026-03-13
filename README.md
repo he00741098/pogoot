@@ -27,4 +27,5 @@ Goals -
 - Redesign frontend, create set suggestion algorithm, other QOL features.
 - Incorporate some sort of version of kahoot (basic prototype backend included in ./pogoot)
 - Reduce size of website + faster loading times in general
+- Squash bugs
 
