@@ -7,7 +7,7 @@ edition = "2021"
 
 [dependencies]
 # aws-lc-rs = "1.8.1"
-tonic = { version = "0.12.1", features = ["tls", "transport", "zstd", "gzip"] }
+tonic = { version = "0.12.2", features = ["tls", "transport", "zstd", "gzip"] }
 argon2 = "0.5.3"
 futures = "0.3.30"
 futures-util = "0.3.30"
